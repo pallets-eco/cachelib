@@ -4,7 +4,7 @@ try:
 except ImportError:  # pragma: no cover
     import pickle
 
-from cachelib.base import BaseCache, _items
+from cachelib.base import BaseCache
 from cachelib._compat import string_types, integer_types
 
 
