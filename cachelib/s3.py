@@ -32,7 +32,7 @@ class S3Cache(BaseCache):
             import botocore.exceptions
         except ImportError:
             raise RuntimeError("no boto3 module found")
-        self._client = boto3.client("s3")
+        self._client = boto3.client("s3", **kwargs)
         self.bucket = bucket
         self.key_prefix = key_prefix or ""
 
