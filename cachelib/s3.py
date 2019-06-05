@@ -103,6 +103,12 @@ class S3Cache(BaseCache):
         else:
             return self.load_object(resp["Body"].read())
 
+    def get_many(self, *keys):
+        return [self.get(key) for key in keys]
+
+    def get_dict(self, *keys):
+        return {key: self.get(key) for key in keys}
+
     def set(self, key, value, timeout=None):
         full_key = self.key_prefix + key
         dump = self.dump_object(value)
@@ -117,6 +123,9 @@ class S3Cache(BaseCache):
         self._client.put_object(Bucket=self.bucket, Key=full_key, Body=dump, **expires)
         return True
 
+    def set_many(self, mapping, timeout=None):
+        return all(map(lambda item: self.set(item[0], item[1], timeout), mapping))
+
     def add(self, key, value, timeout=None):
         full_key = self.key_prefix + key
         if self._has(full_key):
@@ -127,6 +136,9 @@ class S3Cache(BaseCache):
     def delete(self, key):
         full_key = self.key_prefix + key
         return self._delete(full_key)
+
+    def delete_many(self, *keys):
+        return self._delete_many(self.key_prefix + key for key in keys)
 
     def has(self, key):
         full_key = self.key_prefix + key
