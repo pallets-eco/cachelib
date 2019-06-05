@@ -96,7 +96,7 @@ class S3Cache(BaseCache):
             # Unhandled
             raise
 
-        if self._now() > resp["Expires"]:
+        if "Expires" in resp and self._now() > resp["Expires"]:
             # Object is stale
             if self.delete_expired_objects_on_read:
                 self._delete(full_key)
@@ -180,7 +180,7 @@ class S3Cache(BaseCache):
                 return False
             # Unhandled
             raise
-        if self._now() > resp["Expires"]:
+        if "Expires" in resp and self._now() > resp["Expires"]:
             # Exists but is stale
             if self.delete_expired_objects_on_read:
                 self._delete(key)
