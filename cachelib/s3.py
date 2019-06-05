@@ -24,8 +24,9 @@ class S3Cache(BaseCache):
 
     Note: Expired cache objects are not automatically purged. If
     delete_expired_objects_on_read=True, they will be deleted following an
-    attempted read. Otherwise, you have to delete stale objects yourself.
-    Consider an S3 bucket lifecycle rule or other out-of-band process.
+    attempted read (which reduces performance). Otherwise, you have to delete
+    stale objects yourself. Consider an S3 bucket lifecycle rule or other
+    out-of-band process.
 
     :param bucket: Required. Name of the bucket to use. It must already exist.
     :param key_prefix: A prefix that should be added to all keys.
@@ -142,16 +143,15 @@ class S3Cache(BaseCache):
         return self._has(full_key)
 
     def clear(self):
+        # Delete in batches of 1000 which is much faster than individual deletes
         paginator = self._client.get_paginator("list_objects_v2")
         response_iterator = paginator.paginate(
             Bucket=self.bucket, Prefix=self.key_prefix
         )
-        # Delete in batches of 1000 which is much faster than individual deletes
         to_delete = []
         for page in response_iterator:
             for item in page["Contents"]:
-                key = item["Key"]
-                to_delete.append(key)
+                to_delete.append(item["Key"])
                 if len(to_delete) == 1000:
                     self._delete_many(to_delete)
                     to_delete = []
