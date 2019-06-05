@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 try:
     import cPickle as pickle
 except ImportError:  # pragma: no cover
@@ -20,22 +22,40 @@ class S3Cache(BaseCache):
     Note: Cache keys must meet S3 criteria for a valid object name (a sequence
     of Unicode characters whose UTF-8 encoding is at most 1024 bytes long).
 
-    Note: Cache item timeout is not currently supported. (It could be
-    implemented efficiently with S3 GetObject's IfModifiedSince.)
+    Note: Expired cache objects are not automatically purged. If
+    delete_expired_objects_on_read=True, they will be deleted following an
+    attempted read. Otherwise, you have to delete stale objects yourself.
+    Consider an S3 bucket lifecycle rule or other out-of-band process.
 
     :param bucket: Required. Name of the bucket to use. It must already exist.
     :param key_prefix: A prefix that should be added to all keys.
+    :param default_timeout: the default timeout that is used if no timeout is
+                            specified on :meth:`~BaseCache.set`. A timeout of
+                            0 indicates that the cache never expires.
+    :param delete_expired_objects_on_read: If True, if a read finds a stale
+                                           object, it will be deleted before
+                                           a response is returned. Will slow
+                                           down responses.
 
     Any additional keyword arguments will be passed to ``boto3.client``.
     """
 
-    def __init__(self, bucket, key_prefix=None, **kwargs):
-        BaseCache.__init__(self, default_timeout=0)
+    def __init__(
+        self,
+        bucket,
+        key_prefix=None,
+        default_timeout=300,
+        delete_expired_objects_on_read=True,
+        **kwargs
+    ):
+        BaseCache.__init__(self, default_timeout)
         if not isinstance(bucket, string_types):
             raise ValueError("S3Cache bucket parameter must be a string")
         self._client = boto3.client("s3", **kwargs)
         self.bucket = bucket
         self.key_prefix = key_prefix or ""
+        self.default_timeout = default_timeout
+        self.delete_expired_objects_on_read = delete_expired_objects_on_read
 
     def dump_object(self, value):
         """Dumps an object into a string for S3.  By default it serializes
@@ -67,17 +87,37 @@ class S3Cache(BaseCache):
         full_key = self.key_prefix + key
         try:
             resp = self._client.get_object(Bucket=self.bucket, Key=full_key)
-            return self.load_object(resp["Body"].read())
-        except botocore.exceptions.ClientError:
-            return None
+        except botocore.exceptions.ClientError as e:
+            code = e.response["ResponseMetadata"]["HTTPStatusCode"]
+            if code == 404:
+                # Object does not exist
+                return None
+            # Unhandled
+            raise
 
-    def set(self, key, value):
+        if self._now() > resp["Expires"]:
+            # Object is stale
+            if self.delete_expired_objects_on_read:
+                self._delete(full_key)
+            return None
+        else:
+            return self.load_object(resp["Body"].read())
+
+    def set(self, key, value, timeout=None):
         full_key = self.key_prefix + key
         dump = self.dump_object(value)
-        self._client.put_object(Bucket=self.bucket, Key=full_key, Body=dump)
+
+        if timeout is None:
+            timeout = self.default_timeout
+        # Figure out expires header
+        if timeout is 0:
+            expires = {}
+        else:
+            expires = {"Expires": self._now() + datetime.timedelta(seconds=timeout)}
+        self._client.put_object(Bucket=self.bucket, Key=full_key, Body=dump, **expires)
         return True
 
-    def add(self, key, value):
+    def add(self, key, value, timeout=None):
         full_key = self.key_prefix + key
         if self._has(full_key):
             return False
@@ -86,12 +126,7 @@ class S3Cache(BaseCache):
 
     def delete(self, key):
         full_key = self.key_prefix + key
-        try:
-            self._client.delete_object(Bucket=self.bucket, Key=full_key)
-        except botocore.exceptions.ClientError:
-            return False
-        else:
-            return True
+        return self._delete(full_key)
 
     def has(self, key):
         full_key = self.key_prefix + key
@@ -119,11 +154,26 @@ class S3Cache(BaseCache):
         self._client.delete_objects(
             Bucket=self.bucket, Delete={"Objects": [{"Key": i} for i in keys]}
         )
+        return True
+
+    def _delete(self, key):
+        return self._delete_many([key])
 
     def _has(self, key):
         try:
-            self._client.head_object(Bucket=self.bucket, Key=key)
-        except botocore.exceptions.ClientError:
+            resp = self._client.head_object(Bucket=self.bucket, Key=key)
+        except botocore.exceptions.ClientError as e:
+            code = e.response["ResponseMetadata"]["HTTPStatusCode"]
+            if code == 404:
+                return False
+            # Unhandled
+            raise
+        if self._now() > resp["Expires"]:
+            # Exists but is stale
+            if self.delete_expired_objects_on_read:
+                self._delete(key)
             return False
-        else:
-            return True
+        return True
+
+    def _now(self):
+        return datetime.datetime.now(datetime.timezone.utc)
