@@ -4,6 +4,12 @@ try:
 except ImportError:  # pragma: no cover
     import pickle
 
+try:
+    import boto3
+    import botocore.exceptions
+except ImportError:  # pragma: no cover
+    raise RuntimeError("no boto3 module found")
+
 from cachelib.base import BaseCache
 from cachelib._compat import string_types, integer_types
 
@@ -27,11 +33,6 @@ class S3Cache(BaseCache):
         BaseCache.__init__(self, default_timeout=0)
         if not isinstance(bucket, string_types):
             raise ValueError("S3Cache bucket parameter must be a string")
-        try:
-            import boto3
-            import botocore.exceptions
-        except ImportError:
-            raise RuntimeError("no boto3 module found")
         self._client = boto3.client("s3", **kwargs)
         self.bucket = bucket
         self.key_prefix = key_prefix or ""
@@ -73,7 +74,7 @@ class S3Cache(BaseCache):
     def set(self, key, value):
         full_key = self.key_prefix + key
         dump = self.dump_object(value)
-        self._client.put_object(Bucket=self.bucket, Key=full_key, body=dump)
+        self._client.put_object(Bucket=self.bucket, Key=full_key, Body=dump)
         return True
 
     def add(self, key, value):
