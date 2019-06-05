@@ -95,10 +95,7 @@ class S3Cache(BaseCache):
             # Unhandled
             raise
 
-        if self._now() > resp["Expires"]:
-            # Object is stale
-            if self.delete_expired_objects_on_read:
-                self._delete(full_key)
+        if self._stale_response(resp):
             return None
         else:
             return self.load_object(resp["Body"].read())
@@ -180,12 +177,17 @@ class S3Cache(BaseCache):
                 return False
             # Unhandled
             raise
-        if self._now() > resp["Expires"]:
-            # Exists but is stale
-            if self.delete_expired_objects_on_read:
-                self._delete(key)
+        if self._stale_response(resp):
             return False
         return True
 
     def _now(self):
         return datetime.datetime.now(datetime.timezone.utc)
+
+    def _stale_response(self, resp):
+        """Check if an S3 response is stale, and delete the object if needed."""
+        if self._now() > resp["Expires"]:
+            if self.delete_expired_objects_on_read:
+                self._delete(key)
+            return True
+        return False
