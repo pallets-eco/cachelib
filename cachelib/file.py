@@ -155,7 +155,7 @@ class FileSystemCache(BaseCache):
                 pickle.dump(timeout, f, 1)
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
 
-            os.rename(tmp, filename)
+            os.replace(tmp, filename)
             os.chmod(filename, self._mode)
         except (IOError, OSError):
             return False
