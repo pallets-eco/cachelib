@@ -160,3 +160,18 @@ Start coding
 
 .. _committing as you go: https://dont-be-afraid-to-commit.readthedocs.io/en/latest/git/commandlinegit.html#commit-your-changes
 .. _create a pull request: https://help.github.com/en/articles/creating-a-pull-request
+
+
+Building the docs
+~~~~~~~~~~~~~~~~~
+
+Build the docs in the ``docs`` directory using Sphinx.
+
+.. code-block:: text
+
+    $ cd docs
+    $ make html
+
+Open ``_build/html/index.html`` in your browser to view the docs.
+
+Read more about `Sphinx <https://www.sphinx-doc.org/en/stable/>`__.
