@@ -12,7 +12,7 @@ def _items(mappingorseq):
         ...    assert k*k == v
 
     """
-    if hasattr(mappingorseq, 'items'):
+    if hasattr(mappingorseq, "items"):
         return iteritems(mappingorseq)
     return mappingorseq
 
@@ -143,10 +143,10 @@ class BaseCache:
         :param key: the key to check
         """
         raise NotImplementedError(
-            '%s doesn\'t have an efficient implementation of `has`. That '
-            'means it is impossible to check whether a key exists without '
-            'fully loading the key\'s data. Consider using `self.get` '
-            'explicitly if you don\'t care about performance.'
+            "%s doesn't have an efficient implementation of `has`. That "
+            "means it is impossible to check whether a key exists without "
+            "fully loading the key's data. Consider using `self.get` "
+            "explicitly if you don't care about performance."
         )
 
     def clear(self):

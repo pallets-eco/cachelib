@@ -1,4 +1,5 @@
 from time import time
+
 try:
     import cPickle as pickle
 except ImportError:  # pragma: no cover
@@ -54,15 +55,13 @@ class SimpleCache(BaseCache):
     def set(self, key, value, timeout=None):
         expires = self._normalize_timeout(timeout)
         self._prune()
-        self._cache[key] = (expires, pickle.dumps(value,
-                                                  pickle.HIGHEST_PROTOCOL))
+        self._cache[key] = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
         return True
 
     def add(self, key, value, timeout=None):
         expires = self._normalize_timeout(timeout)
         self._prune()
-        item = (expires, pickle.dumps(value,
-                                      pickle.HIGHEST_PROTOCOL))
+        item = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
         if key in self._cache:
             return False
         self._cache.setdefault(key, item)

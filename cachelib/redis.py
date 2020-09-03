@@ -29,24 +29,32 @@ class RedisCache(BaseCache):
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
-    def __init__(self, host='localhost', port=6379, password=None,
-                 db=0, default_timeout=300, key_prefix=None, **kwargs):
+    def __init__(
+        self,
+        host="localhost",
+        port=6379,
+        password=None,
+        db=0,
+        default_timeout=300,
+        key_prefix=None,
+        **kwargs
+    ):
         BaseCache.__init__(self, default_timeout)
         if host is None:
-            raise ValueError('RedisCache host parameter may not be None')
+            raise ValueError("RedisCache host parameter may not be None")
         if isinstance(host, string_types):
             try:
                 import redis
             except ImportError:
-                raise RuntimeError('no redis module found')
-            if kwargs.get('decode_responses', None):
-                raise ValueError('decode_responses is not supported by '
-                                 'RedisCache.')
-            self._client = redis.Redis(host=host, port=port, password=password,
-                                       db=db, **kwargs)
+                raise RuntimeError("no redis module found")
+            if kwargs.get("decode_responses", None):
+                raise ValueError("decode_responses is not supported by " "RedisCache.")
+            self._client = redis.Redis(
+                host=host, port=port, password=password, db=db, **kwargs
+            )
         else:
             self._client = host
-        self.key_prefix = key_prefix or ''
+        self.key_prefix = key_prefix or ""
 
     def _normalize_timeout(self, timeout):
         timeout = BaseCache._normalize_timeout(self, timeout)
@@ -60,8 +68,8 @@ class RedisCache(BaseCache):
         """
         t = type(value)
         if t in integer_types:
-            return str(value).encode('ascii')
-        return b'!' + pickle.dumps(value)
+            return str(value).encode("ascii")
+        return b"!" + pickle.dumps(value)
 
     def load_object(self, value):
         """The reversal of :meth:`dump_object`.  This might be called with
@@ -69,7 +77,7 @@ class RedisCache(BaseCache):
         """
         if value is None:
             return None
-        if value.startswith(b'!'):
+        if value.startswith(b"!"):
             try:
                 return pickle.loads(value[1:])
             except pickle.PickleError:
@@ -92,20 +100,19 @@ class RedisCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         dump = self.dump_object(value)
         if timeout == -1:
-            result = self._client.set(name=self.key_prefix + key,
-                                      value=dump)
+            result = self._client.set(name=self.key_prefix + key, value=dump)
         else:
-            result = self._client.setex(name=self.key_prefix + key,
-                                        value=dump, time=timeout)
+            result = self._client.setex(
+                name=self.key_prefix + key, value=dump, time=timeout
+            )
         return result
 
     def add(self, key, value, timeout=None):
         timeout = self._normalize_timeout(timeout)
         dump = self.dump_object(value)
-        return (
-            self._client.setnx(name=self.key_prefix + key, value=dump) and
-            self._client.expire(name=self.key_prefix + key, time=timeout)
-        )
+        return self._client.setnx(
+            name=self.key_prefix + key, value=dump
+        ) and self._client.expire(name=self.key_prefix + key, time=timeout)
 
     def set_many(self, mapping, timeout=None):
         timeout = self._normalize_timeout(timeout)
@@ -118,8 +125,7 @@ class RedisCache(BaseCache):
             if timeout == -1:
                 pipe.set(name=self.key_prefix + key, value=dump)
             else:
-                pipe.setex(name=self.key_prefix + key, value=dump,
-                           time=timeout)
+                pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
         return pipe.execute()
 
     def delete(self, key):
@@ -138,7 +144,7 @@ class RedisCache(BaseCache):
     def clear(self):
         status = False
         if self.key_prefix:
-            keys = self._client.keys(self.key_prefix + '*')
+            keys = self._client.keys(self.key_prefix + "*")
             if keys:
                 status = self._client.delete(*keys)
         else:

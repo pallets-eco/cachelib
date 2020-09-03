@@ -1,4 +1,5 @@
 import platform
+
 try:
     import cPickle as pickle
 except ImportError:  # pragma: no cover
@@ -21,19 +22,24 @@ class UWSGICache(BaseCache):
         same instance as the werkzeug app, you only have to provide the name of
         the cache.
     """
-    def __init__(self, default_timeout=300, cache=''):
+
+    def __init__(self, default_timeout=300, cache=""):
         BaseCache.__init__(self, default_timeout)
 
-        if platform.python_implementation() == 'PyPy':
-            raise RuntimeError("uWSGI caching does not work under PyPy, see "
-                               "the docs for more details.")
+        if platform.python_implementation() == "PyPy":
+            raise RuntimeError(
+                "uWSGI caching does not work under PyPy, see "
+                "the docs for more details."
+            )
 
         try:
             import uwsgi
+
             self._uwsgi = uwsgi
         except ImportError:
-            raise RuntimeError("uWSGI could not be imported, are you "
-                               "running under uWSGI?")
+            raise RuntimeError(
+                "uWSGI could not be imported, are you " "running under uWSGI?"
+            )
 
         self.cache = cache
 
@@ -47,14 +53,14 @@ class UWSGICache(BaseCache):
         return self._uwsgi.cache_del(key, self.cache)
 
     def set(self, key, value, timeout=None):
-        return self._uwsgi.cache_update(key, pickle.dumps(value),
-                                        self._normalize_timeout(timeout),
-                                        self.cache)
+        return self._uwsgi.cache_update(
+            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+        )
 
     def add(self, key, value, timeout=None):
-        return self._uwsgi.cache_set(key, pickle.dumps(value),
-                                     self._normalize_timeout(timeout),
-                                     self.cache)
+        return self._uwsgi.cache_set(
+            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+        )
 
     def clear(self):
         return self._uwsgi.cache_clear(self.cache)
