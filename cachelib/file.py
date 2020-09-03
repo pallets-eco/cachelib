@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import errno
 import tempfile
@@ -98,7 +97,7 @@ class FileSystemCache(BaseCache):
 
                 if remove:
                     os.remove(fname)
-            except (IOError, OSError):
+            except OSError:
                 pass
         self._update_count(value=len(self._list_dir()))
 
@@ -106,7 +105,7 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 os.remove(fname)
-            except (IOError, OSError):
+            except OSError:
                 self._update_count(value=len(self._list_dir()))
                 return False
         self._update_count(value=0)
@@ -128,7 +127,7 @@ class FileSystemCache(BaseCache):
                 else:
                     os.remove(filename)
                     return None
-        except (IOError, OSError, pickle.PickleError):
+        except (OSError, pickle.PickleError):
             return None
 
     def add(self, key, value, timeout=None):
@@ -157,7 +156,7 @@ class FileSystemCache(BaseCache):
 
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
-        except (IOError, OSError):
+        except OSError:
             return False
         else:
             # Management elements should not count towards threshold
@@ -168,7 +167,7 @@ class FileSystemCache(BaseCache):
     def delete(self, key, mgmt_element=False):
         try:
             os.remove(self._get_filename(key))
-        except (IOError, OSError):
+        except OSError:
             return False
         else:
             # Management elements should not count towards threshold
@@ -186,5 +185,5 @@ class FileSystemCache(BaseCache):
                 else:
                     os.remove(filename)
                     return False
-        except (IOError, OSError, pickle.PickleError):
+        except (OSError, pickle.PickleError):
             return False
