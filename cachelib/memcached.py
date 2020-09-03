@@ -1,7 +1,10 @@
 import re
 from time import time
-from cachelib._compat import iteritems, to_native
-from cachelib.base import BaseCache, _items
+
+from cachelib._compat import iteritems
+from cachelib._compat import to_native
+from cachelib.base import _items
+from cachelib.base import BaseCache
 
 
 _test_memcached_key = re.compile(r'[^\x00-\x21\xff]{1,250}$').match
