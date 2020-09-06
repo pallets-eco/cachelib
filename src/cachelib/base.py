@@ -150,8 +150,9 @@ class BaseCache:
         )
 
     def clear(self):
-        """Clears the cache.  Keep in mind that not all caches support
-        completely clearing the cache.
+        """Clears the cache.
+
+        This method is optional and may not be implemented on all caches.
 
         :returns: Whether the cache has been cleared.
         :rtype: boolean

@@ -23,49 +23,43 @@ class CommonTests:
     def test_set_get(self):
         cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
-            cache.set(k, v)
+            cache.set(k, v, timeout=0)
             assert cache.get(k) == v
 
-    def test_get_many(self):
+    def test_set_get_many(self):
         cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            cache.set(k, v)
+        cache.set_many(self.sample_pairs, timeout=0)
         values = cache.get_many(*self.sample_pairs)
         assert values == list(self.sample_pairs.values())
 
     def test_get_dict(self):
         cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            cache.set(k, v)
+        cache.set_many(self.sample_pairs, timeout=0)
         d = cache.get_dict(*self.sample_pairs)
         assert d == self.sample_pairs
-
-    def test_set_many(self):
-        cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
-        assert cache.get_dict(*self.sample_pairs) == self.sample_pairs
 
     def test_delete(self):
         cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
-            cache.set(k, v)
+            cache.set(k, v, timeout=0)
             assert cache.delete(k)
-        assert not any(cache.get_many(*self.sample_pairs))
+            assert k not in cache._cache
 
     def test_delete_many(self):
         cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            cache.set(k, v)
+        cache.set_many(self.sample_pairs, timeout=0)
         assert cache.delete_many(*self.sample_pairs)
-        assert not any(cache.get_many(*self.sample_pairs))
+        assert cache._cache == {}
 
     def test_add(self):
         cache = self.cache_factory()
+        cache.set_many(self.sample_pairs, timeout=0)
+        for k in self.sample_pairs:
+            cache.add(k, "updated", timeout=0)
+        assert cache.get_many(*self.sample_pairs) == list(self.sample_pairs.values())
         for k, v in self.sample_pairs.items():
-            cache.set(k, v)
-        for idx, k in enumerate(self.sample_pairs.keys()):
-            cache.add(k, idx)
-        assert cache.get_dict(*self.sample_pairs) == self.sample_pairs
+            cache.add(f"{k}-new", v, timeout=0)
+            assert cache.get(f"{k}-new") == v
 
     def test_inc(self):
         cache = self.cache_factory()
@@ -79,7 +73,6 @@ class CommonTests:
         cache = self.cache_factory()
         for idx, n in enumerate(self.sample_numbers):
             assert cache.dec(idx, n)
-            print(idx, n)
             assert cache.get(idx) == -n
             assert cache.dec(idx, 10)
             assert cache.get(idx) == -n - 10
