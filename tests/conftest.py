@@ -43,13 +43,13 @@ class CommonTests:
         for k, v in self.sample_pairs.items():
             cache.set(k, v, timeout=0)
             assert cache.delete(k)
-            assert k not in cache._cache
+            assert not cache.get(k)
 
     def test_delete_many(self):
         cache = self.cache_factory()
         cache.set_many(self.sample_pairs, timeout=0)
         assert cache.delete_many(*self.sample_pairs)
-        assert cache._cache == {}
+        assert not any(cache.get_many(*self.sample_pairs))
 
     def test_add(self):
         cache = self.cache_factory()
@@ -61,21 +61,13 @@ class CommonTests:
             cache.add(f"{k}-new", v, timeout=0)
             assert cache.get(f"{k}-new") == v
 
-    def test_inc(self):
+    def test_inc_dec(self):
         cache = self.cache_factory()
-        for idx, n in enumerate(self.sample_numbers):
-            assert cache.inc(idx, n)
-            assert cache.get(idx) == n
-            assert cache.inc(idx, 10)
-            assert cache.get(idx) == n + 10
-
-    def test_dec(self):
-        cache = self.cache_factory()
-        for idx, n in enumerate(self.sample_numbers):
-            assert cache.dec(idx, n)
-            assert cache.get(idx) == -n
-            assert cache.dec(idx, 10)
-            assert cache.get(idx) == -n - 10
+        for n in self.sample_numbers:
+            assert cache.inc(f"{n}-key", n)
+            assert cache.get(f"{n}-key") == n
+            assert cache.dec(f"{n}-key", 1)
+            assert cache.get(f"{n}-key") == n - 1
 
     def test_expiration(self):
         cache = self.cache_factory()
