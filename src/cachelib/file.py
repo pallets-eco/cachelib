@@ -1,16 +1,12 @@
 import errno
 import os
+import pickle
 import tempfile
 from hashlib import md5
 from time import time
 
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: no cover
-    import pickle
-
-from cachelib.base import BaseCache
 from cachelib._compat import text_type
+from cachelib.base import BaseCache
 
 
 class FileSystemCache(BaseCache):
