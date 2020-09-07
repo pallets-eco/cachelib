@@ -176,7 +176,7 @@ class FileSystemCache(BaseCache):
             )
             with os.fdopen(fd, "wb") as f:
                 pickle.dump(timeout, f, 1)
-                pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(value, f, pickle.DEFAULT_PROTOCOL)
 
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
