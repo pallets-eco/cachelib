@@ -108,7 +108,6 @@ class FileSystemCache(BaseCache):
         fname_sorted = [
             fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
         ]
-        print(f"File names sorted: {fname_sorted}\n")
         for fname in fname_sorted:
             try:
                 os.remove(fname)

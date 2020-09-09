@@ -8,16 +8,16 @@ class CommonTests:
     sample_numbers = [0, 10, 1024000, 9, 5000000000000, 99, 738, 2000000]
 
     sample_pairs = {
-        128: False,
+        "128": False,
         "beef": True,
         "crevettes": {},
-        1024: "spam",
+        "1024": "spam",
         "bacon": "eggs",
         "sausage": 2048,
-        3072: [],
+        "3072": [],
         "brandy": [{}, "fried eggs"],
         "lobster": ["baked beans", [512]],
-        4096: {"sauce": [], 256: "truffle"},
+        "4096": {"sauce": [], 256: "truffle"},
     }
 
     def test_set_get(self):
@@ -64,6 +64,7 @@ class CommonTests:
     def test_inc_dec(self):
         cache = self.cache_factory()
         for n in self.sample_numbers:
+            assert not cache.get(f"{n}-key-inc")
             assert cache.inc(f"{n}-key-inc", n) == n
             assert cache.get(f"{n}-key-inc") == n
             assert cache.dec(f"{n}-key-dec", n) == -n
@@ -74,10 +75,10 @@ class CommonTests:
         cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
             cache.set(f"{k}-t0", v, timeout=0)
-            cache.set(f"{k}-t0.1", v, timeout=0.1)
-            cache.set(f"{k}-t5.0", v, timeout=5.0)
-        sleep(1)
+            cache.set(f"{k}-t1", v, timeout=1)
+            cache.set(f"{k}-t5", v, timeout=5)
+        sleep(2)
         for k, v in self.sample_pairs.items():
             assert cache.get(f"{k}-t0") == v
-            assert cache.get(f"{k}-t5.0") == v
-            assert not cache.get(f"{k}-t0.1")
+            assert cache.get(f"{k}-t5") == v
+            assert not cache.get(f"{k}-t1")

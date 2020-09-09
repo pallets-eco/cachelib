@@ -150,11 +150,13 @@ class MemcachedCache(BaseCache):
 
     def inc(self, key, delta=1):
         key = self._normalize_key(key)
-        return self._client.incr(key, delta)
+        value = (self._client.get(key) or 0) + delta
+        return value if self.set(key, value) else None
 
     def dec(self, key, delta=1):
         key = self._normalize_key(key)
-        return self._client.decr(key, delta)
+        value = (self._client.get(key) or 0) - delta
+        return value if self.set(key, value) else None
 
     def import_preferred_memcache_lib(self, servers):
         """Returns an initialized memcache client.  Used by the constructor."""
