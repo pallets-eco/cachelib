@@ -1,10 +1,9 @@
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: no cover
-    import pickle
+import pickle
 
-from cachelib.base import BaseCache, _items
-from cachelib._compat import string_types, integer_types
+from cachelib._compat import integer_types
+from cachelib._compat import string_types
+from cachelib.base import _items
+from cachelib.base import BaseCache
 
 
 class RedisCache(BaseCache):
@@ -110,9 +109,10 @@ class RedisCache(BaseCache):
     def add(self, key, value, timeout=None):
         timeout = self._normalize_timeout(timeout)
         dump = self.dump_object(value)
-        return self._client.setnx(
-            name=self.key_prefix + key, value=dump
-        ) and self._client.expire(name=self.key_prefix + key, time=timeout)
+        res = self._client.setnx(name=self.key_prefix + key, value=dump)
+        if timeout != -1:
+            self._client.expire(name=self.key_prefix + key, time=timeout)
+        return res
 
     def set_many(self, mapping, timeout=None):
         timeout = self._normalize_timeout(timeout)
