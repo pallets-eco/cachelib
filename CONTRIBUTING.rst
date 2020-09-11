@@ -161,6 +161,41 @@ Start coding
 .. _committing as you go: https://dont-be-afraid-to-commit.readthedocs.io/en/latest/git/commandlinegit.html#commit-your-changes
 .. _create a pull request: https://help.github.com/en/articles/creating-a-pull-request
 
+Running the tests
+~~~~~~~~~~~~~~~~~
+
+Run the basic test suite with pytest.
+
+.. code-block:: text
+
+    $ pytest
+
+This runs the tests for the current environment, which is usually
+sufficient. CI will run the full suite when you submit your pull
+request. You can run the full test suite with tox if you don't want to
+wait.
+
+.. code-block:: text
+
+    $ tox
+
+
+Running test coverage
+~~~~~~~~~~~~~~~~~~~~~
+
+Generating a report of lines that do not have test coverage can indicate
+where to start contributing. Run ``pytest`` using ``coverage`` and
+generate a report.
+
+.. code-block:: text
+
+    $ pip install coverage
+    $ coverage run -m pytest
+    $ coverage html
+
+Open ``htmlcov/index.html`` in your browser to explore the report.
+
+Read more about `coverage <https://coverage.readthedocs.io>`__.
 
 Building the docs
 ~~~~~~~~~~~~~~~~~
