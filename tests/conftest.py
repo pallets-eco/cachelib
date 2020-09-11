@@ -1,4 +1,45 @@
+import importlib.util
+import os
+import signal
+import sys
 from time import sleep
+
+import pytest
+from xprocess import ProcessStarter
+
+
+def _cleanup(proc_name):
+    """make sure process started by xprocess does not hang"""
+    with open(f".xprocess/{proc_name}/xprocess.PID") as f:
+        pid = int(f.readline().strip())
+        os.kill(pid, signal.SIGKILL)
+
+
+def _safe_import(name):
+    if name in sys.modules:
+        return True
+    spec = importlib.util.find_spec(name)
+    if spec is not None:
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        return True
+    return False
+
+
+@pytest.fixture(scope="class")
+def redis_server(xprocess):
+    _package_name = "redis"
+    if not _safe_import(_package_name):
+        pytest.skip("could not find python package 'redis'")
+
+    class Starter(ProcessStarter):
+        pattern = "[Rr]eady to accept connections"
+        args = ["redis-server"]
+
+    xprocess.ensure(_package_name, Starter)
+    yield
+    _cleanup(_package_name)
 
 
 class CommonTests:

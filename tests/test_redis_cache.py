@@ -14,6 +14,7 @@ def cache_factory(request):
     request.cls._cache_factory = _factory
 
 
+@pytest.mark.usefixtures("redis_server")
 class TestRedisCache(CommonTests):
     def test_has(self):
         cache = self._cache_factory()

@@ -9,10 +9,12 @@ iniconfig==1.0.1          # via pytest
 more-itertools==8.5.0     # via pytest
 packaging==20.4           # via pytest
 pluggy==0.13.1            # via pytest
+psutil==5.7.2             # via pytest-xprocess
 py==1.9.0                 # via pytest
 pylibmc==1.6.1            # via -r requirements/tests.in
 pyparsing==2.4.7          # via packaging
-pytest==6.0.1             # via -r requirements/tests.in
+pytest-xprocess==0.13.1   # via -r requirements/tests.in
+pytest==6.0.1             # via -r requirements/tests.in, pytest-xprocess
 redis==3.5.3              # via -r requirements/tests.in
 six==1.15.0               # via packaging
 toml==0.10.1              # via pytest
