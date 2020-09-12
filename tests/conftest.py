@@ -9,7 +9,7 @@ from xprocess import ProcessStarter
 
 
 def _cleanup(proc_name):
-    """make sure process started by xprocess does not hang"""
+    """make sure process started by xprocess exits"""
     with open(f".xprocess/{proc_name}/xprocess.PID") as f:
         pid = int(f.readline().strip())
         os.kill(pid, signal.SIGKILL)
@@ -31,11 +31,26 @@ def _safe_import(name):
 def redis_server(xprocess):
     _package_name = "redis"
     if not _safe_import(_package_name):
-        pytest.skip("could not find python package 'redis'")
+        pytest.skip(f"could not find python package '{_package_name}'")
 
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server"]
+
+    xprocess.ensure(_package_name, Starter)
+    yield
+    _cleanup(_package_name)
+
+
+@pytest.fixture(scope="class")
+def memcached_server(xprocess):
+    _package_name = "pylibmc"
+    if not _safe_import(_package_name):
+        pytest.skip(f"could not find python package '{_package_name}'")
+
+    class Starter(ProcessStarter):
+        pattern = "server listening"
+        args = ["memcached", "-vv"]
 
     xprocess.ensure(_package_name, Starter)
     yield
