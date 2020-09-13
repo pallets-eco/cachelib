@@ -20,3 +20,4 @@ env/
 .coverage
 htmlcov/
 .xprocess
+.vscode
