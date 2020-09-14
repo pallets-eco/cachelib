@@ -9,7 +9,7 @@ from cachelib.base import BaseCache
 
 
 class UWSGICache(BaseCache):
-    """ Implements the cache using uWSGI's caching framework.
+    """Implements the cache using uWSGI's caching framework.
 
     .. note::
         This class cannot be used when running under PyPy, because the uWSGI

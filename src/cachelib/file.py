@@ -70,8 +70,7 @@ class FileSystemCache(BaseCache):
         return int(timeout)
 
     def _list_dir(self):
-        """return a list of (fully qualified) cache filenames
-        """
+        """return a list of (fully qualified) cache filenames"""
         mgmt_files = [
             self._get_filename(name).split("/")[-1] for name in (self._fs_count_file,)
         ]

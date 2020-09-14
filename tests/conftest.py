@@ -9,7 +9,7 @@ from xprocess import ProcessStarter
 
 
 def _cleanup(proc_name):
-    """make sure process started by xprocess exits"""
+    """clean up external processe started by xprocess"""
     with open(f".xprocess/{proc_name}/xprocess.PID") as f:
         pid = int(f.readline().strip())
         os.kill(pid, signal.SIGKILL)
