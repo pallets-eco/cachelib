@@ -1,18 +1,9 @@
 import importlib.util
-import os
-import signal
 import sys
 from time import sleep
 
 import pytest
 from xprocess import ProcessStarter
-
-
-def _cleanup(proc_name):
-    """clean up external processe started by xprocess"""
-    with open(f".xprocess/{proc_name}/xprocess.PID") as f:
-        pid = int(f.readline().strip())
-        os.kill(pid, signal.SIGKILL)
 
 
 def _safe_import(name):
@@ -39,7 +30,7 @@ def redis_server(xprocess):
 
     xprocess.ensure(_package_name, Starter)
     yield
-    _cleanup(_package_name)
+    xprocess.getinfo(_package_name).terminate()
 
 
 @pytest.fixture(scope="class")
@@ -54,7 +45,7 @@ def memcached_server(xprocess):
 
     xprocess.ensure(_package_name, Starter)
     yield
-    _cleanup(_package_name)
+    xprocess.getinfo(_package_name).terminate()
 
 
 class CommonTests:
