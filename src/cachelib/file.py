@@ -113,6 +113,8 @@ class FileSystemCache(BaseCache):
                 self._update_count(delta=-1)
             except OSError:
                 return False
+            if not self._over_threshold():
+                break
 
     def _prune(self):
         if self._over_threshold():
