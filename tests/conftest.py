@@ -20,32 +20,32 @@ def _safe_import(name):
 
 @pytest.fixture(scope="class")
 def redis_server(xprocess):
-    _package_name = "redis"
-    if not _safe_import(_package_name):
-        pytest.skip(f"could not find python package '{_package_name}'")
+    package_name = "redis"
+    if not _safe_import(package_name):
+        pytest.skip(f"could not find python package '{package_name}'")
 
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server"]
 
-    xprocess.ensure(_package_name, Starter)
+    xprocess.ensure(package_name, Starter)
     yield
-    xprocess.getinfo(_package_name).terminate()
+    xprocess.getinfo(package_name).terminate()
 
 
 @pytest.fixture(scope="class")
 def memcached_server(xprocess):
-    _package_name = "pylibmc"
-    if not _safe_import(_package_name):
-        pytest.skip(f"could not find python package '{_package_name}'")
+    package_name = "pylibmc"
+    if not _safe_import(package_name):
+        pytest.skip(f"could not find python package '{package_name}'")
 
     class Starter(ProcessStarter):
         pattern = "server listening"
         args = ["memcached", "-vv"]
 
-    xprocess.ensure(_package_name, Starter)
+    xprocess.ensure(package_name, Starter)
     yield
-    xprocess.getinfo(_package_name).terminate()
+    xprocess.getinfo(package_name).terminate()
 
 
 class CommonTests:
@@ -65,38 +65,38 @@ class CommonTests:
     }
 
     def test_set_get(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
             assert cache.set(k, v)
             assert cache.get(k) == v
 
     def test_set_get_many(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         assert cache.set_many(self.sample_pairs)
         values = cache.get_many(*self.sample_pairs)
         assert values == list(self.sample_pairs.values())
 
     def test_get_dict(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
         d = cache.get_dict(*self.sample_pairs)
         assert d == self.sample_pairs
 
     def test_delete(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
             cache.set(k, v)
             assert cache.delete(k)
             assert not cache.get(k)
 
     def test_delete_many(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
         assert cache.delete_many(*self.sample_pairs)
         assert not any(cache.get_many(*self.sample_pairs))
 
     def test_add(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
         for k in self.sample_pairs:
             assert not cache.add(k, "updated")
@@ -106,7 +106,7 @@ class CommonTests:
             assert cache.get(f"{k}-new") == v
 
     def test_inc_dec(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         for n in self.sample_numbers:
             assert not cache.get(f"{n}-key-inc")
             assert cache.inc(f"{n}-key-inc", n) == n
@@ -116,7 +116,7 @@ class CommonTests:
             assert cache.dec(f"{n}-key-inc", 5) == n - 5
 
     def test_expiration(self):
-        cache = self._cache_factory()
+        cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
             cache.set(f"{k}-t0", v, timeout=0)
             cache.set(f"{k}-t1", v, timeout=1)
