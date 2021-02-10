@@ -148,6 +148,7 @@ class FileSystemCache(BaseCache):
 
         timeout = self._normalize_timeout(timeout)
         filename = self._get_filename(key)
+        overwrite = os.path.isfile(filename)
         try:
             fd, tmp = tempfile.mkstemp(suffix=self._fs_transaction_suffix,
                                        dir=self._path)
@@ -161,7 +162,7 @@ class FileSystemCache(BaseCache):
             return False
         else:
             # Management elements should not count towards threshold
-            if not mgmt_element:
+            if not overwrite and not mgmt_element:
                 self._update_count(delta=1)
             return True
 
