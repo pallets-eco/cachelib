@@ -89,17 +89,31 @@ class FileSystemCache(BaseCache):
 
         entries = self._list_dir()
         now = time()
-        for idx, fname in enumerate(entries):
+        file_count = len(entries)
+        file_expires = dict()
+        for fname in entries:
             try:
-                remove = False
                 with open(fname, 'rb') as f:
                     expires = pickle.load(f)
-                remove = (expires != 0 and expires <= now) or idx % 3 == 0
-
-                if remove:
+                if expires != 0 and expires <= now:
                     os.remove(fname)
+                    file_count -= 1
+                else:
+                    file_expires[fname] = expires
             except (IOError, OSError):
                 pass
+
+        if file_count > self._threshold:
+            # Delete older files until the file count is not over the threshold
+            for fname, _ in sorted(file_expires.items(), key=lambda item: item[1]):
+                try:
+                    os.remove(fname)
+                    file_count -= 1
+                    if not file_count > self._threshold:
+                        break
+                except (IOError, OSError):
+                    pass
+
         self._update_count(value=len(self._list_dir()))
 
     def clear(self):
