@@ -32,11 +32,21 @@ class SimpleCache(BaseCache):
         if len(self._cache) > self._threshold:
             now = time()
             toremove = []
+            toreserve = dict()
             for idx, (key, (expires, _)) in enumerate(self._cache.items()):
-                if (expires != 0 and expires <= now) or idx % 3 == 0:
+                if expires != 0 and expires <= now:
                     toremove.append(key)
+                else:
+                    toreserve[key] = expires
             for key in toremove:
                 self._cache.pop(key, None)
+            if len(self._cache) > self._threshold:
+                # Delete older caches until the cache count is not over the threshold
+                for key, _ in sorted(toreserve.items(), key=lambda item: item[1]):
+                    self._cache.pop(key, None)
+                    if not len(self._cache) > self._threshold:
+                        break
+
 
     def _normalize_timeout(self, timeout):
         timeout = BaseCache._normalize_timeout(self, timeout)
