@@ -8,6 +8,7 @@ dist/
 __pycache__/
 *.so
 *~
+*.swp
 
 # due to using t/nox and pytest
 .tox
@@ -15,3 +16,7 @@ __pycache__/
 .pytest_cache
 .coverage
 htmlcov/
+
+# virtual envs
+venv/
+env/
