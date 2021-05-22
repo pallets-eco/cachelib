@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import io
 import re
+
 from setuptools import setup
 
 with open('README.rst', 'rt', encoding='utf8') as f:
