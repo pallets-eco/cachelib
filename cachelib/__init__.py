@@ -7,14 +7,14 @@ from cachelib.simple import SimpleCache
 from cachelib.uwsgi import UWSGICache
 
 __all__ = [
-    'BaseCache',
-    'NullCache',
-    'SimpleCache',
-    'FileSystemCache',
-    'MemcachedCache',
-    'RedisCache',
-    'UWSGICache',
+    "BaseCache",
+    "NullCache",
+    "SimpleCache",
+    "FileSystemCache",
+    "MemcachedCache",
+    "RedisCache",
+    "UWSGICache",
 ]
 
-__version__ = '0.1.1'
-__author__ = 'Pallets Team'
+__version__ = "0.1.1"
+__author__ = "Pallets Team"
