@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import io
 import re
 from setuptools import setup
 
-with io.open('README.rst', 'rt', encoding='utf8') as f:
+with open('README.rst', 'rt', encoding='utf8') as f:
     readme = f.read()
 
-with io.open('cachelib/__init__.py', 'rt', encoding='utf8') as f:
+with open('cachelib/__init__.py', 'rt', encoding='utf8') as f:
     version = re.search(r'__version__ = \'(.*?)\'', f.read()).group(1)
 
 

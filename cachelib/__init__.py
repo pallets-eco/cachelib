@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from cachelib.base import BaseCache, NullCache
 from cachelib.simple import SimpleCache
 from cachelib.file import FileSystemCache

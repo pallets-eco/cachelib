@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from cachelib._compat import iteritems
 
 
@@ -18,7 +17,7 @@ def _items(mappingorseq):
     return mappingorseq
 
 
-class BaseCache(object):
+class BaseCache:
 
     """Baseclass for the cache systems.  All the cache systems implement this
     API or a superset of it.

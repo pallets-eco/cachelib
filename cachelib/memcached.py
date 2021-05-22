@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import re
 from time import time
 from cachelib._compat import iteritems, to_native
