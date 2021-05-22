@@ -8,6 +8,10 @@ dist/
 __pycache__/
 *.so
 *~
+venv/
+env/
+.DS_Store
+*.swp
 
 # due to using t/nox and pytest
 .tox
@@ -15,3 +19,5 @@ __pycache__/
 .pytest_cache
 .coverage
 htmlcov/
+.xprocess
+.vscode
