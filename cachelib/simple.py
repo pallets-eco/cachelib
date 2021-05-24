@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from time import time
 try:
     import cPickle as pickle
@@ -26,17 +25,32 @@ class SimpleCache(BaseCache):
         BaseCache.__init__(self, default_timeout)
         self._cache = {}
         self.clear = self._cache.clear
-        self._threshold = threshold
+        self._threshold = threshold or 500  # threshold = 0
+
+    def _over_threshold(self):
+        return len(self._cache) > self._threshold
+
+    def _remove_expired(self, now):
+        toremove = [k for k, (expires, _) in self._cache.items() if expires < now]
+        for k in toremove:
+            self._cache.pop(k, None)
+
+    def _remove_older(self):
+        k_ordered = [
+            k for k, v in sorted(self._cache.items(), key=lambda item: item[1][0])
+        ]
+        for k in k_ordered:
+            self._cache.pop(k, None)
+            if not self._over_threshold():
+                break
 
     def _prune(self):
-        if len(self._cache) > self._threshold:
+        if self._over_threshold():
             now = time()
-            toremove = []
-            for idx, (key, (expires, _)) in enumerate(self._cache.items()):
-                if (expires != 0 and expires <= now) or idx % 3 == 0:
-                    toremove.append(key)
-            for key in toremove:
-                self._cache.pop(key, None)
+            self._remove_expired(now)
+        # remove older items if still over threshold
+        if self._over_threshold():
+            self._remove_older()
 
     def _normalize_timeout(self, timeout):
         timeout = BaseCache._normalize_timeout(self, timeout)
