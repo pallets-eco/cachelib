@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
-
 import re
 from time import time
-from cachelib._compat import iteritems, to_native
-from cachelib.base import BaseCache, _items
+
+from cachelib._compat import iteritems
+from cachelib._compat import to_native
+from cachelib.base import _items
+from cachelib.base import BaseCache
 
 
-_test_memcached_key = re.compile(r'[^\x00-\x21\xff]{1,250}$').match
+_test_memcached_key = re.compile(r"[^\x00-\x21\xff]{1,250}$").match
 
 
 class MemcachedCache(BaseCache):
@@ -49,10 +50,10 @@ class MemcachedCache(BaseCache):
         BaseCache.__init__(self, default_timeout)
         if servers is None or isinstance(servers, (list, tuple)):
             if servers is None:
-                servers = ['127.0.0.1:11211']
+                servers = ["127.0.0.1:11211"]
             self._client = self.import_preferred_memcache_lib(servers)
             if self._client is None:
-                raise RuntimeError('no memcache module found')
+                raise RuntimeError("no memcache module found")
         else:
             # NOTE: servers is actually an already initialized memcache
             # client.
@@ -61,7 +62,7 @@ class MemcachedCache(BaseCache):
         self.key_prefix = to_native(key_prefix)
 
     def _normalize_key(self, key):
-        key = to_native(key, 'utf-8')
+        key = to_native(key, "utf-8")
         if self.key_prefix:
             key = self.key_prefix + key
         return key
@@ -141,7 +142,7 @@ class MemcachedCache(BaseCache):
     def has(self, key):
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return self._client.append(key, '')
+            return self._client.append(key, "")
         return False
 
     def clear(self):
