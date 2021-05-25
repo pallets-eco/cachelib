@@ -108,9 +108,9 @@ class FileSystemCache(BaseCache):
                     exp_fname_tuples.append((pickle.load(f), fname))
             except OSError:
                 pass
-        fname_sorted = [
+        fname_sorted = (
             fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
-        ]
+        )
         for fname in fname_sorted:
             try:
                 os.remove(fname)

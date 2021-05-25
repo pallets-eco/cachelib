@@ -37,9 +37,9 @@ class SimpleCache(BaseCache):
             self._cache.pop(k, None)
 
     def _remove_older(self):
-        k_ordered = [
+        k_ordered = (
             k for k, v in sorted(self._cache.items(), key=lambda item: item[1][0])
-        ]
+        )
         for k in k_ordered:
             self._cache.pop(k, None)
             if not self._over_threshold():
