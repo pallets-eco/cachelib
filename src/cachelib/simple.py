@@ -1,9 +1,5 @@
+import pickle
 from time import time
-
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: no cover
-    import pickle
 
 from cachelib.base import BaseCache
 
