@@ -124,6 +124,7 @@ class FileSystemCache(BaseCache):
                     return pickle.load(f)
                 else:
                     os.remove(filename)
+                    self._update_count(delta=-1)
                     return None
         except (OSError, pickle.PickleError):
             return None
@@ -183,6 +184,7 @@ class FileSystemCache(BaseCache):
                     return True
                 else:
                     os.remove(filename)
+                    self._update_count(delta=-1)
                     return False
         except (OSError, pickle.PickleError):
             return False
