@@ -3,9 +3,9 @@ Version 0.2.0
 
 Unreleased
 
--   :class:`cachelib.Simplecache` and :class:`cachelib.FileSystemCache` will
-  now first remove expired entries, followed by removal of older entries when
-  cleaning up.
+-   When attempting to access non-existent entries with :class:`Memcached`,
+    these will now be initialized with a given value ``delta`` as specified
+    in :class:`BaseCache`
 
 
 Version 0.1.1

@@ -1,10 +1,9 @@
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: no cover
-    import pickle
+import pickle
 
-from cachelib.base import BaseCache, _items
-from cachelib._compat import string_types, integer_types
+from cachelib._compat import integer_types
+from cachelib._compat import string_types
+from cachelib.base import _items
+from cachelib.base import BaseCache
 
 
 class RedisCache(BaseCache):

@@ -1,16 +1,12 @@
 import errno
 import os
+import pickle
 import tempfile
 from hashlib import md5
 from time import time
 
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: no cover
-    import pickle
-
-from cachelib.base import BaseCache
 from cachelib._compat import text_type
+from cachelib.base import BaseCache
 
 
 class FileSystemCache(BaseCache):
@@ -84,24 +80,49 @@ class FileSystemCache(BaseCache):
             if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt_files
         ]
 
-    def _prune(self):
-        if self._threshold == 0 or not self._file_count > self._threshold:
-            return
+    def _over_threshold(self):
+        return self._threshold != 0 and self._file_count > self._threshold
 
+    def _remove_expired(self, now):
         entries = self._list_dir()
-        now = time()
-        for idx, fname in enumerate(entries):
+        for fname in entries:
             try:
-                remove = False
                 with open(fname, "rb") as f:
                     expires = pickle.load(f)
-                remove = (expires != 0 and expires <= now) or idx % 3 == 0
-
-                if remove:
+                if expires != 0 and expires < now:
                     os.remove(fname)
+                    self._update_count(delta=-1)
             except OSError:
                 pass
-        self._update_count(value=len(self._list_dir()))
+
+    def _remove_older(self):
+        entries = self._list_dir()
+        exp_fname_tuples = []
+        for fname in entries:
+            try:
+                with open(fname, "rb") as f:
+                    exp_fname_tuples.append((pickle.load(f), fname))
+            except OSError:
+                pass
+        fname_sorted = (
+            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
+        )
+        for fname in fname_sorted:
+            try:
+                os.remove(fname)
+                self._update_count(delta=-1)
+            except OSError:
+                return False
+            if not self._over_threshold():
+                break
+
+    def _prune(self):
+        if self._over_threshold():
+            now = time()
+            self._remove_expired(now)
+        # if still over threshold
+        if self._over_threshold():
+            self._remove_older()
 
     def clear(self):
         for fname in self._list_dir():
@@ -128,6 +149,7 @@ class FileSystemCache(BaseCache):
                     return pickle.load(f)
                 else:
                     os.remove(filename)
+                    self._update_count(delta=-1)
                     return None
         except (OSError, pickle.PickleError):
             return None
@@ -187,6 +209,7 @@ class FileSystemCache(BaseCache):
                     return True
                 else:
                     os.remove(filename)
+                    self._update_count(delta=-1)
                     return False
         except (OSError, pickle.PickleError):
             return False
