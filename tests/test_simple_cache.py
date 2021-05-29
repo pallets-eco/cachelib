@@ -1,8 +1,9 @@
 from time import sleep
 
 import pytest
-
 from conftest import CommonTests
+from conftest import HasTests
+
 from cachelib import SimpleCache
 
 
@@ -14,14 +15,7 @@ def cache_factory(request):
     request.cls.cache_factory = _factory
 
 
-class TestSimpleCache(CommonTests):
-    def test_has(self):
-        cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            assert cache.set(k, v)
-            assert cache.has(k)
-            assert not cache.has(f"{k}-unknown")
-
+class TestSimpleCache(CommonTests, HasTests):
     def test_threshold(self):
         threshold = len(self.sample_pairs) // 2
         cache = self.cache_factory(threshold=threshold)

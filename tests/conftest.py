@@ -1,9 +1,28 @@
 import importlib.util
+import os
 import sys
+import warnings
+from pathlib import Path
 from time import sleep
 
 import pytest
 from xprocess import ProcessStarter
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_sessionfinish(session, exitstatus):
+    try:
+        script_path = Path(os.environ["TMPDIR"], "return_pytest_exit_code.py")
+    except KeyError:
+        warnings.warn(
+            "Pytest could not find tox 'TMPDIR' in the environment,"
+            " make sure the variable is set in the project tox.ini"
+            " file if you are running under tox."
+        )
+    else:
+        with open(script_path, mode="w") as f:
+            f.write(f"import sys; sys.exit({exitstatus})")
+    yield
 
 
 def _safe_import(name):
@@ -48,7 +67,9 @@ def memcached_server(xprocess):
     xprocess.getinfo(package_name).terminate()
 
 
-class CommonTests:
+class TestData:
+    """This class centralizes all data samples used in tests"""
+
     sample_numbers = [0, 10, 1024000, 9, 5000000000000, 99, 738, 2000000]
 
     sample_pairs = {
@@ -63,6 +84,31 @@ class CommonTests:
         "lobster": ["baked beans", [512]],
         "4096": {"sauce": [], 256: "truffle"},
     }
+
+
+class ClearTests(TestData):
+    """Tests for the optional 'clear' method specified by BaseCache"""
+
+    def test_clear(self):
+        cache = self.cache_factory()
+        assert cache.set_many(self.sample_pairs)
+        assert cache.clear()
+        assert not any(cache.get_many(*self.sample_pairs))
+
+
+class HasTests(TestData):
+    """Tests for the optional 'has' method specified by BaseCache"""
+
+    def test_has(self):
+        cache = self.cache_factory()
+        assert cache.set_many(self.sample_pairs)
+        for k in self.sample_pairs:
+            assert cache.has(k)
+        assert not cache.has("unknown")
+
+
+class CommonTests(TestData):
+    """A base set of tests to be run for all cache types"""
 
     def test_set_get(self):
         cache = self.cache_factory()

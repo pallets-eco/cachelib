@@ -1,8 +1,10 @@
 from time import sleep
 
 import pytest
-
+from conftest import ClearTests
 from conftest import CommonTests
+from conftest import HasTests
+
 from cachelib import FileSystemCache
 
 
@@ -14,7 +16,7 @@ def cache_factory(request, tmpdir):
     request.cls.cache_factory = _factory
 
 
-class TestFileSystemCache(CommonTests):
+class TestFileSystemCache(CommonTests, ClearTests, HasTests):
     # override parent sample since these must implement buffer interface
     sample_pairs = {
         "bacon": "eggs",
@@ -24,19 +26,6 @@ class TestFileSystemCache(CommonTests):
         "sauce": "truffle pate",
         "cravettes": "mournay sauce",
     }
-
-    def test_clear(self):
-        cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
-        assert cache.clear()
-        assert not any(cache.get_many(*self.sample_pairs))
-
-    def test_has(self):
-        cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
-        for k in self.sample_pairs:
-            assert cache.has(k)
-        assert not cache.has("unknown")
 
     def test_threshold(self):
         threshold = len(self.sample_pairs) // 2
