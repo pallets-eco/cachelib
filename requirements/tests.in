@@ -1,4 +1,5 @@
 pytest
 pylibmc
 redis
+uwsgi
 pytest-xprocess

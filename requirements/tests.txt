@@ -20,7 +20,7 @@ pylibmc==1.6.1
     # via -r tests.in
 pyparsing==2.4.7
     # via packaging
-pytest-xprocess==0.16.0
+pytest-xprocess==0.17.1
     # via -r tests.in
 pytest==6.1.2
     # via
@@ -32,3 +32,5 @@ six==1.15.0
     # via packaging
 toml==0.10.2
     # via pytest
+uwsgi==2.0.19.1
+    # via -r tests.in
