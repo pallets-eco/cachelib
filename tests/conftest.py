@@ -167,7 +167,7 @@ class CommonTests(TestData):
             cache.set(f"{k}-t0", v, timeout=0)
             cache.set(f"{k}-t1", v, timeout=1)
             cache.set(f"{k}-t5", v, timeout=5)
-        sleep(2)
+        sleep(4)
         for k, v in self.sample_pairs.items():
             assert cache.get(f"{k}-t0") == v
             assert cache.get(f"{k}-t5") == v
