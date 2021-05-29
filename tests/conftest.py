@@ -1,6 +1,4 @@
-import importlib.util
 import os
-import sys
 import warnings
 from pathlib import Path
 from time import sleep
@@ -25,23 +23,12 @@ def pytest_sessionfinish(session, exitstatus):
     yield
 
 
-def _safe_import(name):
-    if name in sys.modules:
-        return True
-    spec = importlib.util.find_spec(name)
-    if spec is not None:
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
-        spec.loader.exec_module(module)
-        return True
-    return False
-
-
 @pytest.fixture(scope="class")
 def redis_server(xprocess):
     package_name = "redis"
-    if not _safe_import(package_name):
-        pytest.skip(f"could not find python package '{package_name}'")
+    pytest.importorskip(
+        modname=package_name, reason=f"could not find python package {package_name}"
+    )
 
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
@@ -55,8 +42,9 @@ def redis_server(xprocess):
 @pytest.fixture(scope="class")
 def memcached_server(xprocess):
     package_name = "pylibmc"
-    if not _safe_import(package_name):
-        pytest.skip(f"could not find python package '{package_name}'")
+    pytest.importorskip(
+        modname=package_name, reason=f"could not find python package {package_name}"
+    )
 
     class Starter(ProcessStarter):
         pattern = "server listening"
@@ -71,7 +59,6 @@ class TestData:
     """This class centralizes all data samples used in tests"""
 
     sample_numbers = [0, 10, 1024000, 9, 5000000000000, 99, 738, 2000000]
-
     sample_pairs = {
         "128": False,
         "beef": True,
