@@ -36,7 +36,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-     - name: install external dependencies
+      - name: install external dependencies
         run: sudo apt-get install libmemcached-dev memcached redis-server
       - name: update pip
         run: |
