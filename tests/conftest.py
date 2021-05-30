@@ -1,25 +1,34 @@
 import os
 import warnings
 from pathlib import Path
-from time import sleep
 
 import pytest
 from xprocess import ProcessStarter
 
 
+def under_uwsgi():
+    try:
+        import uwsgi  # noqa: F401
+    except ImportError:
+        return False
+    else:
+        return True
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_sessionfinish(session, exitstatus):
-    try:
-        script_path = Path(os.environ["TMPDIR"], "return_pytest_exit_code.py")
-    except KeyError:
-        warnings.warn(
-            "Pytest could not find tox 'TMPDIR' in the environment,"
-            " make sure the variable is set in the project tox.ini"
-            " file if you are running under tox."
-        )
-    else:
-        with open(script_path, mode="w") as f:
-            f.write(f"import sys; sys.exit({exitstatus})")
+    if under_uwsgi():
+        try:
+            script_path = Path(os.environ["TMPDIR"], "return_pytest_exit_code.py")
+        except KeyError:
+            warnings.warn(
+                "Pytest could not find tox 'TMPDIR' in the environment,"
+                " make sure the variable is set in the project tox.ini"
+                " file if you are running under tox."
+            )
+        else:
+            with open(script_path, mode="w") as f:
+                f.write(f"import sys; sys.exit({exitstatus})")
     yield
 
 
@@ -71,91 +80,3 @@ class TestData:
         "lobster": ["baked beans", [512]],
         "4096": {"sauce": [], 256: "truffle"},
     }
-
-
-class ClearTests(TestData):
-    """Tests for the optional 'clear' method specified by BaseCache"""
-
-    def test_clear(self):
-        cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
-        assert cache.clear()
-        assert not any(cache.get_many(*self.sample_pairs))
-
-
-class HasTests(TestData):
-    """Tests for the optional 'has' method specified by BaseCache"""
-
-    def test_has(self):
-        cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
-        for k in self.sample_pairs:
-            assert cache.has(k)
-        assert not cache.has("unknown")
-
-
-class CommonTests(TestData):
-    """A base set of tests to be run for all cache types"""
-
-    def test_set_get(self):
-        cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            assert cache.set(k, v)
-            assert cache.get(k) == v
-
-    def test_set_get_many(self):
-        cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
-        values = cache.get_many(*self.sample_pairs)
-        assert values == list(self.sample_pairs.values())
-
-    def test_get_dict(self):
-        cache = self.cache_factory()
-        cache.set_many(self.sample_pairs)
-        d = cache.get_dict(*self.sample_pairs)
-        assert d == self.sample_pairs
-
-    def test_delete(self):
-        cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            cache.set(k, v)
-            assert cache.delete(k)
-            assert not cache.get(k)
-
-    def test_delete_many(self):
-        cache = self.cache_factory()
-        cache.set_many(self.sample_pairs)
-        assert cache.delete_many(*self.sample_pairs)
-        assert not any(cache.get_many(*self.sample_pairs))
-
-    def test_add(self):
-        cache = self.cache_factory()
-        cache.set_many(self.sample_pairs)
-        for k in self.sample_pairs:
-            assert not cache.add(k, "updated")
-        assert cache.get_many(*self.sample_pairs) == list(self.sample_pairs.values())
-        for k, v in self.sample_pairs.items():
-            assert cache.add(f"{k}-new", v)
-            assert cache.get(f"{k}-new") == v
-
-    def test_inc_dec(self):
-        cache = self.cache_factory()
-        for n in self.sample_numbers:
-            assert not cache.get(f"{n}-key-inc")
-            assert cache.inc(f"{n}-key-inc", n) == n
-            assert cache.get(f"{n}-key-inc") == n
-            assert cache.dec(f"{n}-key-dec", n) == -n
-            assert cache.get(f"{n}-key-dec") == -n
-            assert cache.dec(f"{n}-key-inc", 5) == n - 5
-
-    def test_expiration(self):
-        cache = self.cache_factory()
-        for k, v in self.sample_pairs.items():
-            cache.set(f"{k}-t0", v, timeout=0)
-            cache.set(f"{k}-t1", v, timeout=1)
-            cache.set(f"{k}-t5", v, timeout=5)
-        sleep(4)
-        for k, v in self.sample_pairs.items():
-            assert cache.get(f"{k}-t0") == v
-            assert cache.get(f"{k}-t5") == v
-            assert not cache.get(f"{k}-t1")

@@ -1,7 +1,7 @@
 import pytest
-from conftest import ClearTests
-from conftest import CommonTests
-from conftest import HasTests
+from clear import ClearTests
+from common import CommonTests
+from has import HasTests
 
 from cachelib import RedisCache
 
