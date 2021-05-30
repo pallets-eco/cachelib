@@ -17,4 +17,8 @@ def cache_factory(request):
 
 
 class TestUwsgiCache(CommonTests, ClearTests, HasTests):
-    pytest.importorskip("uwsgi")
+    pytest.importorskip(
+        "uwsgi",
+        reason="could not import 'uwsgi'. Make sure to "
+        "run pytest under uwsgi for testing UWSGICache",
+    )
