@@ -172,7 +172,7 @@ Run the basic test suite with pytest.
 
 This runs the tests for the current environment, except the tests for
 uwsgi-based cache once uwsgi requires that the pytest process be run
-under itself, this can be done with:
+under uwsgi, this can be done with:
 
 .. code-block:: text
 
