@@ -170,27 +170,36 @@ Run the basic test suite with pytest.
 
     $ pytest
 
-This runs the tests for the current environment, which is usually
-sufficient. CI will run the full suite when you submit your pull
-request. You can run the full test suite with tox if you don't want to
-wait.
+This runs the tests for the current environment, except the tests for
+uwsgi-based cache once uwsgi requires that the pytest process be run
+under itself, this can be done with:
+
+.. code-block:: text
+
+    # py36uwsgi for py36 or py37 uwsgi for py37
+    $ tox -e py38uwsgi
+
+CI will run the full suite when you submit your pull request, but
+you can run the full test suite with tox yourself if you don't want
+to wait.
 
 .. code-block:: text
 
     $ tox
 
+Obs. Make sure to have py36, py37 and py38 available in your
+development environment
 
 Running test coverage
 ~~~~~~~~~~~~~~~~~~~~~
 
 Generating a report of lines that do not have test coverage can indicate
-where to start contributing. Run ``pytest`` using ``coverage`` and
-generate a report.
+where to start contributing. Run ``pytest`` using ``coverage`` through
+tox and generate a report.
 
 .. code-block:: text
 
-    $ pip install coverage
-    $ coverage run -m pytest
+    $ tox -e coverage
     $ coverage html
 
 Open ``htmlcov/index.html`` in your browser to explore the report.
