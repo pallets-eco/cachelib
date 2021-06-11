@@ -9,7 +9,7 @@ from cachelib import RedisCache
 @pytest.fixture(autouse=True)
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        rc = RedisCache(*args, **kwargs)
+        rc = RedisCache(*args, port=6360, **kwargs)
         rc._client.flushdb()
         return rc
 
