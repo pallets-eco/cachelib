@@ -1,1 +1,8 @@
-include README.rst LICENSE
+include README.rst
+include LICENSE
+include CHANGES.rst
+include requirements/*.txt
+graft docs
+prune docs/_build
+graft tests
+global-exclude *.pyc
