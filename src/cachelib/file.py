@@ -72,7 +72,8 @@ class FileSystemCache(BaseCache):
     def _list_dir(self):
         """return a list of (fully qualified) cache filenames"""
         mgmt_files = [
-            self._get_filename(name).split("/")[-1] for name in (self._fs_count_file,)
+            self._get_filename(name).split(os.sep)[-1]
+            for name in (self._fs_count_file,)
         ]
         return [
             os.path.join(self._path, fn)
