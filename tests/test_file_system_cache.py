@@ -46,6 +46,14 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
         assert cache.clear()
         assert cache._file_count == 0
 
+    def test_file_counting_on_override(self):
+        cache = self.cache_factory()
+        assert cache.set_many(self.sample_pairs)
+        assert cache._file_count == len(self.sample_pairs)
+        assert cache.set_many(self.sample_pairs)
+        # count should remain the same
+        assert cache._file_count == len(self.sample_pairs)
+
     def test_prune_old_entries(self):
         threshold = 2 * len(self.sample_pairs) - 1
         cache = self.cache_factory(threshold=threshold)

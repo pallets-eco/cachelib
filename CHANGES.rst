@@ -3,6 +3,9 @@ Version 0.2.0
 
 Unreleased
 
+-   fix :meth:`cachelib.FileSystemCache.set` wrongfuly considering value overrides on
+    existing keys as new cache entries
+
 -   :class:`cachelib.Simplecache` and :class:`cachelib.FileSystemCache` will
     now first remove expired entries, followed by removal of older entries when
     cleaning up.
