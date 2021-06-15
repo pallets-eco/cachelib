@@ -1,8 +1,5 @@
 import pickle
 
-from cachelib._compat import integer_types
-from cachelib._compat import string_types
-from cachelib.base import _items
 from cachelib.base import BaseCache
 
 
@@ -41,7 +38,7 @@ class RedisCache(BaseCache):
         BaseCache.__init__(self, default_timeout)
         if host is None:
             raise ValueError("RedisCache host parameter may not be None")
-        if isinstance(host, string_types):
+        if isinstance(host, str):
             try:
                 import redis
             except ImportError:
@@ -66,7 +63,7 @@ class RedisCache(BaseCache):
         integers as regular string and pickle dumps everything else.
         """
         t = type(value)
-        if t in integer_types:
+        if isinstance(t, int):
             return str(value).encode("ascii")
         return b"!" + pickle.dumps(value)
 
@@ -119,7 +116,7 @@ class RedisCache(BaseCache):
         # which is not supported by twemproxy
         pipe = self._client.pipeline(transaction=False)
 
-        for key, value in _items(mapping):
+        for key, value in mapping.items():
             dump = self.dump_object(value)
             if timeout == -1:
                 pipe.set(name=self.key_prefix + key, value=dump)

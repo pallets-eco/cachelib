@@ -1,24 +1,4 @@
-from cachelib._compat import iteritems
-
-
-def _items(mappingorseq):
-    """Wrapper for efficient iteration over mappings represented by dicts
-    or sequences::
-
-        >>> for k, v in _items((i, i*i) for i in xrange(5)):
-        ...    assert k*k == v
-
-        >>> for k, v in _items(dict((i, i*i) for i in xrange(5))):
-        ...    assert k*k == v
-
-    """
-    if hasattr(mappingorseq, "items"):
-        return iteritems(mappingorseq)
-    return mappingorseq
-
-
 class BaseCache:
-
     """Baseclass for the cache systems.  All the cache systems implement this
     API or a superset of it.
 
@@ -119,7 +99,7 @@ class BaseCache:
         :rtype: boolean
         """
         rv = True
-        for key, value in _items(mapping):
+        for key, value in mapping.items():
             if not self.set(key, value, timeout):
                 rv = False
         return rv
