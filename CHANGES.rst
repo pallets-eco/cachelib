@@ -18,6 +18,9 @@ Unreleased
     these will now be initialized with a given value ``delta`` as specified
     in :class:`BaseCache`
 
+-   Support for python 2 has been dropped. The supported releases are now
+    python 3.6 and above.
+
 
 Version 0.1.1
 ------------
