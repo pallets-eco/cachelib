@@ -1,9 +1,6 @@
 import re
 from time import time
 
-from cachelib._compat import iteritems
-from cachelib._compat import to_native
-from cachelib.base import _items
 from cachelib.base import BaseCache
 
 
@@ -59,10 +56,9 @@ class MemcachedCache(BaseCache):
             # client.
             self._client = servers
 
-        self.key_prefix = to_native(key_prefix)
+        self.key_prefix = key_prefix
 
     def _normalize_key(self, key):
-        key = to_native(key, "utf-8")
         if self.key_prefix:
             key = self.key_prefix + key
         return key
@@ -94,7 +90,7 @@ class MemcachedCache(BaseCache):
         d = rv = self._client.get_multi(_keys)
         if have_encoded_keys or self.key_prefix:
             rv = {}
-            for key, value in iteritems(d):
+            for key, value in d.items():
                 rv[key_mapping[key]] = value
         if len(rv) < len(keys):
             for key in keys:
@@ -118,7 +114,7 @@ class MemcachedCache(BaseCache):
 
     def set_many(self, mapping, timeout=None):
         new_mapping = {}
-        for key, value in _items(mapping):
+        for key, value in mapping.items():
             key = self._normalize_key(key)
             new_mapping[key] = value
 

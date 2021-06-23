@@ -5,7 +5,6 @@ import tempfile
 from hashlib import md5
 from time import time
 
-from cachelib._compat import text_type
 from cachelib.base import BaseCache
 
 
@@ -136,7 +135,7 @@ class FileSystemCache(BaseCache):
         return True
 
     def _get_filename(self, key):
-        if isinstance(key, text_type):
+        if isinstance(key, str):
             key = key.encode("utf-8")  # XXX unicode review
         hash = md5(key).hexdigest()
         return os.path.join(self._path, hash)
