@@ -14,7 +14,6 @@ release, version = get_version("CacheLib")
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 
-master_doc = "index"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
@@ -44,9 +43,3 @@ html_sidebars = {
 singlehtml_sidebars = {"index": ["project.html", "localtoc.html"]}
 html_title = f"CacheLib Documentation ({version})"
 html_show_sourcelink = False
-
-# LaTeX ----------------------------------------------------------------
-
-latex_documents = [
-    (master_doc, f"Cachelib-{version}.tex", html_title, author, "manual")
-]
