@@ -1,10 +1,10 @@
 ---
 name: Bug report
-about: Report a bug in Cachelib (not other projects which depend on Cachelib)
+about: Report a bug in CacheLib (not other projects which depend on CacheLib)
 ---
 
 <!--
-This issue tracker is a tool to address bugs in Cachelib itself. Please
+This issue tracker is a tool to address bugs in CacheLib itself. Please
 use Pallets Discord or Stack Overflow for questions about your own code.
 
 Replace this comment with a clear outline of what the bug is.
@@ -24,4 +24,4 @@ Describe the expected behavior that should have happened but didn't.
 Environment:
 
 - Python version:
-- Cachelib version:
+- CacheLib version:
