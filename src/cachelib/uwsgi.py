@@ -34,7 +34,7 @@ class UWSGICache(BaseCache):
             self._uwsgi = uwsgi
         except ImportError:
             raise RuntimeError(
-                "uWSGI could not be imported, are you " "running under uWSGI?"
+                "uWSGI could not be imported, are you running under uWSGI?"
             )
 
         self.cache = cache

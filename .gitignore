@@ -12,6 +12,7 @@ venv/
 env/
 .DS_Store
 *.swp
+docs/_build
 
 # due to using t/nox and pytest
 .tox

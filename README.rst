@@ -1,25 +1,29 @@
-cachelib
+CacheLib
 ========
 
-A collection of cache libraries in the same API interface. Extracted from
-werkzeug.
+A collection of cache libraries in the same API interface. Extracted
+from Werkzeug.
 
 
 Installing
 ----------
 
-Install and update using pip::
+Install and update using `pip`_:
 
-    pip install -U cachelib
+.. code-block:: text
+
+    $ pip install -U cachelib
+
+.. _pip: https://pip.pypa.io/en/stable/quickstart/
 
 
 Donate
 ------
 
-The Pallets organization develops and supports Cachelib and other
-popular packages. In order to grow the community of contributors and
-users, and allow the maintainers to devote more time to the projects,
-`please donate today`_.
+The Pallets organization develops and supports Flask and the libraries
+it uses. In order to grow the community of contributors and users, and
+allow the maintainers to devote more time to the projects, `please
+donate today`_.
 
 .. _please donate today: https://palletsprojects.com/donate
 
