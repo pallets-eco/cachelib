@@ -15,6 +15,4 @@ __all__ = [
     "RedisCache",
     "UWSGICache",
 ]
-
-__version__ = "0.1.1"
-__author__ = "Pallets Team"
+__version__ = "0.2.0.dev0"
