@@ -15,7 +15,7 @@ def under_uwsgi():
         return True
 
 
-@pytest.hookimpl(hookwrapper=True)
+@pytest.hookimpl()
 def pytest_sessionfinish(session, exitstatus):
     if under_uwsgi():
         try:
@@ -29,7 +29,6 @@ def pytest_sessionfinish(session, exitstatus):
         else:
             with open(script_path, mode="w") as f:
                 f.write(f"import sys; sys.exit({exitstatus})")
-    yield
 
 
 @pytest.fixture(scope="class")
