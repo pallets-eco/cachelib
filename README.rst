@@ -31,6 +31,8 @@ donate today`_.
 Links
 -----
 
+-   Documentation: https://cachelib.readthedocs.io/
+-   Changes: https://cachelib.readthedocs.io/changes/
 -   PyPI Releases: https://pypi.org/project/cachelib/
 -   Source Code: https://github.com/pallets/cachelib/
 -   Issue Tracker: https://github.com/pallets/cachelib/issues/
