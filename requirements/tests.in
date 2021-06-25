@@ -3,4 +3,3 @@ pylibmc
 redis
 uwsgi
 pytest-xprocess
-coverage
