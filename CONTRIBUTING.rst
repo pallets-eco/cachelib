@@ -7,19 +7,18 @@ Thank you for considering contributing to CacheLib!
 Support questions
 -----------------
 
-Please, don't use the issue tracker for this. The issue tracker is a
-tool to address bugs and feature requests in CacheLib itself. Use one of
-the following resources for questions about using CacheLib or issues
-with your own code:
+Please don't use the issue tracker for this. The issue tracker is a tool
+to address bugs and feature requests in CacheLib itself. Use one of the
+following resources for questions about using CacheLib or issues with
+your own code:
 
 -   The ``#get-help`` channel on our Discord chat:
     https://discord.gg/pallets
--   The mailing list flask@python.org for long term discussion or larger
-    issues.
 -   Ask on `Stack Overflow`_. Search with Google first using:
     ``site:stackoverflow.com cachelib {search term, exception message, etc.}``
 
 .. _Stack Overflow: https://stackoverflow.com/search?tab=relevance&q=cachelib
+
 
 Reporting issues
 ----------------
@@ -95,22 +94,34 @@ First time setup
 
 -   Create a virtualenv.
 
+    .. tabs::
+
+       .. group-tab:: Linux/macOS
+
+          .. code-block:: text
+
+             $ python3 -m venv env
+             $ . env/bin/activate
+
+       .. group-tab:: Windows
+
+          .. code-block:: text
+
+             > py -3 -m venv env
+             > env\Scripts\activate
+
+-   Upgrade pip and setuptools.
+
     .. code-block:: text
 
-        $ python3 -m venv env
-        $ . env/bin/activate
+        $ python -m pip install --upgrade pip setuptools
 
-    On Windows, activating is different.
-
-    .. code-block:: text
-
-        > env\Scripts\activate
-
--   Install CacheLib in editable mode with development dependencies.
+-   Install the development dependencies, then install CacheLib in
+    editable mode.
 
     .. code-block:: text
 
-        $ pip install -e . -r requirements/dev.txt
+        $ pip install -r requirements/dev.txt && pip install -e .
 
 -   Install the pre-commit hooks.
 
@@ -119,11 +130,11 @@ First time setup
         $ pre-commit install
 
 .. _latest version of git: https://git-scm.com/downloads
-.. _username: https://help.github.com/en/articles/setting-your-username-in-git
-.. _email: https://help.github.com/en/articles/setting-your-commit-email-address-in-git
+.. _username: https://docs.github.com/en/github/using-git/setting-your-username-in-git
+.. _email: https://docs.github.com/en/github/setting-up-and-managing-your-github-user-account/setting-your-commit-email-address
 .. _GitHub account: https://github.com/join
 .. _Fork: https://github.com/pallets/cachelib/fork
-.. _Clone: https://help.github.com/en/articles/fork-a-repo#step-2-create-a-local-clone-of-your-fork
+.. _Clone: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo#step-2-create-a-local-clone-of-your-fork
 
 
 Start coding
@@ -136,7 +147,7 @@ Start coding
     .. code-block:: text
 
         $ git fetch origin
-        $ git checkout -b your-branch-name origin/1.0.x
+        $ git checkout -b your-branch-name origin/main
 
     If you're submitting a feature addition or change, branch off of the
     "main" branch.
@@ -159,7 +170,8 @@ Start coding
         $ git push --set-upstream fork your-branch-name
 
 .. _committing as you go: https://dont-be-afraid-to-commit.readthedocs.io/en/latest/git/commandlinegit.html#commit-your-changes
-.. _create a pull request: https://help.github.com/en/articles/creating-a-pull-request
+.. _create a pull request: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request
+
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
@@ -170,41 +182,33 @@ Run the basic test suite with pytest.
 
     $ pytest
 
-This runs the tests for the current environment, except the tests for
-uwsgi-based cache once uwsgi requires that the pytest process be run
-under uwsgi, this can be done with:
-
-.. code-block:: text
-
-    # py36uwsgi for py36 or py37 uwsgi for py37
-    $ tox -e py38uwsgi
-
-CI will run the full suite when you submit your pull request, but
-you can run the full test suite with tox yourself if you don't want
-to wait.
+This runs the tests for the current environment, which is usually
+sufficient. CI will run the full suite when you submit your pull
+request. You can run the full test suite with tox if you don't want to
+wait.
 
 .. code-block:: text
 
     $ tox
 
-Obs. Make sure to have py36, py37 and py38 available in your
-development environment
 
 Running test coverage
 ~~~~~~~~~~~~~~~~~~~~~
 
 Generating a report of lines that do not have test coverage can indicate
-where to start contributing. Run ``pytest`` using ``coverage`` through
-tox and generate a report.
+where to start contributing. Run ``pytest`` using ``coverage`` and
+generate a report.
 
 .. code-block:: text
 
-    $ tox -e coverage
+    $ pip install coverage
+    $ coverage run -m pytest
     $ coverage html
 
 Open ``htmlcov/index.html`` in your browser to explore the report.
 
 Read more about `coverage <https://coverage.readthedocs.io>`__.
+
 
 Building the docs
 ~~~~~~~~~~~~~~~~~

@@ -1,29 +1,21 @@
-
-cachelib
+CacheLib
 ========
 
-A collection of cache libraries in the same API interface. Extracted from
-werkzeug.
-
-
-Installing
-----------
-
-Install and update using pip::
-
-    pip install -U cachelib
-
-
-Authors & License
------------------
-
-Maintained by Pallets Team, licensed under BSD.
-
-
-
-Table of Contents
-=================
+A collection of cache libraries in the same API interface. Extracted
+from Werkzeug.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+
+    base
+    simple
+    file
+    redis
+    memcached
+    uwsgi
+
+.. toctree::
+    :maxdepth: 2
+
+    license
+    changes
