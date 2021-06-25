@@ -25,25 +25,19 @@ jobs:
       matrix:
         include:
           - {name: Linux, python: '3.9', os: ubuntu-latest, tox: py39}
-          - {name: Linux-Uwsgi, python: '3.9', os: ubuntu-latest, tox: py39uwsgi}
           - {name: Mac, python: '3.9', os: macos-latest, tox: py39}
-          - {name: Mac-Uwsgi, python: '3.9', os: macos-latest, tox: py39uwsgi}
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
-          - {name: '3.8-uwsgi', python: '3.8', os: ubuntu-latest, tox: py38uwsgi}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
-          - {name: '3.7-uwsgi', python: '3.7', os: ubuntu-latest, tox: py37uwsgi}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
-          - {name: '3.6-uwsgi', python: '3.6', os: ubuntu-latest, tox: py36uwsgi}
-          - {name: Style, python: '3.8', os: ubuntu-latest, tox: style}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-      - name: install external dependencies macos
+      - name: install external dependencies Mac
         if: matrix.os == 'macos-latest'
         run: brew install libmemcached memcached redis
-      - name: install external dependencies linux
+      - name: install external dependencies Linux
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install libmemcached-dev memcached redis-server
       - name: update pip
@@ -59,6 +53,5 @@ jobs:
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip|${{ runner.os }}|${{ matrix.python }}|${{ hashFiles('setup.py') }}|${{ hashFiles('requirements/*.txt') }}
-        if: matrix.tox == 'style'
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
