@@ -10,5 +10,7 @@ mypy-extensions==0.4.3
     # via mypy
 toml==0.10.2
     # via mypy
+types-redis==3.5.4
+    # via -r requirements/typing.in
 typing-extensions==3.10.0.0
     # via mypy
