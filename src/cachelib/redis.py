@@ -91,6 +91,8 @@ class RedisCache(BaseCache):
     def get_many(self, *keys: str) -> _t.List[_t.Any]:
         if self.key_prefix:
             prefixed_keys = [self.key_prefix + key for key in keys]
+        else:
+            prefixed_keys = [k for k in keys]
         return [self.load_object(x) for x in self._client.mget(prefixed_keys)]
 
     def set(
@@ -137,6 +139,8 @@ class RedisCache(BaseCache):
             return None
         if self.key_prefix:
             prefixed_keys = [self.key_prefix + key for key in keys]
+        else:
+            prefixed_keys = [k for k in keys]
         return self._client.delete(*prefixed_keys)
 
     def has(self, key: str) -> int:
