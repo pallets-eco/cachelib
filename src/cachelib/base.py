@@ -26,7 +26,7 @@ class BaseCache:
         """
         return None
 
-    def delete(self, key: str) -> bool:
+    def delete(self, key: str) -> _t.Union[bool, int]:
         """Delete `key` from the cache.
 
         :param key: the key to delete.
@@ -60,7 +60,9 @@ class BaseCache:
         """
         return dict(zip(keys, self.get_many(*keys)))
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         """Add a new key/value to the cache (overwrites value, if key already
         exists in the cache).
 
@@ -93,7 +95,7 @@ class BaseCache:
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> bool:
+    ) -> _t.Union[bool, _t.List[_t.Any]]:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
@@ -109,7 +111,7 @@ class BaseCache:
                 rv = False
         return rv
 
-    def delete_many(self, *keys: str) -> bool:
+    def delete_many(self, *keys: str) -> _t.Union[bool, _t.Optional[int]]:
         """Deletes multiple keys at once.
 
         :param keys: The function accepts multiple keys as positional
@@ -119,7 +121,7 @@ class BaseCache:
         """
         return all(self.delete(key) for key in keys)
 
-    def has(self, key: str) -> bool:
+    def has(self, key: str) -> _t.Union[bool, int]:
         """Checks if a key exists in the cache without returning it. This is a
         cheap operation that bypasses loading the actual data on the backend.
 
@@ -134,7 +136,7 @@ class BaseCache:
             "explicitly if you don't care about performance."
         )
 
-    def clear(self) -> bool:
+    def clear(self) -> _t.Union[bool, int]:
         """Clears the cache.  Keep in mind that not all caches support
         completely clearing the cache.
 

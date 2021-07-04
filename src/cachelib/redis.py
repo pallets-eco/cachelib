@@ -1,4 +1,5 @@
 import pickle
+import typing as _t
 
 from cachelib.base import BaseCache
 
@@ -27,13 +28,13 @@ class RedisCache(BaseCache):
 
     def __init__(
         self,
-        host="localhost",
-        port=6379,
-        password=None,
-        db=0,
-        default_timeout=300,
-        key_prefix=None,
-        **kwargs
+        host: str = "localhost",
+        port: int = 6379,
+        password: _t.Optional[str] = None,
+        db: int = 0,
+        default_timeout: int = 300,
+        key_prefix: _t.Optional[str] = None,
+        **kwargs: _t.Any
     ):
         BaseCache.__init__(self, default_timeout)
         if host is None:
@@ -52,13 +53,13 @@ class RedisCache(BaseCache):
             self._client = host
         self.key_prefix = key_prefix or ""
 
-    def _normalize_timeout(self, timeout):
+    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout == 0:
             timeout = -1
         return timeout
 
-    def dump_object(self, value):
+    def dump_object(self, value: _t.Any) -> bytes:
         """Dumps an object into a string for redis.  By default it serializes
         integers as regular string and pickle dumps everything else.
         """
@@ -67,7 +68,7 @@ class RedisCache(BaseCache):
             return str(value).encode("ascii")
         return b"!" + pickle.dumps(value)
 
-    def load_object(self, value):
+    def load_object(self, value: _t.Optional[bytes]) -> _t.Any:
         """The reversal of :meth:`dump_object`.  This might be called with
         None.
         """
@@ -84,15 +85,17 @@ class RedisCache(BaseCache):
             # before 0.8 we did not have serialization.  Still support that.
             return value
 
-    def get(self, key):
+    def get(self, key: str) -> _t.Any:
         return self.load_object(self._client.get(self.key_prefix + key))
 
-    def get_many(self, *keys):
+    def get_many(self, *keys: str) -> _t.List[_t.Any]:
         if self.key_prefix:
-            keys = [self.key_prefix + key for key in keys]
-        return [self.load_object(x) for x in self._client.mget(keys)]
+            prefixed_keys = [self.key_prefix + key for key in keys]
+        return [self.load_object(x) for x in self._client.mget(prefixed_keys)]
 
-    def set(self, key, value, timeout=None):
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         timeout = self._normalize_timeout(timeout)
         dump = self.dump_object(value)
         if timeout == -1:
@@ -103,14 +106,16 @@ class RedisCache(BaseCache):
             )
         return result
 
-    def add(self, key, value, timeout=None):
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         timeout = self._normalize_timeout(timeout)
         dump = self.dump_object(value)
         return self._client.setnx(
             name=self.key_prefix + key, value=dump
         ) and self._client.expire(name=self.key_prefix + key, time=timeout)
 
-    def set_many(self, mapping, timeout=None):
+    def set_many(
+        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
+    ) -> _t.List[_t.Any]:
         timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling redis MULTI
         # which is not supported by twemproxy
@@ -124,21 +129,21 @@ class RedisCache(BaseCache):
                 pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
         return pipe.execute()
 
-    def delete(self, key):
+    def delete(self, key: str) -> int:
         return self._client.delete(self.key_prefix + key)
 
-    def delete_many(self, *keys):
+    def delete_many(self, *keys: str) -> _t.Optional[int]:
         if not keys:
-            return
+            return None
         if self.key_prefix:
-            keys = [self.key_prefix + key for key in keys]
-        return self._client.delete(*keys)
+            prefixed_keys = [self.key_prefix + key for key in keys]
+        return self._client.delete(*prefixed_keys)
 
-    def has(self, key):
+    def has(self, key: str) -> int:
         return self._client.exists(self.key_prefix + key)
 
-    def clear(self):
-        status = False
+    def clear(self) -> int:
+        status = 0
         if self.key_prefix:
             keys = self._client.keys(self.key_prefix + "*")
             if keys:
@@ -147,8 +152,8 @@ class RedisCache(BaseCache):
             status = self._client.flushdb()
         return status
 
-    def inc(self, key, delta=1):
+    def inc(self, key: str, delta: int = 1) -> int:
         return self._client.incr(name=self.key_prefix + key, amount=delta)
 
-    def dec(self, key, delta=1):
+    def dec(self, key: str, delta: int = 1) -> int:
         return self._client.decr(name=self.key_prefix + key, amount=delta)
