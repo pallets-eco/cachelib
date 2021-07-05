@@ -49,8 +49,6 @@ class RedisCache(BaseCache):
             self._client = redis.Redis(
                 host=host, port=port, password=password, db=db, **kwargs
             )
-        else:
-            self._client = host
         self.key_prefix = key_prefix or ""
 
     def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
@@ -63,8 +61,7 @@ class RedisCache(BaseCache):
         """Dumps an object into a string for redis.  By default it serializes
         integers as regular string and pickle dumps everything else.
         """
-        t = type(value)
-        if isinstance(t, int):
+        if isinstance(type(value), int):
             return str(value).encode("ascii")
         return b"!" + pickle.dumps(value)
 

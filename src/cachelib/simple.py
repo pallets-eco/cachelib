@@ -38,8 +38,8 @@ class SimpleCache(BaseCache):
         k_ordered = (
             k
             for k, v in sorted(
-                self._cache.items(), key=lambda item: item[1][0]
-            )  # type: ignore
+                self._cache.items(), key=lambda item: item[1][0]  # type: ignore
+            )
         )
         for k in k_ordered:
             self._cache.pop(k, None)

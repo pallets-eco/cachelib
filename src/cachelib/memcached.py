@@ -85,16 +85,13 @@ class MemcachedCache(BaseCache):
 
     def get_dict(self, *keys: str) -> _t.Any:
         key_mapping = {}
-        have_encoded_keys = False
         for key in keys:
             encoded_key = self._normalize_key(key)
-            if not isinstance(key, str):
-                have_encoded_keys = True
             if _test_memcached_key(key):
                 key_mapping[encoded_key] = key
         _keys = list(key_mapping)
         d = rv = self._client.get_multi(_keys)
-        if have_encoded_keys or self.key_prefix:
+        if self.key_prefix:
             rv = {}
             for key, value in d.items():
                 rv[key_mapping[key]] = value
