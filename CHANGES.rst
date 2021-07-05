@@ -1,3 +1,11 @@
+Version 0.3.0
+-------------
+
+Unreleased
+
+-   Add type information for static typing tools
+
+
 Version 0.2.0
 -------------
 
