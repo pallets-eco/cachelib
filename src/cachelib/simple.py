@@ -1,4 +1,5 @@
 import pickle
+import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
@@ -18,30 +19,34 @@ class SimpleCache(BaseCache):
                             0 indicates that the cache never expires.
     """
 
-    def __init__(self, threshold=500, default_timeout=300):
+    def __init__(self, threshold: int = 500, default_timeout: int = 300):
         BaseCache.__init__(self, default_timeout)
-        self._cache = {}
-        self.clear = self._cache.clear
+        self._cache: _t.Dict[str, _t.Any] = {}
+        # mypy complains about mocks
+        self.clear = self._cache.clear  # type: ignore
         self._threshold = threshold or 500  # threshold = 0
 
-    def _over_threshold(self):
+    def _over_threshold(self) -> bool:
         return len(self._cache) > self._threshold
 
-    def _remove_expired(self, now):
+    def _remove_expired(self, now: float) -> None:
         toremove = [k for k, (expires, _) in self._cache.items() if expires < now]
         for k in toremove:
             self._cache.pop(k, None)
 
-    def _remove_older(self):
+    def _remove_older(self) -> None:
         k_ordered = (
-            k for k, v in sorted(self._cache.items(), key=lambda item: item[1][0])
+            k
+            for k, v in sorted(
+                self._cache.items(), key=lambda item: item[1][0]
+            )  # type: ignore
         )
         for k in k_ordered:
             self._cache.pop(k, None)
             if not self._over_threshold():
                 break
 
-    def _prune(self):
+    def _prune(self) -> None:
         if self._over_threshold():
             now = time()
             self._remove_expired(now)
@@ -49,13 +54,13 @@ class SimpleCache(BaseCache):
         if self._over_threshold():
             self._remove_older()
 
-    def _normalize_timeout(self, timeout):
+    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout > 0:
-            timeout = time() + timeout
+            timeout = int(time()) + timeout
         return timeout
 
-    def get(self, key):
+    def get(self, key: str) -> _t.Any:
         try:
             expires, value = self._cache[key]
             if expires == 0 or expires > time():
@@ -63,13 +68,13 @@ class SimpleCache(BaseCache):
         except (KeyError, pickle.PickleError):
             return None
 
-    def set(self, key, value, timeout=None):
+    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
         self._cache[key] = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
         return True
 
-    def add(self, key, value, timeout=None):
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
         item = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
@@ -78,12 +83,12 @@ class SimpleCache(BaseCache):
         self._cache.setdefault(key, item)
         return True
 
-    def delete(self, key):
+    def delete(self, key: str) -> bool:
         return self._cache.pop(key, None) is not None
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         try:
             expires, value = self._cache[key]
-            return expires == 0 or expires > time()
+            return bool(expires == 0 or expires > time())
         except KeyError:
             return False
