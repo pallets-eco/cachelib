@@ -4,6 +4,7 @@ import os
 import pickle
 import tempfile
 from hashlib import md5
+from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
@@ -205,6 +206,7 @@ class FileSystemCache(BaseCache):
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
+            fsize = Path(filename).stat().st_size
         except OSError:
             logging.warning(
                 "Exception raised while handling cache file '%s'",
@@ -216,7 +218,7 @@ class FileSystemCache(BaseCache):
             # Management elements should not count towards threshold
             if not overwrite and not mgmt_element:
                 self._update_count(delta=1)
-            return True
+            return fsize > 0  # function should fail if file is empty
 
     def delete(self, key, mgmt_element=False):
         try:
