@@ -92,7 +92,7 @@ class FileSystemCache(BaseCache):
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
-            except OSError:
+            except (OSError, EOFError):
                 pass
 
     def _remove_older(self):
@@ -102,7 +102,7 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
-            except OSError:
+            except (OSError, EOFError):
                 pass
         fname_sorted = (
             fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
@@ -151,7 +151,7 @@ class FileSystemCache(BaseCache):
                     os.remove(filename)
                     self._update_count(delta=-1)
                     return None
-        except (OSError, pickle.PickleError):
+        except (OSError, EOFError, pickle.PickleError):
             return None
 
     def add(self, key, value, timeout=None):
@@ -212,5 +212,5 @@ class FileSystemCache(BaseCache):
                     os.remove(filename)
                     self._update_count(delta=-1)
                     return False
-        except (OSError, pickle.PickleError):
+        except (OSError, EOFError, pickle.PickleError):
             return False
