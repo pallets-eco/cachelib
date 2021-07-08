@@ -1,3 +1,9 @@
+Version 0.2.1
+-------------
+
+- Fix unhandled ``EOFError`` in ``FileSystemCache`` :issue:`20`
+
+
 Version 0.2.0
 -------------
 
