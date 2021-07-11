@@ -31,7 +31,7 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
         threshold = len(self.sample_pairs) // 2
         cache = self.cache_factory(threshold=threshold)
         assert cache.set_many(self.sample_pairs)
-        assert abs(cache._file_count - threshold) <= 1
+        assert cache._file_count == 4
         # due to autouse=True a single tmpdir is used
         # for each test so we need to clear it
         assert cache.clear()
@@ -58,10 +58,10 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
         threshold = 2 * len(self.sample_pairs) - 1
         cache = self.cache_factory(threshold=threshold)
         for k, v in self.sample_pairs.items():
-            assert cache.set(f"{k}-t0.1", v, timeout=0.1)
-            assert cache.set(f"{k}-t5.0", v, timeout=5.0)
-        sleep(2)
+            assert cache.set(f"{k}-t1", v, timeout=1)
+            assert cache.set(f"{k}-t5", v, timeout=5)
+        sleep(3)
         for k, v in self.sample_pairs.items():
             assert cache.set(k, v)
-            assert cache.has(f"{k}-t5.0")
-            assert not cache.has(f"{k}-t0.1")
+            assert cache.has(f"{k}-t5")
+            assert not cache.has(f"{k}-t1")
