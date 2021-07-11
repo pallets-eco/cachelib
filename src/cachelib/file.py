@@ -66,13 +66,17 @@ class FileSystemCache(BaseCache):
             timeout = time() + timeout
         return int(timeout)
 
+    def _is_mgmt(self, name):
+        fshash = self._get_filename(self._fs_count_file).split(os.sep)[-1]
+        return name == fshash or name.endswith(self._fs_transaction_suffix)
+
     def _list_dir(self):
         """return a list of (fully qualified) cache filenames"""
         return (
             os.path.join(self._path, fn)
             for fn in os.listdir(self._path)
-            if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt_files
-        ]
+            if not self._is_mgmt(fn)
+        )
 
     def _over_threshold(self):
         return self._threshold != 0 and self._file_count > self._threshold
@@ -97,7 +101,7 @@ class FileSystemCache(BaseCache):
             except OSError:
                 pass
         fname_sorted = (
-            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
+            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
         )
         for fname in fname_sorted:
             try:
@@ -129,8 +133,8 @@ class FileSystemCache(BaseCache):
     def _get_filename(self, key):
         if isinstance(key, str):
             key = key.encode("utf-8")  # XXX unicode review
-        hash = md5(key).hexdigest()
-        return os.path.join(self._path, hash)
+            key_hash = md5(key).hexdigest()
+        return os.path.join(self._path, key_hash)
 
     def get(self, key):
         filename = self._get_filename(key)
