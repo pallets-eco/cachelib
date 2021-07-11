@@ -9,7 +9,6 @@ from cachelib.base import BaseCache
 
 
 class FileSystemCache(BaseCache):
-
     """A cache that stores the items on the file system.  This cache depends
     on being the only user of the `cache_dir`.  Make absolutely sure that
     nobody but this cache stores files there or otherwise the cache will
@@ -45,7 +44,7 @@ class FileSystemCache(BaseCache):
         # If there are many files and a zero threshold,
         # the list_dir can slow initialisation massively
         if self._threshold != 0:
-            self._update_count(value=len(self._list_dir()))
+            self._update_count(value=len(list(self._list_dir())))
 
     @property
     def _file_count(self):
@@ -55,7 +54,6 @@ class FileSystemCache(BaseCache):
         # If we have no threshold, don't count files
         if self._threshold == 0:
             return
-
         if delta:
             new_count = self._file_count + delta
         else:
@@ -70,11 +68,7 @@ class FileSystemCache(BaseCache):
 
     def _list_dir(self):
         """return a list of (fully qualified) cache filenames"""
-        mgmt_files = [
-            self._get_filename(name).split(os.sep)[-1]
-            for name in (self._fs_count_file,)
-        ]
-        return [
+        return (
             os.path.join(self._path, fn)
             for fn in os.listdir(self._path)
             if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt_files
@@ -84,8 +78,7 @@ class FileSystemCache(BaseCache):
         return self._threshold != 0 and self._file_count > self._threshold
 
     def _remove_expired(self, now):
-        entries = self._list_dir()
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     expires = pickle.load(f)
@@ -96,9 +89,8 @@ class FileSystemCache(BaseCache):
                 pass
 
     def _remove_older(self):
-        entries = self._list_dir()
         exp_fname_tuples = []
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
@@ -125,11 +117,11 @@ class FileSystemCache(BaseCache):
             self._remove_older()
 
     def clear(self):
-        for fname in self._list_dir():
+        for i, fname in enumerate(self._list_dir()):
             try:
                 os.remove(fname)
             except OSError:
-                self._update_count(value=len(self._list_dir()))
+                self._update_count(delta=-i)
                 return False
         self._update_count(value=0)
         return True
@@ -164,7 +156,6 @@ class FileSystemCache(BaseCache):
         # Management elements have no timeout
         if mgmt_element:
             timeout = 0
-
         # Don't prune on management element update, to avoid loop
         else:
             self._prune()
@@ -179,7 +170,6 @@ class FileSystemCache(BaseCache):
             with os.fdopen(fd, "wb") as f:
                 pickle.dump(timeout, f, 1)
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
-
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
         except OSError:
