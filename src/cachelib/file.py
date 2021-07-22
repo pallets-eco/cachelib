@@ -11,7 +11,6 @@ from cachelib.base import BaseCache
 
 
 class FileSystemCache(BaseCache):
-
     """A cache that stores the items on the file system.  This cache depends
     on being the only user of the `cache_dir`.  Make absolutely sure that
     nobody but this cache stores files there or otherwise the cache will
@@ -47,7 +46,7 @@ class FileSystemCache(BaseCache):
         # If there are many files and a zero threshold,
         # the list_dir can slow initialisation massively
         if self._threshold != 0:
-            self._update_count(value=len(self._list_dir()))
+            self._update_count(value=len(list(self._list_dir())))
 
     @property
     def _file_count(self):
@@ -57,7 +56,6 @@ class FileSystemCache(BaseCache):
         # If we have no threshold, don't count files
         if self._threshold == 0:
             return
-
         if delta:
             new_count = self._file_count + delta
         else:
@@ -70,24 +68,23 @@ class FileSystemCache(BaseCache):
             timeout = time() + timeout
         return int(timeout)
 
+    def _is_mgmt(self, name):
+        fshash = self._get_filename(self._fs_count_file).split(os.sep)[-1]
+        return name == fshash or name.endswith(self._fs_transaction_suffix)
+
     def _list_dir(self):
         """return a list of (fully qualified) cache filenames"""
-        mgmt_files = [
-            self._get_filename(name).split(os.sep)[-1]
-            for name in (self._fs_count_file,)
-        ]
-        return [
+        return (
             os.path.join(self._path, fn)
             for fn in os.listdir(self._path)
-            if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt_files
-        ]
+            if not self._is_mgmt(fn)
+        )
 
     def _over_threshold(self):
         return self._threshold != 0 and self._file_count > self._threshold
 
     def _remove_expired(self, now):
-        entries = self._list_dir()
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     expires = pickle.load(f)
@@ -102,9 +99,8 @@ class FileSystemCache(BaseCache):
                 )
 
     def _remove_older(self):
-        entries = self._list_dir()
         exp_fname_tuples = []
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
@@ -115,7 +111,7 @@ class FileSystemCache(BaseCache):
                     exc_info=True,
                 )
         fname_sorted = (
-            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
+            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
         )
         for fname in fname_sorted:
             try:
@@ -140,7 +136,7 @@ class FileSystemCache(BaseCache):
             self._remove_older()
 
     def clear(self):
-        for fname in self._list_dir():
+        for i, fname in enumerate(self._list_dir()):
             try:
                 os.remove(fname)
             except OSError:
@@ -149,7 +145,7 @@ class FileSystemCache(BaseCache):
                     fname,
                     exc_info=True,
                 )
-                self._update_count(value=len(self._list_dir()))
+                self._update_count(delta=-i)
                 return False
         self._update_count(value=0)
         return True
@@ -157,8 +153,8 @@ class FileSystemCache(BaseCache):
     def _get_filename(self, key):
         if isinstance(key, str):
             key = key.encode("utf-8")  # XXX unicode review
-        hash = md5(key).hexdigest()
-        return os.path.join(self._path, hash)
+            key_hash = md5(key).hexdigest()
+        return os.path.join(self._path, key_hash)
 
     def get(self, key):
         filename = self._get_filename(key)
