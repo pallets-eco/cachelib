@@ -1,20 +1,19 @@
 Version 0.3.0
 -------------
 
-Unreleased
+Released 2021-08-12
 
--   Optimize ``FileSystemCache`` prunning functionality
--   Fix bug in ``FileSystemCache`` where entries would not be removed
-    when total count was over threshold and entry count would be lost
--   ``FileSystemCache`` will now log system-related exceptions
--   Removal of expired entries in ``FileSystemCache`` will only be
-    triggered if the total number of entries is over the defined
-    ``threshhold`` when attempting to ``FileSystemCache.set``.
-    ``FileSystemCache.get`` and ``FileSystemCache.has`` will still
-    return ``None`` and ``False`` (respectively) for expired entries
-    but they will not remove the entry files. All removals will now
-    be conducted at prunning time or explicitly with ``clear`` and
-    ``delete``.
+-   Optimize ``FileSystemCache`` pruning. :pr:`52`
+-   Fix a bug in ``FileSystemCache`` where entries would not be removed
+    when the total was over the threshold, and the entry count would be
+    lost. :pr:`52`
+-   ``FileSystemCache`` logs system-related exceptions. :pr:`51`
+-   Removal of expired entries in ``FileSystemCache`` is only triggered
+    if the number of entries is over the ``threshhold`` when calling
+    ``set``. ``get`` ``has`` still return ``None`` and ``False``
+    respectively for expired entries, but will not remove the files. All
+    removals happen at pruning time or explicitly with ``clear`` and
+    ``delete``. :pr:`53`
 
 
 Version 0.2.0
