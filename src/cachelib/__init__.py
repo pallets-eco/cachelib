@@ -16,9 +16,3 @@ __all__ = [
     "UWSGICache",
 ]
 __version__ = "0.2.0"
-
-
-import logging
-from logging import NullHandler
-
-logging.getLogger(__name__).addHandler(NullHandler())
