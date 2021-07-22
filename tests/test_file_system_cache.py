@@ -27,6 +27,16 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
         "cravettes": "mournay sauce",
     }
 
+    def test_EOFError(self, caplog):
+        cache = self.cache_factory(threshold=1)
+        assert cache.set_many(self.sample_pairs)
+        file_names = [cache._get_filename(k) for k in self.sample_pairs.keys()]
+        # truncate files to erase content
+        for fpath in file_names:
+            open(fpath, "w").close()
+        assert cache.set("test", "EOFError")
+        assert "Exception raised" in caplog.text
+
     def test_threshold(self):
         threshold = len(self.sample_pairs) // 2
         cache = self.cache_factory(threshold=threshold)

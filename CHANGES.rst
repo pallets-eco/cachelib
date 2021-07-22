@@ -6,6 +6,8 @@ Unreleased
 -   Optimize ``FileSystemCache`` prunning functionality
 -   Fix bug in ``FileSystemCache`` where entries would not be removed
     when total count was over threshold and entry count would be lost
+-   ``FileSystemCache`` will now log system-related exceptions
+
 
 Version 0.2.0
 -------------

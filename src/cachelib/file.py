@@ -1,8 +1,10 @@
 import errno
+import logging
 import os
 import pickle
 import tempfile
 from hashlib import md5
+from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
@@ -89,8 +91,12 @@ class FileSystemCache(BaseCache):
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
-            except OSError:
-                pass
+            except (OSError, EOFError):
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
 
     def _remove_older(self):
         exp_fname_tuples = []
@@ -98,8 +104,12 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
-            except OSError:
-                pass
+            except (OSError, EOFError):
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
         fname_sorted = (
             fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
         )
@@ -108,6 +118,11 @@ class FileSystemCache(BaseCache):
                 os.remove(fname)
                 self._update_count(delta=-1)
             except OSError:
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
                 return False
             if not self._over_threshold():
                 break
@@ -125,6 +140,11 @@ class FileSystemCache(BaseCache):
             try:
                 os.remove(fname)
             except OSError:
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
                 self._update_count(delta=-i)
                 return False
         self._update_count(value=0)
@@ -147,7 +167,12 @@ class FileSystemCache(BaseCache):
                     os.remove(filename)
                     self._update_count(delta=-1)
                     return None
-        except (OSError, pickle.PickleError):
+        except (OSError, EOFError, pickle.PickleError):
+            logging.warning(
+                "Exception raised while handling cache file '%s'",
+                filename,
+                exc_info=True,
+            )
             return None
 
     def add(self, key, value, timeout=None):
@@ -167,6 +192,7 @@ class FileSystemCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         filename = self._get_filename(key)
         overwrite = os.path.isfile(filename)
+
         try:
             fd, tmp = tempfile.mkstemp(
                 suffix=self._fs_transaction_suffix, dir=self._path
@@ -176,18 +202,25 @@ class FileSystemCache(BaseCache):
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
+            fsize = Path(filename).stat().st_size
         except OSError:
+            logging.warning(
+                "Exception raised while handling cache file '%s'",
+                filename,
+                exc_info=True,
+            )
             return False
         else:
             # Management elements should not count towards threshold
             if not overwrite and not mgmt_element:
                 self._update_count(delta=1)
-            return True
+            return fsize > 0  # function should fail if file is empty
 
     def delete(self, key, mgmt_element=False):
         try:
             os.remove(self._get_filename(key))
         except OSError:
+            logging.warning("Exception raised while handling cache file", exc_info=True)
             return False
         else:
             # Management elements should not count towards threshold
@@ -206,5 +239,10 @@ class FileSystemCache(BaseCache):
                     os.remove(filename)
                     self._update_count(delta=-1)
                     return False
-        except (OSError, pickle.PickleError):
+        except (OSError, EOFError, pickle.PickleError):
+            logging.warning(
+                "Exception raised while handling cache file '%s'",
+                filename,
+                exc_info=True,
+            )
             return False
