@@ -7,6 +7,14 @@ Unreleased
 -   Fix bug in ``FileSystemCache`` where entries would not be removed
     when total count was over threshold and entry count would be lost
 -   ``FileSystemCache`` will now log system-related exceptions
+-   Removal of expired entries in ``FileSystemCache`` will only be
+    triggered if the total number of entries is over the defined
+    ``threshhold`` when attempting to ``FileSystemCache.set``.
+    ``FileSystemCache.get`` and ``FileSystemCache.has`` will still
+    return ``None`` and ``False`` (respectively) for expired entries
+    but they will not remove the entry files. All removals will now
+    be conducted at prunning time or explicitly with ``clear`` and
+    ``delete``.
 
 
 Version 0.2.0

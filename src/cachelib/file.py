@@ -164,8 +164,6 @@ class FileSystemCache(BaseCache):
                 if pickle_time == 0 or pickle_time >= time():
                     return pickle.load(f)
                 else:
-                    os.remove(filename)
-                    self._update_count(delta=-1)
                     return None
         except (OSError, EOFError, pickle.PickleError):
             logging.warning(
@@ -236,9 +234,9 @@ class FileSystemCache(BaseCache):
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
-                    os.remove(filename)
-                    self._update_count(delta=-1)
                     return False
+        except FileNotFoundError:  # it there is no file there is no key
+            return False
         except (OSError, EOFError, pickle.PickleError):
             logging.warning(
                 "Exception raised while handling cache file '%s'",

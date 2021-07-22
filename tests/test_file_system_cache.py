@@ -69,9 +69,9 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
         cache = self.cache_factory(threshold=threshold)
         for k, v in self.sample_pairs.items():
             assert cache.set(f"{k}-t1", v, timeout=1)
-            assert cache.set(f"{k}-t5", v, timeout=5)
+            assert cache.set(f"{k}-t10", v, timeout=10)
         sleep(3)
         for k, v in self.sample_pairs.items():
             assert cache.set(k, v)
-            assert cache.has(f"{k}-t5")
+            assert cache.has(f"{k}-t10")
             assert not cache.has(f"{k}-t1")
