@@ -17,18 +17,18 @@ psutil==5.8.0
 py==1.10.0
     # via pytest
 pylibmc==1.6.1
-    # via -r requirements/tests.in
+    # via -r tests.in
 pyparsing==2.4.7
     # via packaging
 pytest==6.2.4
     # via
-    #   -r requirements/tests.in
+    #   -r tests.in
     #   pytest-xprocess
-pytest-xprocess==0.17.1
-    # via -r requirements/tests.in
+pytest-xprocess==0.18.1
+    # via -r tests.in
 redis==3.5.3
-    # via -r requirements/tests.in
+    # via -r tests.in
 toml==0.10.2
     # via pytest
 uwsgi==2.0.19.1
-    # via -r requirements/tests.in
+    # via -r tests.in
