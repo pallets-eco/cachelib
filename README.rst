@@ -14,7 +14,7 @@ Install and update using `pip`_:
 
     $ pip install -U cachelib
 
-.. _pip: https://pip.pypa.io/en/stable/quickstart/
+.. _pip: https://pip.pypa.io/en/stable/getting-started/
 
 
 Donate
