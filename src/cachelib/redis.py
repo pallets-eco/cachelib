@@ -24,6 +24,13 @@ class RedisCache(BaseCache):
     :param key_prefix: A prefix that should be added to all keys.
     :param secret_key: Key to sign cache entries with.
 
+        .. warning::
+            Without a secret key or in case the secret key is not secret anymore,
+            anyone with write access to the redis instance can trick your program
+            into executing arbitrary code.
+
+        .. versionadded:: 0.3.0
+
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 

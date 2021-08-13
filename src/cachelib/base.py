@@ -29,7 +29,10 @@ class BaseCache:
                             no timeout is specified on :meth:`set`. A timeout
                             of 0 indicates that the cache never expires.
 
-    :param secret_key:      Key to sign cache entries with.
+    :param secret_key: Key to sign cache entries with.
+
+        .. versionadded:: 0.3.0
+
     """
 
     def __init__(

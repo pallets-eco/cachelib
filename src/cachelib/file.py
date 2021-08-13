@@ -27,6 +27,13 @@ class FileSystemCache(BaseCache):
     :param mode: the file mode wanted for the cache files, default 0600
 
     :param secret_key: Key to sign cache entries with.
+
+        .. warning::
+            Without a secret key or in case the secret key is not secret anymore,
+            anyone with write access to the cache directory can trick your program
+            into executing arbitrary code.
+
+        .. versionadded:: 0.3.0
     """
 
     #: used for temporary files by the FileSystemCache

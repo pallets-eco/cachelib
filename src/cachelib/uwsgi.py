@@ -18,6 +18,13 @@ class UWSGICache(BaseCache):
         same instance as the werkzeug app, you only have to provide the name of
         the cache.
     :param secret_key: Key to sign cache entries with.
+
+        .. warning::
+            Without a secret key or in case the secret key is not secret anymore,
+            anyone with write access to the uWSGI cache can trick your program
+            into executing arbitrary code.
+
+        .. versionadded:: 0.3.0
     """
 
     def __init__(
