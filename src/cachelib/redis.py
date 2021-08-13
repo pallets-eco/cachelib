@@ -1,4 +1,5 @@
 import pickle
+import typing as _t
 
 from cachelib.base import BaseCache
 
@@ -21,6 +22,14 @@ class RedisCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
+    :param secret_key: Key to sign cache entries with.
+
+        .. warning::
+            Without a secret key or in case the secret key is not secret anymore,
+            anyone with write access to the redis instance can trick your program
+            into executing arbitrary code.
+
+        .. versionadded:: 0.4.0
 
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
@@ -33,9 +42,11 @@ class RedisCache(BaseCache):
         db=0,
         default_timeout=300,
         key_prefix=None,
-        **kwargs
+        *,
+        secret_key: _t.Optional[_t.Union[_t.AnyStr, _t.Collection[_t.AnyStr]]] = None,
+        **kwargs,
     ):
-        BaseCache.__init__(self, default_timeout)
+        BaseCache.__init__(self, default_timeout, secret_key=secret_key)
         if host is None:
             raise ValueError("RedisCache host parameter may not be None")
         if isinstance(host, str):
@@ -51,6 +62,7 @@ class RedisCache(BaseCache):
         else:
             self._client = host
         self.key_prefix = key_prefix or ""
+        self._has_secret_key = secret_key is not None
 
     def _normalize_timeout(self, timeout):
         timeout = BaseCache._normalize_timeout(self, timeout)
@@ -62,6 +74,8 @@ class RedisCache(BaseCache):
         """Dumps an object into a string for redis.  By default it serializes
         integers as regular string and pickle dumps everything else.
         """
+        if self._has_secret_key:
+            return self._dumps(value)
         t = type(value)
         if isinstance(t, int):
             return str(value).encode("ascii")
@@ -71,6 +85,8 @@ class RedisCache(BaseCache):
         """The reversal of :meth:`dump_object`.  This might be called with
         None.
         """
+        if self._has_secret_key:
+            return self._loads(value)
         if value is None:
             return None
         if value.startswith(b"!"):

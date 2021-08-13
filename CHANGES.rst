@@ -1,3 +1,15 @@
+Version 0.4.0
+-------------
+
+Unreleased
+
+-   Add ``secret_key`` argument to ``FileSystemCache``, ``RedisCache``, and
+    ``UWSGICache``. The serialized data is signed with this key.
+    Without this key, anyone with write access to the cache location (Redis, file
+    system, or UWSGI cache) can trick cachelib into remote code execution.
+    :issue:`1`
+
+
 Version 0.3.0
 -------------
 
