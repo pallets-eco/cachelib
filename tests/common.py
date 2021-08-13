@@ -80,9 +80,9 @@ class CommonTests(TestData):
             assert not cache.get(f"{k}-t1")
 
     def test_signed_set_get(self):
-        cache = self.cache_factory(secret_key="not very secret")
-        if isinstance(cache, (MemcachedCache, SimpleCache)):
+        if isinstance(self.cache_factory(), (MemcachedCache, SimpleCache)):
             pytest.skip("Simple and MemcachedCache do not support signing.")
+        cache = self.cache_factory(secret_key="not very secret")
 
         for k, v in self.sample_pairs.items():
             assert cache.set(k, v)
