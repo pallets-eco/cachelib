@@ -29,7 +29,7 @@ class RedisCache(BaseCache):
             anyone with write access to the redis instance can trick your program
             into executing arbitrary code.
 
-        .. versionadded:: 0.3.0
+        .. versionadded:: 0.4.0
 
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """

@@ -1,7 +1,7 @@
 Version 0.4.0
 -------------
 
-Unrelease
+Unreleased
 
 -   Add ``secret_key`` argument to ``FileSystemCache``, ``RedisCache``, and
     ``UWSGICache``. The serialized data is signed with this key.

@@ -24,7 +24,7 @@ class UWSGICache(BaseCache):
             anyone with write access to the uWSGI cache can trick your program
             into executing arbitrary code.
 
-        .. versionadded:: 0.3.0
+        .. versionadded:: 0.4.0
     """
 
     def __init__(

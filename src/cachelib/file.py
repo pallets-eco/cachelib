@@ -33,7 +33,7 @@ class FileSystemCache(BaseCache):
             anyone with write access to the cache directory can trick your program
             into executing arbitrary code.
 
-        .. versionadded:: 0.3.0
+        .. versionadded:: 0.4.0
     """
 
     #: used for temporary files by the FileSystemCache

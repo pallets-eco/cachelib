@@ -31,7 +31,7 @@ class BaseCache:
 
     :param secret_key: Key to sign cache entries with.
 
-        .. versionadded:: 0.3.0
+        .. versionadded:: 0.4.0
 
     """
 
