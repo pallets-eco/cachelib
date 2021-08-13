@@ -1,5 +1,5 @@
-import pickle
 import platform
+import typing as _t
 
 from cachelib.base import BaseCache
 
@@ -17,10 +17,17 @@ class UWSGICache(BaseCache):
         means uWSGI will cache in the local instance. If the cache is in the
         same instance as the werkzeug app, you only have to provide the name of
         the cache.
+    :param secret_key: Key to sign cache entries with.
     """
 
-    def __init__(self, default_timeout=300, cache=""):
-        BaseCache.__init__(self, default_timeout)
+    def __init__(
+        self,
+        default_timeout=300,
+        cache="",
+        *,
+        secret_key: _t.Optional[_t.Union[_t.AnyStr, _t.Collection[_t.AnyStr]]] = None,
+    ):
+        BaseCache.__init__(self, default_timeout, secret_key=secret_key)
 
         if platform.python_implementation() == "PyPy":
             raise RuntimeError(
@@ -43,19 +50,19 @@ class UWSGICache(BaseCache):
         rv = self._uwsgi.cache_get(key, self.cache)
         if rv is None:
             return
-        return pickle.loads(rv)
+        return self._loads(rv)
 
     def delete(self, key):
         return self._uwsgi.cache_del(key, self.cache)
 
     def set(self, key, value, timeout=None):
         return self._uwsgi.cache_update(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            key, self._dumps(value), self._normalize_timeout(timeout), self.cache
         )
 
     def add(self, key, value, timeout=None):
         return self._uwsgi.cache_set(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            key, self._dumps(value), self._normalize_timeout(timeout), self.cache
         )
 
     def clear(self):
