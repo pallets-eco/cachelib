@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import tempfile
+import typing as _t
 from hashlib import md5
 from pathlib import Path
 from time import time
@@ -24,6 +25,8 @@ class FileSystemCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param mode: the file mode wanted for the cache files, default 0600
+
+    :param secret_key: Key to sign cache entries with.
     """
 
     #: used for temporary files by the FileSystemCache
@@ -31,8 +34,16 @@ class FileSystemCache(BaseCache):
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
 
-    def __init__(self, cache_dir, threshold=500, default_timeout=300, mode=0o600):
-        BaseCache.__init__(self, default_timeout)
+    def __init__(
+        self,
+        cache_dir,
+        threshold=500,
+        default_timeout=300,
+        mode=0o600,
+        *,
+        secret_key: _t.Optional[_t.Union[_t.AnyStr, _t.Collection[_t.AnyStr]]] = None
+    ):
+        BaseCache.__init__(self, default_timeout, secret_key=secret_key)
         self._path = cache_dir
         self._threshold = threshold
         self._mode = mode
@@ -87,7 +98,7 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
-                    expires = pickle.load(f)
+                    expires = self._load(f)
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
@@ -103,7 +114,7 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
-                    exp_fname_tuples.append((pickle.load(f), fname))
+                    exp_fname_tuples.append((self._load(f), fname))
             except (OSError, EOFError):
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
@@ -160,9 +171,11 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
-                pickle_time = pickle.load(f)
-                if pickle_time == 0 or pickle_time >= time():
-                    return pickle.load(f)
+                pickle_time = self._load(f)
+                if pickle_time is not None and (
+                    pickle_time == 0 or pickle_time >= time()
+                ):
+                    return self._load(f)
                 else:
                     return None
         except (OSError, EOFError, pickle.PickleError):
@@ -196,8 +209,8 @@ class FileSystemCache(BaseCache):
                 suffix=self._fs_transaction_suffix, dir=self._path
             )
             with os.fdopen(fd, "wb") as f:
-                pickle.dump(timeout, f, 1)
-                pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
+                self._dump(timeout, f)
+                self._dump(value, f)
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
             fsize = Path(filename).stat().st_size
@@ -230,7 +243,7 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
-                pickle_time = pickle.load(f)
+                pickle_time = self._load(f)
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
