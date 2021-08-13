@@ -1,3 +1,26 @@
+import base64
+import io
+import pickle
+import typing as _t
+
+import itsdangerous
+
+
+class _Base85Pickler:
+    """
+    Pickles Base85 safe. To allow multiple reads from the same file, encoded output must
+    not contain any newlines. Base85 has less overhead than Base64.
+    """
+
+    @staticmethod
+    def dumps(obj: _t.Any) -> bytes:
+        return base64.b85encode(pickle.dumps(obj))
+
+    @staticmethod
+    def loads(data: _t.AnyStr) -> bytes:
+        return pickle.loads(base64.b85decode(data))
+
+
 class BaseCache:
     """Baseclass for the cache systems.  All the cache systems implement this
     API or a superset of it.
@@ -5,15 +28,53 @@ class BaseCache:
     :param default_timeout: the default timeout (in seconds) that is used if
                             no timeout is specified on :meth:`set`. A timeout
                             of 0 indicates that the cache never expires.
+
+    :param secret_key:      Key to sign cache entries with.
     """
 
-    def __init__(self, default_timeout=300):
+    def __init__(
+        self,
+        default_timeout=300,
+        *,
+        secret_key: _t.Optional[_t.Union[_t.AnyStr, _t.Collection[_t.AnyStr]]] = None
+    ):
         self.default_timeout = default_timeout
+        if secret_key is not None:
+            self.__signed_serializer = itsdangerous.Serializer(
+                secret_key, serializer=_Base85Pickler
+            )
+        else:
+            self.__signed_serializer = None
 
     def _normalize_timeout(self, timeout):
         if timeout is None:
             timeout = self.default_timeout
         return timeout
+
+    def _dumps(self, to_serialize: _t.Any) -> bytes:
+        buf = io.BytesIO()
+        self._dump(to_serialize, buf)
+        return buf.getvalue()
+
+    def _dump(self, to_serialize: _t.Any, file: _t.IO[bytes]) -> None:
+        if self.__signed_serializer:
+            self.__signed_serializer.dump(to_serialize, file)
+            file.write(b"\n")
+        else:
+            return pickle.dump(to_serialize, file)
+
+    def _loads(self, serialized: bytes) -> _t.Any:
+        buf = io.BytesIO(serialized)
+        return self._unpack(buf)
+
+    def _load(self, file: _t.IO[bytes]) -> _t.Any:
+        if self.__signed_serializer:
+            try:
+                read = file.readline()[:-1]
+                return self.__signed_serializer.loads(read)
+            except (itsdangerous.BadSignature, pickle.UnpicklingError):
+                return None
+        return pickle.load(file)
 
     def get(self, key):
         """Look up key in the cache and return the value for it.
