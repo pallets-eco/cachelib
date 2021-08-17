@@ -1,9 +1,26 @@
-Version 0.3.0
--------------
+Version 0.4.0
 
 Unreleased
 
--   Add type information for static typing tools
+-   Add type information for static typing tools. :pr:`48`
+
+
+Version 0.3.0
+-------------
+
+Released 2021-08-12
+
+-   Optimize ``FileSystemCache`` pruning. :pr:`52`
+-   Fix a bug in ``FileSystemCache`` where entries would not be removed
+    when the total was over the threshold, and the entry count would be
+    lost. :pr:`52`
+-   ``FileSystemCache`` logs system-related exceptions. :pr:`51`
+-   Removal of expired entries in ``FileSystemCache`` is only triggered
+    if the number of entries is over the ``threshhold`` when calling
+    ``set``. ``get`` ``has`` still return ``None`` and ``False``
+    respectively for expired entries, but will not remove the files. All
+    removals happen at pruning time or explicitly with ``clear`` and
+    ``delete``. :pr:`53`
 
 
 Version 0.2.0

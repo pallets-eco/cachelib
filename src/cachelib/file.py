@@ -1,16 +1,17 @@
 import errno
+import logging
 import os
 import pickle
 import tempfile
 import typing as _t
 from hashlib import md5
+from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
 
 
 class FileSystemCache(BaseCache):
-
     """A cache that stores the items on the file system.  This cache depends
     on being the only user of the `cache_dir`.  Make absolutely sure that
     nobody but this cache stores files there or otherwise the cache will
@@ -52,7 +53,7 @@ class FileSystemCache(BaseCache):
         # If there are many files and a zero threshold,
         # the list_dir can slow initialisation massively
         if self._threshold != 0:
-            self._update_count(value=len(self._list_dir()))
+            self._update_count(value=len(list(self._list_dir())))
 
     @property
     def _file_count(self) -> int:
@@ -64,7 +65,6 @@ class FileSystemCache(BaseCache):
         # If we have no threshold, don't count files
         if self._threshold == 0:
             return
-
         if delta:
             new_count = self._file_count + delta
         else:
@@ -77,50 +77,61 @@ class FileSystemCache(BaseCache):
             timeout = int(time()) + timeout
         return int(timeout)
 
+    def _is_mgmt(self, name: str) -> bool:
+        fshash = self._get_filename(self._fs_count_file).split(os.sep)[-1]
+        return name == fshash or name.endswith(self._fs_transaction_suffix)
+
     def _list_dir(self) -> _t.List[str]:
         """return a list of (fully qualified) cache filenames"""
-        mgmt_files = [
-            self._get_filename(name).split(os.sep)[-1]
-            for name in (self._fs_count_file,)
-        ]
-        return [
+        return (
             os.path.join(self._path, fn)
             for fn in os.listdir(self._path)
-            if not fn.endswith(self._fs_transaction_suffix) and fn not in mgmt_files
-        ]
+            if not self._is_mgmt(fn)
+        )
 
     def _over_threshold(self) -> bool:
         return self._threshold != 0 and self._file_count > self._threshold
 
     def _remove_expired(self, now: float) -> None:
-        entries = self._list_dir()
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     expires = pickle.load(f)
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
-            except OSError:
-                pass
+            except (OSError, EOFError):
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
 
     def _remove_older(self) -> bool:
-        entries = self._list_dir()
         exp_fname_tuples = []
-        for fname in entries:
+        for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
-            except OSError:
-                pass
+            except (OSError, EOFError):
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
         fname_sorted = (
-            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[1][0])
+            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
         )
         for fname in fname_sorted:
             try:
                 os.remove(fname)
                 self._update_count(delta=-1)
             except OSError:
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
                 return False
             if not self._over_threshold():
                 break
@@ -135,20 +146,25 @@ class FileSystemCache(BaseCache):
             self._remove_older()
 
     def clear(self) -> bool:
-        for fname in self._list_dir():
+        for i, fname in enumerate(self._list_dir()):
             try:
                 os.remove(fname)
             except OSError:
-                self._update_count(value=len(self._list_dir()))
+                logging.warning(
+                    "Exception raised while handling cache file '%s'",
+                    fname,
+                    exc_info=True,
+                )
+                self._update_count(delta=-i)
                 return False
         self._update_count(value=0)
         return True
 
     def _get_filename(self, key: str) -> str:
         if isinstance(key, str):
-            bkey = key.encode("utf-8")  # XXX unicode review
-        hash = md5(bkey).hexdigest()
-        return os.path.join(self._path, hash)
+            key = key.encode("utf-8")  # XXX unicode review
+            key_hash = md5(key).hexdigest()
+        return os.path.join(self._path, key_hash)
 
     def get(self, key: str) -> _t.Any:
         filename = self._get_filename(key)
@@ -158,10 +174,13 @@ class FileSystemCache(BaseCache):
                 if pickle_time == 0 or pickle_time >= time():
                     return pickle.load(f)
                 else:
-                    os.remove(filename)
-                    self._update_count(delta=-1)
                     return None
-        except (OSError, pickle.PickleError):
+        except (OSError, EOFError, pickle.PickleError):
+            logging.warning(
+                "Exception raised while handling cache file '%s'",
+                filename,
+                exc_info=True,
+            )
             return None
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
@@ -180,7 +199,6 @@ class FileSystemCache(BaseCache):
         # Management elements have no timeout
         if mgmt_element:
             timeout = 0
-
         # Don't prune on management element update, to avoid loop
         else:
             self._prune()
@@ -188,6 +206,7 @@ class FileSystemCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         filename = self._get_filename(key)
         overwrite = os.path.isfile(filename)
+
         try:
             fd, tmp = tempfile.mkstemp(
                 suffix=self._fs_transaction_suffix, dir=self._path
@@ -195,21 +214,27 @@ class FileSystemCache(BaseCache):
             with os.fdopen(fd, "wb") as f:
                 pickle.dump(timeout, f, 1)
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
-
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
+            fsize = Path(filename).stat().st_size
         except OSError:
+            logging.warning(
+                "Exception raised while handling cache file '%s'",
+                filename,
+                exc_info=True,
+            )
             return False
         else:
             # Management elements should not count towards threshold
             if not overwrite and not mgmt_element:
                 self._update_count(delta=1)
-            return True
+            return fsize > 0  # function should fail if file is empty
 
     def delete(self, key: str, mgmt_element: bool = False) -> bool:
         try:
             os.remove(self._get_filename(key))
         except OSError:
+            logging.warning("Exception raised while handling cache file", exc_info=True)
             return False
         else:
             # Management elements should not count towards threshold
@@ -225,8 +250,13 @@ class FileSystemCache(BaseCache):
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
-                    os.remove(filename)
-                    self._update_count(delta=-1)
                     return False
-        except (OSError, pickle.PickleError):
+        except FileNotFoundError:  # it there is no file there is no key
+            return False
+        except (OSError, EOFError, pickle.PickleError):
+            logging.warning(
+                "Exception raised while handling cache file '%s'",
+                filename,
+                exc_info=True,
+            )
             return False
