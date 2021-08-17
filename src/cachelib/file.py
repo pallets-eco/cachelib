@@ -122,8 +122,8 @@ class FileSystemCache(BaseCache):
         fname_sorted = (
             fname
             for _, fname in sorted(
-                exp_fname_tuples, key=lambda item: item[0]
-            )  # type: ignore
+                exp_fname_tuples, key=lambda item: item[0]  # type: ignore
+            )
         )
         for fname in fname_sorted:
             try:
