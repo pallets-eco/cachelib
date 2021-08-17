@@ -81,7 +81,7 @@ class FileSystemCache(BaseCache):
         fshash = self._get_filename(self._fs_count_file).split(os.sep)[-1]
         return name == fshash or name.endswith(self._fs_transaction_suffix)
 
-    def _list_dir(self) -> _t.List[str]:
+    def _list_dir(self) -> _t.Generator[str, None, None]:
         """return a list of (fully qualified) cache filenames"""
         return (
             os.path.join(self._path, fn)
@@ -120,7 +120,7 @@ class FileSystemCache(BaseCache):
                     exc_info=True,
                 )
         fname_sorted = (
-            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
+            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0]) # type: ignore
         )
         for fname in fname_sorted:
             try:
@@ -162,9 +162,9 @@ class FileSystemCache(BaseCache):
 
     def _get_filename(self, key: str) -> str:
         if isinstance(key, str):
-            key = key.encode("utf-8")  # XXX unicode review
-            key_hash = md5(key).hexdigest()
-        return os.path.join(self._path, key_hash)
+            bkey = key.encode("utf-8")  # XXX unicode review
+            bkey_hash = md5(bkey).hexdigest()
+        return os.path.join(self._path, bkey_hash)
 
     def get(self, key: str) -> _t.Any:
         filename = self._get_filename(key)
