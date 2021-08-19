@@ -1,5 +1,6 @@
 import pickle
 import platform
+import typing as _t
 
 from cachelib.base import BaseCache
 
@@ -19,7 +20,7 @@ class UWSGICache(BaseCache):
         the cache.
     """
 
-    def __init__(self, default_timeout=300, cache=""):
+    def __init__(self, default_timeout: int = 300, cache: str = ""):
         BaseCache.__init__(self, default_timeout)
 
         if platform.python_implementation() == "PyPy":
@@ -29,7 +30,7 @@ class UWSGICache(BaseCache):
             )
 
         try:
-            import uwsgi
+            import uwsgi  # type: ignore
 
             self._uwsgi = uwsgi
         except ImportError:
@@ -39,27 +40,27 @@ class UWSGICache(BaseCache):
 
         self.cache = cache
 
-    def get(self, key):
+    def get(self, key: str) -> _t.Any:
         rv = self._uwsgi.cache_get(key, self.cache)
         if rv is None:
             return
         return pickle.loads(rv)
 
-    def delete(self, key):
+    def delete(self, key: str) -> _t.Any:
         return self._uwsgi.cache_del(key, self.cache)
 
-    def set(self, key, value, timeout=None):
+    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_update(
             key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
         )
 
-    def add(self, key, value, timeout=None):
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_set(
             key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
         )
 
-    def clear(self):
+    def clear(self) -> _t.Any:
         return self._uwsgi.cache_clear(self.cache)
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         return self._uwsgi.cache_exists(key, self.cache) is not None

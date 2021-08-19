@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import tempfile
+import typing as _t
 from hashlib import md5
 from pathlib import Path
 from time import time
@@ -31,7 +32,13 @@ class FileSystemCache(BaseCache):
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
 
-    def __init__(self, cache_dir, threshold=500, default_timeout=300, mode=0o600):
+    def __init__(
+        self,
+        cache_dir: str,
+        threshold: int = 500,
+        default_timeout: int = 300,
+        mode: int = 0o600,
+    ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
@@ -49,10 +56,12 @@ class FileSystemCache(BaseCache):
             self._update_count(value=len(list(self._list_dir())))
 
     @property
-    def _file_count(self):
+    def _file_count(self) -> int:
         return self.get(self._fs_count_file) or 0
 
-    def _update_count(self, delta=None, value=None):
+    def _update_count(
+        self, delta: _t.Optional[int] = None, value: _t.Optional[int] = None
+    ) -> None:
         # If we have no threshold, don't count files
         if self._threshold == 0:
             return
@@ -62,17 +71,17 @@ class FileSystemCache(BaseCache):
             new_count = value or 0
         self.set(self._fs_count_file, new_count, mgmt_element=True)
 
-    def _normalize_timeout(self, timeout):
+    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout != 0:
-            timeout = time() + timeout
+            timeout = int(time()) + timeout
         return int(timeout)
 
-    def _is_mgmt(self, name):
+    def _is_mgmt(self, name: str) -> bool:
         fshash = self._get_filename(self._fs_count_file).split(os.sep)[-1]
         return name == fshash or name.endswith(self._fs_transaction_suffix)
 
-    def _list_dir(self):
+    def _list_dir(self) -> _t.Generator[str, None, None]:
         """return a list of (fully qualified) cache filenames"""
         return (
             os.path.join(self._path, fn)
@@ -80,10 +89,10 @@ class FileSystemCache(BaseCache):
             if not self._is_mgmt(fn)
         )
 
-    def _over_threshold(self):
+    def _over_threshold(self) -> bool:
         return self._threshold != 0 and self._file_count > self._threshold
 
-    def _remove_expired(self, now):
+    def _remove_expired(self, now: float) -> None:
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
@@ -98,7 +107,7 @@ class FileSystemCache(BaseCache):
                     exc_info=True,
                 )
 
-    def _remove_older(self):
+    def _remove_older(self) -> bool:
         exp_fname_tuples = []
         for fname in self._list_dir():
             try:
@@ -111,7 +120,10 @@ class FileSystemCache(BaseCache):
                     exc_info=True,
                 )
         fname_sorted = (
-            fname for _, fname in sorted(exp_fname_tuples, key=lambda item: item[0])
+            fname
+            for _, fname in sorted(
+                exp_fname_tuples, key=lambda item: item[0]  # type: ignore
+            )
         )
         for fname in fname_sorted:
             try:
@@ -126,8 +138,9 @@ class FileSystemCache(BaseCache):
                 return False
             if not self._over_threshold():
                 break
+        return True
 
-    def _prune(self):
+    def _prune(self) -> None:
         if self._over_threshold():
             now = time()
             self._remove_expired(now)
@@ -135,7 +148,7 @@ class FileSystemCache(BaseCache):
         if self._over_threshold():
             self._remove_older()
 
-    def clear(self):
+    def clear(self) -> bool:
         for i, fname in enumerate(self._list_dir()):
             try:
                 os.remove(fname)
@@ -150,13 +163,13 @@ class FileSystemCache(BaseCache):
         self._update_count(value=0)
         return True
 
-    def _get_filename(self, key):
+    def _get_filename(self, key: str) -> str:
         if isinstance(key, str):
-            key = key.encode("utf-8")  # XXX unicode review
-            key_hash = md5(key).hexdigest()
-        return os.path.join(self._path, key_hash)
+            bkey = key.encode("utf-8")  # XXX unicode review
+            bkey_hash = md5(bkey).hexdigest()
+        return os.path.join(self._path, bkey_hash)
 
-    def get(self, key):
+    def get(self, key: str) -> _t.Any:
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
@@ -173,13 +186,19 @@ class FileSystemCache(BaseCache):
             )
             return None
 
-    def add(self, key, value, timeout=None):
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         filename = self._get_filename(key)
         if not os.path.exists(filename):
             return self.set(key, value, timeout)
         return False
 
-    def set(self, key, value, timeout=None, mgmt_element=False):
+    def set(
+        self,
+        key: str,
+        value: _t.Any,
+        timeout: _t.Optional[int] = None,
+        mgmt_element: bool = False,
+    ) -> bool:
         # Management elements have no timeout
         if mgmt_element:
             timeout = 0
@@ -214,7 +233,7 @@ class FileSystemCache(BaseCache):
                 self._update_count(delta=1)
             return fsize > 0  # function should fail if file is empty
 
-    def delete(self, key, mgmt_element=False):
+    def delete(self, key: str, mgmt_element: bool = False) -> bool:
         try:
             os.remove(self._get_filename(key))
         except OSError:
@@ -226,7 +245,7 @@ class FileSystemCache(BaseCache):
                 self._update_count(delta=-1)
             return True
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:

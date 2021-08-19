@@ -1,3 +1,10 @@
+Version 0.4.0
+
+Unreleased
+
+-   Add type information for static typing tools. :pr:`48`
+
+
 Version 0.3.0
 -------------
 

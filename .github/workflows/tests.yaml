@@ -29,6 +29,7 @@ jobs:
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
+          - {name: Typing, python: '3.9', os: ubuntu-latest, tox: typing}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -53,5 +54,11 @@ jobs:
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip|${{ runner.os }}|${{ matrix.python }}|${{ hashFiles('setup.py') }}|${{ hashFiles('requirements/*.txt') }}
+      - name: cache mypy
+        if: matrix.tox == 'typing'
+        uses: actions/cache@v2
+        with:
+          path: ./.mypy_cache
+          key: mypy|${{ matrix.python }}|${{ hashFiles('setup.cfg') }}
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
