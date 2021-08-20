@@ -5,10 +5,37 @@ import pickle
 import tempfile
 import typing as _t
 from hashlib import md5
+from io import BufferedWriter
 from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
+
+
+class FileSystemSerializer:
+    @staticmethod
+    def dump(timeout: int, f: BufferedWriter, protocol: int) -> bool:
+        try:
+            pickle.dump(timeout, f, protocol)
+        except (pickle.PickleError, pickle.PicklingError) as e:
+            logging.warning(
+                f"An exception has been raised during a pickling operation: {e}"
+            )
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def load(f: _t.BinaryIO) -> _t.Any:
+        try:
+            data = pickle.load(f)
+        except pickle.UnpicklingError as e:
+            logging.warning(
+                f"An exception has been raised during an unplicking operation: {e}"
+            )
+            return None
+        else:
+            return data
 
 
 class FileSystemCache(BaseCache):
@@ -31,6 +58,9 @@ class FileSystemCache(BaseCache):
     _fs_transaction_suffix = ".__wz_cache"
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
+
+    # override this to customize serialization strategy
+    serializer = FileSystemSerializer
 
     def __init__(
         self,
@@ -96,7 +126,8 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
-                    expires = pickle.load(f)
+                    expires = self.serializer.load(f)
+                    # expires = pickle.load(f) # @@@
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
@@ -173,9 +204,11 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
-                pickle_time = pickle.load(f)
+                pickle_time = self.serializer.load(f)
+                # pickle_time = pickle.load(f) # @@@
                 if pickle_time == 0 or pickle_time >= time():
-                    return pickle.load(f)
+                    # return pickle.load(f) # @@@
+                    return self.serializer.load(f)
                 else:
                     return None
         except (OSError, EOFError, pickle.PickleError):
@@ -215,8 +248,10 @@ class FileSystemCache(BaseCache):
                 suffix=self._fs_transaction_suffix, dir=self._path
             )
             with os.fdopen(fd, "wb") as f:
-                pickle.dump(timeout, f, 1)
-                pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
+                self.serializer.dump(timeout, f, 1)  # this returns bool
+                self.serializer.dump(value, f, pickle.HIGHEST_PROTOCOL)
+                # pickle.dump(timeout, f, 1) # @@@
+                # pickle.dump(value, f, pickle.HIGHEST_PROTOCOL) # @@@
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
             fsize = Path(filename).stat().st_size
@@ -249,7 +284,8 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
-                pickle_time = pickle.load(f)
+                pickle_time = self.serializer.load(f)
+                # pickle_time = pickle.load(f) # @@@
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
