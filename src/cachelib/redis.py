@@ -1,7 +1,37 @@
 import pickle
 import typing as _t
+import warnings
 
 from cachelib.base import BaseCache
+
+
+class RedisSerializer:
+    @staticmethod
+    def dump(value: _t.Any) -> bytes:
+        """Dumps an object into a string for redis.  By default it serializes
+        integers as regular string and pickle dumps everything else.
+        """
+        if isinstance(type(value), int):
+            return str(value).encode("ascii")
+        return b"!" + pickle.dumps(value)
+
+    @staticmethod
+    def load(value: _t.Optional[bytes]) -> _t.Any:
+        """The reversal of :meth:`dump_object`.  This might be called with
+        None.
+        """
+        if value is None:
+            return None
+        if value.startswith(b"!"):
+            try:
+                return pickle.loads(value[1:])
+            except pickle.PickleError:
+                return None
+        try:
+            return int(value)
+        except ValueError:
+            # before 0.8 we did not have serialization. Still support that.
+            return value
 
 
 class RedisCache(BaseCache):
@@ -25,6 +55,9 @@ class RedisCache(BaseCache):
 
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
+
+    # override this to customize serialization strategy
+    serializer = RedisSerializer
 
     def __init__(
         self,
@@ -58,29 +91,22 @@ class RedisCache(BaseCache):
         return timeout
 
     def dump_object(self, value: _t.Any) -> bytes:
-        """Dumps an object into a string for redis.  By default it serializes
-        integers as regular string and pickle dumps everything else.
-        """
-        if isinstance(type(value), int):
-            return str(value).encode("ascii")
-        return b"!" + pickle.dumps(value)
+        warnings.warn(
+            "'dump_object' is deprecated and will be removed in the future."
+            "This is a proxy call to 'RedisCache.serializer.dump'",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.serializer.dump(value)
 
     def load_object(self, value: _t.Optional[bytes]) -> _t.Any:
-        """The reversal of :meth:`dump_object`.  This might be called with
-        None.
-        """
-        if value is None:
-            return None
-        if value.startswith(b"!"):
-            try:
-                return pickle.loads(value[1:])
-            except pickle.PickleError:
-                return None
-        try:
-            return int(value)
-        except ValueError:
-            # before 0.8 we did not have serialization.  Still support that.
-            return value
+        warnings.warn(
+            "'load_object' is deprecated and will be removed in the future."
+            "This is a proxy call to 'RedisCache.serializer.load'",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.serializer.load(value)
 
     def get(self, key: str) -> _t.Any:
         return self.load_object(self._client.get(self.key_prefix + key))
