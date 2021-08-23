@@ -1,8 +1,37 @@
+import logging
 import pickle
 import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
+
+
+class SimpleSerializer:
+    @staticmethod
+    def dump(
+        value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL
+    ) -> _t.Optional[bytes]:
+        try:
+            serialized = pickle.dumps(value, protocol)
+        except (pickle.PickleError, pickle.PicklingError) as e:
+            logging.warning(
+                f"An exception has been raised during a pickling operation: {e}"
+            )
+            return None
+        else:
+            return serialized
+
+    @staticmethod
+    def load(bvalue: bytes) -> _t.Any:
+        try:
+            data = pickle.loads(bvalue)
+        except pickle.PickleError as e:
+            logging.warning(
+                f"An exception has been raised during an unplicking operation: {e}"
+            )
+            return None
+        else:
+            return data
 
 
 class SimpleCache(BaseCache):
@@ -18,6 +47,8 @@ class SimpleCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     """
+
+    serializer = SimpleSerializer
 
     def __init__(self, threshold: int = 500, default_timeout: int = 300):
         BaseCache.__init__(self, default_timeout)
@@ -64,20 +95,20 @@ class SimpleCache(BaseCache):
         try:
             expires, value = self._cache[key]
             if expires == 0 or expires > time():
-                return pickle.loads(value)
-        except (KeyError, pickle.PickleError):
+                return self.serializer.load(value)
+        except KeyError:
             return None
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
-        self._cache[key] = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+        self._cache[key] = (expires, self.serializer.dump(value))
         return True
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
-        item = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+        item = (expires, self.serializer.dump(value))
         if key in self._cache:
             return False
         self._cache.setdefault(key, item)
