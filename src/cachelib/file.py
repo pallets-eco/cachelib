@@ -14,22 +14,21 @@ from cachelib.base import BaseCache
 
 class FileSystemSerializer:
     @staticmethod
-    def dump(timeout: int, f: BufferedWriter, protocol: int) -> bool:
+    def dump(
+        timeout: int, f: BufferedWriter, protocol: int = pickle.HIGHEST_PROTOCOL
+    ) -> None:
         try:
             pickle.dump(timeout, f, protocol)
         except (pickle.PickleError, pickle.PicklingError) as e:
             logging.warning(
                 f"An exception has been raised during a pickling operation: {e}"
             )
-            return False
-        else:
-            return True
 
     @staticmethod
     def load(f: _t.BinaryIO) -> _t.Any:
         try:
             data = pickle.load(f)
-        except pickle.UnpicklingError as e:
+        except pickle.PickleError as e:
             logging.warning(
                 f"An exception has been raised during an unplicking operation: {e}"
             )
@@ -127,7 +126,6 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     expires = self.serializer.load(f)
-                    # expires = pickle.load(f) # @@@
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
@@ -205,13 +203,11 @@ class FileSystemCache(BaseCache):
         try:
             with open(filename, "rb") as f:
                 pickle_time = self.serializer.load(f)
-                # pickle_time = pickle.load(f) # @@@
                 if pickle_time == 0 or pickle_time >= time():
-                    # return pickle.load(f) # @@@
                     return self.serializer.load(f)
                 else:
                     return None
-        except (OSError, EOFError, pickle.PickleError):
+        except (OSError, EOFError):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,
@@ -249,9 +245,7 @@ class FileSystemCache(BaseCache):
             )
             with os.fdopen(fd, "wb") as f:
                 self.serializer.dump(timeout, f, 1)  # this returns bool
-                self.serializer.dump(value, f, pickle.HIGHEST_PROTOCOL)
-                # pickle.dump(timeout, f, 1) # @@@
-                # pickle.dump(value, f, pickle.HIGHEST_PROTOCOL) # @@@
+                self.serializer.dump(value, f)
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
             fsize = Path(filename).stat().st_size
@@ -285,14 +279,13 @@ class FileSystemCache(BaseCache):
         try:
             with open(filename, "rb") as f:
                 pickle_time = self.serializer.load(f)
-                # pickle_time = pickle.load(f) # @@@
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
                     return False
         except FileNotFoundError:  # it there is no file there is no key
             return False
-        except (OSError, EOFError, pickle.PickleError):
+        except (OSError, EOFError):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,
