@@ -1,8 +1,8 @@
-import pickle
 import platform
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.serializers import UWSGISerializer
 
 
 class UWSGICache(BaseCache):
@@ -19,6 +19,8 @@ class UWSGICache(BaseCache):
         same instance as the werkzeug app, you only have to provide the name of
         the cache.
     """
+
+    serializer = UWSGISerializer
 
     def __init__(self, default_timeout: int = 300, cache: str = ""):
         BaseCache.__init__(self, default_timeout)
@@ -44,19 +46,25 @@ class UWSGICache(BaseCache):
         rv = self._uwsgi.cache_get(key, self.cache)
         if rv is None:
             return
-        return pickle.loads(rv)
+        return self.serializer.load(rv)
 
     def delete(self, key: str) -> _t.Any:
         return self._uwsgi.cache_del(key, self.cache)
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_update(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            key,
+            self.serializer.dump(value),
+            self._normalize_timeout(timeout),
+            self.cache,
         )
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_set(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            key,
+            self.serializer.dump(value),
+            self._normalize_timeout(timeout),
+            self.cache,
         )
 
     def clear(self) -> _t.Any:

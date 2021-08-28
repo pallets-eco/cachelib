@@ -1,37 +1,8 @@
-import pickle
 import typing as _t
 import warnings
 
 from cachelib.base import BaseCache
-
-
-class RedisSerializer:
-    @staticmethod
-    def dump(value: _t.Any) -> bytes:
-        """Dumps an object into a string for redis.  By default it serializes
-        integers as regular string and pickle dumps everything else.
-        """
-        if isinstance(type(value), int):
-            return str(value).encode("ascii")
-        return b"!" + pickle.dumps(value)
-
-    @staticmethod
-    def load(value: _t.Optional[bytes]) -> _t.Any:
-        """The reversal of :meth:`dump_object`.  This might be called with
-        None.
-        """
-        if value is None:
-            return None
-        if value.startswith(b"!"):
-            try:
-                return pickle.loads(value[1:])
-            except pickle.PickleError:
-                return None
-        try:
-            return int(value)
-        except ValueError:
-            # before 0.8 we did not have serialization. Still support that.
-            return value
+from cachelib.serializers import RedisSerializer
 
 
 class RedisCache(BaseCache):

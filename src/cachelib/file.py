@@ -1,40 +1,14 @@
 import errno
 import logging
 import os
-import pickle
 import tempfile
 import typing as _t
 from hashlib import md5
-from io import BufferedWriter
 from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
-
-
-class FileSystemSerializer:
-    @staticmethod
-    def dump(
-        timeout: int, f: BufferedWriter, protocol: int = pickle.HIGHEST_PROTOCOL
-    ) -> None:
-        try:
-            pickle.dump(timeout, f, protocol)
-        except (pickle.PickleError, pickle.PicklingError) as e:
-            logging.warning(
-                f"An exception has been raised during a pickling operation: {e}"
-            )
-
-    @staticmethod
-    def load(f: _t.BinaryIO) -> _t.Any:
-        try:
-            data = pickle.load(f)
-        except pickle.PickleError as e:
-            logging.warning(
-                f"An exception has been raised during an unplicking operation: {e}"
-            )
-            return None
-        else:
-            return data
+from cachelib.serializers import FileSystemSerializer
 
 
 class FileSystemCache(BaseCache):
@@ -141,7 +115,7 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
-                    exp_fname_tuples.append((pickle.load(f), fname))
+                    exp_fname_tuples.append((self.serializer.load(f), fname))
             except (OSError, EOFError):
                 logging.warning(
                     "Exception raised while handling cache file '%s'",

@@ -1,37 +1,8 @@
-import logging
-import pickle
 import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
-
-
-class SimpleSerializer:
-    @staticmethod
-    def dump(
-        value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL
-    ) -> _t.Optional[bytes]:
-        try:
-            serialized = pickle.dumps(value, protocol)
-        except (pickle.PickleError, pickle.PicklingError) as e:
-            logging.warning(
-                f"An exception has been raised during a pickling operation: {e}"
-            )
-            return None
-        else:
-            return serialized
-
-    @staticmethod
-    def load(bvalue: bytes) -> _t.Any:
-        try:
-            data = pickle.loads(bvalue)
-        except pickle.PickleError as e:
-            logging.warning(
-                f"An exception has been raised during an unplicking operation: {e}"
-            )
-            return None
-        else:
-            return data
+from cachelib.serializers import SimpleSerializer
 
 
 class SimpleCache(BaseCache):
