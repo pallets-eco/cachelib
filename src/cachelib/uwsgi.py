@@ -20,7 +20,7 @@ class UWSGICache(BaseCache):
         the cache.
     """
 
-    serializer = UWSGISerializer
+    serializer = UWSGISerializer()
 
     def __init__(self, default_timeout: int = 300, cache: str = ""):
         BaseCache.__init__(self, default_timeout)
@@ -46,7 +46,7 @@ class UWSGICache(BaseCache):
         rv = self._uwsgi.cache_get(key, self.cache)
         if rv is None:
             return
-        return self.serializer.load(rv)
+        return self.serializer.loads(rv)
 
     def delete(self, key: str) -> _t.Any:
         return self._uwsgi.cache_del(key, self.cache)
@@ -54,7 +54,7 @@ class UWSGICache(BaseCache):
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_update(
             key,
-            self.serializer.dump(value),
+            self.serializer.dumps(value),
             self._normalize_timeout(timeout),
             self.cache,
         )
@@ -62,7 +62,7 @@ class UWSGICache(BaseCache):
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_set(
             key,
-            self.serializer.dump(value),
+            self.serializer.dumps(value),
             self._normalize_timeout(timeout),
             self.cache,
         )

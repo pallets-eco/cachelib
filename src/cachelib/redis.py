@@ -27,8 +27,7 @@ class RedisCache(BaseCache):
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
-    # override this to customize serialization strategy
-    serializer = RedisSerializer
+    serializer = RedisSerializer()
 
     def __init__(
         self,
@@ -64,20 +63,20 @@ class RedisCache(BaseCache):
     def dump_object(self, value: _t.Any) -> bytes:
         warnings.warn(
             "'dump_object' is deprecated and will be removed in the future."
-            "This is a proxy call to 'RedisCache.serializer.dump'",
+            "This is a proxy call to 'RedisCache.serializer.dumps'",
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.serializer.dump(value)
+        return self.serializer.dumps(value)
 
     def load_object(self, value: _t.Optional[bytes]) -> _t.Any:
         warnings.warn(
             "'load_object' is deprecated and will be removed in the future."
-            "This is a proxy call to 'RedisCache.serializer.load'",
+            "This is a proxy call to 'RedisCache.serializer.loads'",
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.serializer.load(value)
+        return self.serializer.loads(value)
 
     def get(self, key: str) -> _t.Any:
         return self.load_object(self._client.get(self.key_prefix + key))

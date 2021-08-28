@@ -33,7 +33,7 @@ class FileSystemCache(BaseCache):
     _fs_count_file = "__wz_cache_count"
 
     # override this to customize serialization strategy
-    serializer = FileSystemSerializer
+    serializer = FileSystemSerializer()
 
     def __init__(
         self,

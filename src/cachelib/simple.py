@@ -19,7 +19,7 @@ class SimpleCache(BaseCache):
                             0 indicates that the cache never expires.
     """
 
-    serializer = SimpleSerializer
+    serializer = SimpleSerializer()
 
     def __init__(self, threshold: int = 500, default_timeout: int = 300):
         BaseCache.__init__(self, default_timeout)
@@ -66,20 +66,20 @@ class SimpleCache(BaseCache):
         try:
             expires, value = self._cache[key]
             if expires == 0 or expires > time():
-                return self.serializer.load(value)
+                return self.serializer.loads(value)
         except KeyError:
             return None
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
-        self._cache[key] = (expires, self.serializer.dump(value))
+        self._cache[key] = (expires, self.serializer.dumps(value))
         return True
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
-        item = (expires, self.serializer.dump(value))
+        item = (expires, self.serializer.dumps(value))
         if key in self._cache:
             return False
         self._cache.setdefault(key, item)
