@@ -43,7 +43,7 @@ jinja2==3.0.1
 markupsafe==2.0.1
     # via jinja2
 mypy==0.910
-    # via -r requirements/typing.in
+    # via -r typing.in
 mypy-extensions==0.4.3
     # via mypy
 nodeenv==1.6.0
@@ -64,7 +64,7 @@ pluggy==0.13.1
     # via
     #   pytest
     #   tox
-pre-commit==2.13.0
+pre-commit==2.14.1
     # via -r dev.in
 psutil==5.8.0
     # via pytest-xprocess
@@ -133,9 +133,9 @@ toml==0.10.2
     #   pytest
     #   tox
 tox==3.24.1
-    # via -r requirements/dev.in
+    # via -r dev.in
 types-redis==3.5.4
-    # via -r requirements/typing.in
+    # via -r typing.in
 typing-extensions==3.10.0.0
     # via mypy
 urllib3==1.26.6
