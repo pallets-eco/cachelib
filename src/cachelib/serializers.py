@@ -6,9 +6,9 @@ import typing as _t
 class BaseSerializer:
     """This is the base interface for all default serializers.
 
-    BaseSerializer.load and BaseSerializer.dump
-    will default to pickle.loads and pickle.dumps
-    as do default serializers for most of the cache types.
+    BaseSerializer.load and BaseSerializer.dump will
+    default to pickle.load and pickle.dump. This is currently
+    used only by FileSystemCache which dumps/loads to/from a file stream.
     """
 
     def _warn(self, e: pickle.PickleError) -> None:
@@ -17,10 +17,10 @@ class BaseSerializer:
         )
 
     def dump(
-        self, serialized: int, f: _t.IO, protocol: int = pickle.HIGHEST_PROTOCOL
+        self, value: int, f: _t.IO, protocol: int = pickle.HIGHEST_PROTOCOL
     ) -> None:
         try:
-            pickle.dump(serialized, f, protocol)
+            pickle.dump(value, f, protocol)
         except (pickle.PickleError, pickle.PicklingError) as e:
             self._warn(e)
 
@@ -34,8 +34,8 @@ class BaseSerializer:
             return data
 
     """BaseSerializer.loads and BaseSerializer.dumps
-    work on top of pickle.loads and pickle.dumps. For now,
-    these two methods are only used in FileSystemCache.
+    work on top of pickle.loads and pickle.dumps. Dumping/loading
+    strings and byte strings is the default for most cache types.
     """
 
     def dumps(
