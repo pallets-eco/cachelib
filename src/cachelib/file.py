@@ -100,6 +100,8 @@ class FileSystemCache(BaseCache):
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
+            except FileNotFoundError:
+                pass
             except (OSError, EOFError):
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
@@ -113,6 +115,8 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     exp_fname_tuples.append((pickle.load(f), fname))
+            except FileNotFoundError:
+                pass
             except (OSError, EOFError):
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
@@ -129,6 +133,8 @@ class FileSystemCache(BaseCache):
             try:
                 os.remove(fname)
                 self._update_count(delta=-1)
+            except FileNotFoundError:
+                pass
             except OSError:
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
@@ -152,6 +158,8 @@ class FileSystemCache(BaseCache):
         for i, fname in enumerate(self._list_dir()):
             try:
                 os.remove(fname)
+            except FileNotFoundError:
+                pass
             except OSError:
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
@@ -176,15 +184,15 @@ class FileSystemCache(BaseCache):
                 pickle_time = pickle.load(f)
                 if pickle_time == 0 or pickle_time >= time():
                     return pickle.load(f)
-                else:
-                    return None
+        except FileNotFoundError:
+            pass
         except (OSError, EOFError, pickle.PickleError):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,
                 exc_info=True,
             )
-            return None
+        return None
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         filename = self._get_filename(key)
@@ -236,6 +244,8 @@ class FileSystemCache(BaseCache):
     def delete(self, key: str, mgmt_element: bool = False) -> bool:
         try:
             os.remove(self._get_filename(key))
+        except FileNotFoundError:  # if file doesn't exist we consider it deleted
+            return True
         except OSError:
             logging.warning("Exception raised while handling cache file", exc_info=True)
             return False
@@ -254,7 +264,7 @@ class FileSystemCache(BaseCache):
                     return True
                 else:
                     return False
-        except FileNotFoundError:  # it there is no file there is no key
+        except FileNotFoundError:  # if there is no file there is no key
             return False
         except (OSError, EOFError, pickle.PickleError):
             logging.warning(
