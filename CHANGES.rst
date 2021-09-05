@@ -4,8 +4,8 @@ Unreleased
 
 -   Add type information for static typing tools. :pr:`48`
 -   ``FileNotFound`` exceptions will not be logged anymore
-      in ``FileSystemCache`` methods in order to avoid polluting
-      application log files. :pr:`69`
+    in ``FileSystemCache`` methods in order to avoid polluting
+    application log files. :pr:`69`
 
 
 Version 0.3.0
