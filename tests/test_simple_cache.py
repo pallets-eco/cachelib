@@ -5,12 +5,23 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import SimpleCache
+from cachelib.serializers import SimpleSerializer
 
 
-@pytest.fixture(autouse=True)
+class SillySerializer:
+    """A pointless serializer only for testing"""
+
+    def dumps(self, value):
+        return repr(value).encode()
+
+    def loads(self, bvalue):
+        return eval(bvalue.decode())
+
+
+@pytest.fixture(autouse=True, params=[SimpleSerializer, SillySerializer])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        return SimpleCache(*args, **kwargs)
+        return SimpleCache(*args, serializer=request.param(), **kwargs)
 
     request.cls.cache_factory = _factory
 
