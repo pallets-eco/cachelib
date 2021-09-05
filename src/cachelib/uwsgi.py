@@ -2,7 +2,10 @@ import platform
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import UWSGISerializer
+
+default_serializer = UWSGISerializer()
 
 
 class UWSGICache(BaseCache):
@@ -20,10 +23,15 @@ class UWSGICache(BaseCache):
         the cache.
     """
 
-    serializer = UWSGISerializer()
-
-    def __init__(self, default_timeout: int = 300, cache: str = ""):
+    def __init__(
+        self,
+        default_timeout: int = 300,
+        cache: str = "",
+        serializer: BaseSerializer = default_serializer,
+    ):
         BaseCache.__init__(self, default_timeout)
+
+        self.serializer = serializer
 
         if platform.python_implementation() == "PyPy":
             raise RuntimeError(

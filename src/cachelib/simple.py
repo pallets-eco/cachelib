@@ -2,7 +2,10 @@ import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import SimpleSerializer
+
+default_serializer = SimpleSerializer()
 
 
 class SimpleCache(BaseCache):
@@ -19,14 +22,18 @@ class SimpleCache(BaseCache):
                             0 indicates that the cache never expires.
     """
 
-    serializer = SimpleSerializer()
-
-    def __init__(self, threshold: int = 500, default_timeout: int = 300):
+    def __init__(
+        self,
+        threshold: int = 500,
+        default_timeout: int = 300,
+        serializer: BaseSerializer = default_serializer,
+    ):
         BaseCache.__init__(self, default_timeout)
         self._cache: _t.Dict[str, _t.Any] = {}
         # mypy complains about mocks
         self.clear = self._cache.clear  # type: ignore
         self._threshold = threshold or 500  # threshold = 0
+        self.serializer = serializer
 
     def _over_threshold(self) -> bool:
         return len(self._cache) > self._threshold

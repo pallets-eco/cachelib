@@ -8,7 +8,11 @@ from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import FileSystemSerializer
+
+
+default_serializer = FileSystemSerializer()
 
 
 class FileSystemCache(BaseCache):
@@ -32,20 +36,19 @@ class FileSystemCache(BaseCache):
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
 
-    # override this to customize serialization strategy
-    serializer = FileSystemSerializer()
-
     def __init__(
         self,
         cache_dir: str,
         threshold: int = 500,
         default_timeout: int = 300,
         mode: int = 0o600,
+        serializer: BaseSerializer = default_serializer,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
         self._mode = mode
+        self.serializer = serializer
 
         try:
             os.makedirs(self._path)
@@ -100,6 +103,7 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     expires = self.serializer.load(f)
+                    print(expires)
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
@@ -218,7 +222,7 @@ class FileSystemCache(BaseCache):
                 suffix=self._fs_transaction_suffix, dir=self._path
             )
             with os.fdopen(fd, "wb") as f:
-                self.serializer.dump(timeout, f, 1)  # this returns bool
+                self.serializer.dump(timeout, f)  # this returns bool
                 self.serializer.dump(value, f)
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
