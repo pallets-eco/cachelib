@@ -143,10 +143,10 @@ class MemcachedCache(BaseCache):
                 new_keys.append(key)
         return bool(self._client.delete_multi(new_keys))
 
-    def has(self, key: str) -> _t.Any:
+    def has(self, key: str) -> bool:
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return self._client.append(key, "")
+            return bool(self._client.append(key, ""))
         return False
 
     def clear(self) -> _t.Any:

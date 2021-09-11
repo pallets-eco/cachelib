@@ -140,8 +140,8 @@ class RedisCache(BaseCache):
             prefixed_keys = [k for k in keys]
         return bool(self._client.delete(*prefixed_keys))
 
-    def has(self, key: str) -> int:
-        return self._client.exists(self.key_prefix + key)
+    def has(self, key: str) -> bool:
+        return bool(self._client.exists(self.key_prefix + key))
 
     def clear(self) -> int:
         status = 0

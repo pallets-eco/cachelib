@@ -121,7 +121,7 @@ class BaseCache:
         """
         return all(self.delete(key) for key in keys)
 
-    def has(self, key: str) -> _t.Union[bool, int]:
+    def has(self, key: str) -> bool:
         """Checks if a key exists in the cache without returning it. This is a
         cheap operation that bypasses loading the actual data on the backend.
 
