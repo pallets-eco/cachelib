@@ -46,8 +46,8 @@ class UWSGICache(BaseCache):
             return
         return pickle.loads(rv)
 
-    def delete(self, key: str) -> _t.Any:
-        return self._uwsgi.cache_del(key, self.cache)
+    def delete(self, key: str) -> bool:
+        return bool(self._uwsgi.cache_del(key, self.cache))
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_update(

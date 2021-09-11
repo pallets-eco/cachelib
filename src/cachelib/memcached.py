@@ -127,10 +127,11 @@ class MemcachedCache(BaseCache):
         failed_keys = self._client.set_multi(new_mapping, timeout)
         return not failed_keys
 
-    def delete(self, key: str) -> _t.Any:
+    def delete(self, key: str) -> bool:
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return self._client.delete(key)
+            return bool(self._client.delete(key))
+        return False
 
     def delete_many(self, *keys: str) -> _t.Any:
         new_keys = []

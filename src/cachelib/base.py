@@ -26,7 +26,7 @@ class BaseCache:
         """
         return None
 
-    def delete(self, key: str) -> _t.Union[bool, int]:
+    def delete(self, key: str) -> bool:
         """Delete `key` from the cache.
 
         :param key: the key to delete.

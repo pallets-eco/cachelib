@@ -128,8 +128,8 @@ class RedisCache(BaseCache):
                 pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
         return pipe.execute()
 
-    def delete(self, key: str) -> int:
-        return self._client.delete(self.key_prefix + key)
+    def delete(self, key: str) -> bool:
+        return bool(self._client.delete(self.key_prefix + key))
 
     def delete_many(self, *keys: str) -> _t.Optional[int]:
         if not keys:
