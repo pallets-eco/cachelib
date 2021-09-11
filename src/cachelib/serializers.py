@@ -59,48 +59,29 @@ class BaseSerializer:
             return data
 
 
-class UWSGISerializer(BaseSerializer):
-    """Default serializer for UWSGICache.
+"""Default serializers for each cache type.
 
-    This class can be used to further customize the
-    behaviour specific to UWSGICache serialization.
-    Alternatively, UWSGISerializer.serializer can be
-    overriden in order to use a custom serializer with
-    a different strategy altogether.
-    """
+The following classes can be used to further customize
+serialiation behaviour. Alternatively, any serializer can be
+overriden in order to use a custom serializer with a different
+strategy altogether.
+"""
+
+
+class UWSGISerializer(BaseSerializer):
+    """Default serializer for UWSGICache."""
 
 
 class SimpleSerializer(BaseSerializer):
-    """Default serializer for SimpleCache.
-
-    This class can be used to further customize the
-    behaviour specific to SimpleCache serialization.
-    Alternatively, SimpleSerializer.serializer can be
-    overriden in order to use a custom serializer with
-    a different strategy altogether.
-    """
+    """Default serializer for SimpleCache."""
 
 
 class FileSystemSerializer(BaseSerializer):
-    """Default serializer for FileSystemCache.
-
-    This class can be used to further customize the
-    behaviour specific to FileSystemCache serialization.
-    Alternatively, FileSystemCache.serializer can be
-    overriden in order to use a custom serializer with
-    a different strategy altogether.
-    """
+    """Default serializer for FileSystemCache."""
 
 
 class RedisSerializer(BaseSerializer):
-    """Default serializer for RedisCache.
-
-    This class can be used to further customize the
-    behaviour specific to RedisCache serialization.
-    Alternatively, RedisCache.serializer can be
-    overriden in order to use a custom serializer with
-    a different strategy altogether.
-    """
+    """Default serializer for RedisCache."""
 
     def dumps(self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL) -> bytes:
         """Dumps an object into a string for redis. By default it serializes
