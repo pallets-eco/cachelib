@@ -143,7 +143,7 @@ class RedisCache(BaseCache):
     def has(self, key: str) -> bool:
         return bool(self._client.exists(self.key_prefix + key))
 
-    def clear(self) -> int:
+    def clear(self) -> bool:
         status = 0
         if self.key_prefix:
             keys = self._client.keys(self.key_prefix + "*")
@@ -151,7 +151,7 @@ class RedisCache(BaseCache):
                 status = self._client.delete(*keys)
         else:
             status = self._client.flushdb()
-        return status
+        return bool(status)
 
     def inc(self, key: str, delta: int = 1) -> int:
         return self._client.incr(name=self.key_prefix + key, amount=delta)

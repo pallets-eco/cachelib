@@ -149,8 +149,8 @@ class MemcachedCache(BaseCache):
             return bool(self._client.append(key, ""))
         return False
 
-    def clear(self) -> _t.Any:
-        return self._client.flush_all()
+    def clear(self) -> bool:
+        return bool(self._client.flush_all())
 
     def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
         key = self._normalize_key(key)

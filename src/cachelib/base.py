@@ -136,7 +136,7 @@ class BaseCache:
             "explicitly if you don't care about performance."
         )
 
-    def clear(self) -> _t.Union[bool, int]:
+    def clear(self) -> bool:
         """Clears the cache.  Keep in mind that not all caches support
         completely clearing the cache.
 

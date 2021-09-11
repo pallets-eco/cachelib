@@ -64,8 +64,8 @@ class UWSGICache(BaseCache):
             )
         )
 
-    def clear(self) -> _t.Any:
-        return self._uwsgi.cache_clear(self.cache)
+    def clear(self) -> bool:
+        return bool(self._uwsgi.cache_clear(self.cache))
 
     def has(self, key: str) -> bool:
         return self._uwsgi.cache_exists(key, self.cache) is not None
