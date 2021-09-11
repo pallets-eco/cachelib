@@ -57,9 +57,11 @@ class UWSGICache(BaseCache):
         )  # type: bool
         return result
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
-        return self._uwsgi.cache_set(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+        return bool(
+            self._uwsgi.cache_set(
+                key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            )
         )
 
     def clear(self) -> _t.Any:

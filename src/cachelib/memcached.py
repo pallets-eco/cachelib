@@ -101,10 +101,10 @@ class MemcachedCache(BaseCache):
                     rv[key] = None
         return rv
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
-        return self._client.add(key, value, timeout)
+        return bool(self._client.add(key, value, timeout))
 
     def set(
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
