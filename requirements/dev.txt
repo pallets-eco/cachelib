@@ -43,7 +43,7 @@ jinja2==3.0.1
 markupsafe==2.0.1
     # via jinja2
 mypy==0.910
-    # via -r requirements/typing.in
+    # via -r typing.in
 mypy-extensions==0.4.3
     # via mypy
 nodeenv==1.6.0
@@ -64,7 +64,7 @@ pluggy==0.13.1
     # via
     #   pytest
     #   tox
-pre-commit==2.13.0
+pre-commit==2.14.1
     # via -r dev.in
 psutil==5.8.0
     # via pytest-xprocess
@@ -80,7 +80,7 @@ pylibmc==1.6.1
     # via -r tests.in
 pyparsing==2.4.7
     # via packaging
-pytest==6.2.4
+pytest==6.2.5
     # via
     #   -r tests.in
     #   pytest-xprocess
@@ -109,7 +109,7 @@ sphinx==4.1.2
     #   sphinxcontrib-log-cabinet
 sphinx-issues==1.2.0
     # via -r docs.in
-sphinx-tabs==3.1.0
+sphinx-tabs==3.2.0
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -132,10 +132,10 @@ toml==0.10.2
     #   pre-commit
     #   pytest
     #   tox
-tox==3.24.1
-    # via -r requirements/dev.in
-types-redis==3.5.4
-    # via -r requirements/typing.in
+tox==3.24.3
+    # via -r dev.in
+types-redis==3.5.7
+    # via -r typing.in
 typing-extensions==3.10.0.0
     # via mypy
 urllib3==1.26.6
