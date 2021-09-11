@@ -72,7 +72,7 @@ class RedisCache(BaseCache):
         )
         return self.serializer.dumps(value)
 
-    def load_object(self, value: _t.Optional[bytes]) -> _t.Any:
+    def load_object(self, value: _t.Any) -> _t.Any:
         warnings.warn(
             "'load_object' is deprecated and will be removed in the future."
             "This is a proxy call to 'RedisCache.serializer.loads'",
