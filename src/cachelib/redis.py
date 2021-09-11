@@ -153,7 +153,7 @@ class RedisCache(BaseCache):
             status = self._client.flushdb()
         return bool(status)
 
-    def inc(self, key: str, delta: int = 1) -> int:
+    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
         return self._client.incr(name=self.key_prefix + key, amount=delta)
 
     def dec(self, key: str, delta: int = 1) -> int:
