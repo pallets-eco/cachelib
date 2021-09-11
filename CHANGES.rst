@@ -2,6 +2,7 @@ Version 0.4.0
 
 Unreleased
 
+-   Add configurable serialization. :pr:`63`
 -   Add type information for static typing tools. :pr:`48`
 
 
