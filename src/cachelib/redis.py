@@ -114,7 +114,7 @@ class RedisCache(BaseCache):
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+    ) -> bool:
         timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling redis MULTI
         # which is not supported by twemproxy
@@ -126,19 +126,19 @@ class RedisCache(BaseCache):
                 pipe.set(name=self.key_prefix + key, value=dump)
             else:
                 pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
-        return pipe.execute()
+        return bool(pipe.execute())
 
     def delete(self, key: str) -> bool:
         return bool(self._client.delete(self.key_prefix + key))
 
-    def delete_many(self, *keys: str) -> _t.Optional[int]:
+    def delete_many(self, *keys: str) -> bool:
         if not keys:
-            return None
+            return False
         if self.key_prefix:
             prefixed_keys = [self.key_prefix + key for key in keys]
         else:
             prefixed_keys = [k for k in keys]
-        return self._client.delete(*prefixed_keys)
+        return bool(self._client.delete(*prefixed_keys))
 
     def has(self, key: str) -> int:
         return self._client.exists(self.key_prefix + key)

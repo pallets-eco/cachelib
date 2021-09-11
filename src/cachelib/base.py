@@ -95,7 +95,7 @@ class BaseCache:
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.Union[bool, _t.List[_t.Any]]:
+    ) -> bool:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
@@ -111,7 +111,7 @@ class BaseCache:
                 rv = False
         return rv
 
-    def delete_many(self, *keys: str) -> _t.Union[bool, _t.Optional[int]]:
+    def delete_many(self, *keys: str) -> bool:
         """Deletes multiple keys at once.
 
         :param keys: The function accepts multiple keys as positional
