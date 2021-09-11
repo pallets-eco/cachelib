@@ -83,14 +83,14 @@ class MemcachedCache(BaseCache):
         if _test_memcached_key(key):
             return self._client.get(key)
 
-    def get_dict(self, *keys: str) -> _t.Any:
+    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
         key_mapping = {}
         for key in keys:
             encoded_key = self._normalize_key(key)
             if _test_memcached_key(key):
                 key_mapping[encoded_key] = key
         _keys = list(key_mapping)
-        d = rv = self._client.get_multi(_keys)
+        d = rv = self._client.get_multi(_keys)  # type: _t.Dict[str, _t.Any]
         if self.key_prefix:
             rv = {}
             for key, value in d.items():
@@ -111,7 +111,7 @@ class MemcachedCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         return self._client.set(key, value, timeout)
 
-    def get_many(self, *keys: str) -> _t.Any:
+    def get_many(self, *keys: str) -> _t.List[_t.Any]:
         d = self.get_dict(*keys)
         return [d[key] for key in keys]
 
