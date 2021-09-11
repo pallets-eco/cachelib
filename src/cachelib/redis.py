@@ -156,5 +156,5 @@ class RedisCache(BaseCache):
     def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
         return self._client.incr(name=self.key_prefix + key, amount=delta)
 
-    def dec(self, key: str, delta: int = 1) -> int:
+    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
         return self._client.incr(name=self.key_prefix + key, amount=-delta)
