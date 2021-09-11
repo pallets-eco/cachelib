@@ -106,10 +106,12 @@ class MemcachedCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         return self._client.add(key, value, timeout)
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
-        return self._client.set(key, value, timeout)
+        return bool(self._client.set(key, value, timeout))
 
     def get_many(self, *keys: str) -> _t.List[_t.Any]:
         d = self.get_dict(*keys)

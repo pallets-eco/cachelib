@@ -68,7 +68,9 @@ class SimpleCache(BaseCache):
         except (KeyError, pickle.PickleError):
             return None
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         expires = self._normalize_timeout(timeout)
         self._prune()
         self._cache[key] = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))

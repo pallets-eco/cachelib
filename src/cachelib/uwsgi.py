@@ -49,10 +49,13 @@ class UWSGICache(BaseCache):
     def delete(self, key: str) -> bool:
         return bool(self._uwsgi.cache_del(key, self.cache))
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
-        return self._uwsgi.cache_update(
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
+        result = self._uwsgi.cache_update(
             key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
-        )
+        )  # type: bool
+        return result
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._uwsgi.cache_set(
