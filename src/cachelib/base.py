@@ -125,8 +125,6 @@ class BaseCache:
         """Checks if a key exists in the cache without returning it. This is a
         cheap operation that bypasses loading the actual data on the backend.
 
-        This method is optional and may not be implemented on all caches.
-
         :param key: the key to check
         """
         raise NotImplementedError(
