@@ -40,7 +40,9 @@ jobs:
         run: brew install libmemcached memcached redis
       - name: install external dependencies Linux
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install libmemcached-dev memcached redis-server
+        run: |
+          sudo apt-get update
+          sudo apt-get install libmemcached-dev memcached redis-server
       - name: update pip
         run: |
           pip install -U wheel
