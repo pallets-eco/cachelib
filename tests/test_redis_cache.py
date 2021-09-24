@@ -24,6 +24,20 @@ class TestRedisCache(CommonTests, ClearTests, HasTests):
         cache = self.cache_factory()
 
         expected = {
+            3: {
+                "128": b"!\x80\x03\x89.",
+                "beef": b"!\x80\x03\x88.",
+                "crevettes": b"!\x80\x03}q\x00.",
+                "1024": b"!\x80\x03X\x04\x00\x00\x00spamq\x00.",
+                "bacon": b"!\x80\x03X\x04\x00\x00\x00eggsq\x00.",
+                "sausage": b"2048",
+                "3072": b"!\x80\x03]q\x00.",
+                "brandy": b"!\x80\x03]q\x00(}q\x01X\n\x00\x00\x00fried eggsq\x02e.",
+                "lobster": b"!\x80\x03]q\x00(X\x0b\x00\x00\x00"
+                b"baked beansq\x01]q\x02M\x00\x02ae.",
+                "4096": b"!\x80\x03}q\x00(X\x05\x00\x00\x00"
+                b"sauceq\x01]q\x02M\x00\x01X\x07\x00\x00\x00truffleq\x03u.",
+            },
             4: {
                 "128": b"!\x80\x04\x89.",
                 "beef": b"!\x80\x04\x88.",
