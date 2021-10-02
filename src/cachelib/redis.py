@@ -47,7 +47,7 @@ class RedisCache(BaseCache):
             if kwargs.get("decode_responses", None):
                 raise ValueError(
                     "decode_responses is not supported by RedisCache."
-                ) from err
+                )
             self._client = redis.Redis(
                 host=host, port=port, password=password, db=db, **kwargs
             )
