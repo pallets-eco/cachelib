@@ -42,8 +42,8 @@ class RedisCache(BaseCache):
         if isinstance(host, str):
             try:
                 import redis
-            except ImportError:
-                raise RuntimeError("no redis module found")
+            except ImportError as err:
+                raise RuntimeError("no redis module found") from err
             if kwargs.get("decode_responses", None):
                 raise ValueError("decode_responses is not supported by RedisCache.")
             self._client = redis.Redis(
