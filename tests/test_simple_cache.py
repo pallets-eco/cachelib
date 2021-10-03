@@ -1,6 +1,7 @@
 from time import sleep
 
 import pytest
+from clear import ClearTests
 from common import CommonTests
 from has import HasTests
 
@@ -15,7 +16,7 @@ def cache_factory(request):
     request.cls.cache_factory = _factory
 
 
-class TestSimpleCache(CommonTests, HasTests):
+class TestSimpleCache(CommonTests, HasTests, ClearTests):
     def test_threshold(self):
         threshold = len(self.sample_pairs) // 2
         cache = self.cache_factory(threshold=threshold)

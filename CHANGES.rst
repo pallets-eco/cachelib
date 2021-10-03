@@ -2,6 +2,9 @@ Version 0.4.0
 
 Unreleased
 
+-   All cache types now implement BaseCache interface both
+    in behavior and method return types. Thus, code written
+    for one cache type should work with any other cache type.
 -   Add type information for static typing tools. :pr:`48`
 -   ``FileNotFound`` exceptions will not be logged anymore
     in ``FileSystemCache`` methods in order to avoid polluting

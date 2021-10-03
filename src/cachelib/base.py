@@ -26,7 +26,7 @@ class BaseCache:
         """
         return None
 
-    def delete(self, key: str) -> _t.Union[bool, int]:
+    def delete(self, key: str) -> bool:
         """Delete `key` from the cache.
 
         :param key: the key to delete.
@@ -95,37 +95,39 @@ class BaseCache:
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.Union[bool, _t.List[_t.Any]]:
+    ) -> _t.List[_t.Any]:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
         :param timeout: the cache timeout for the key in seconds (if not
                         specified, it uses the default timeout). A timeout of
                         0 indicates that the cache never expires.
-        :returns: Whether all given keys have been set.
+        :returns: A list containing all keys sucessfuly set
         :rtype: boolean
         """
-        rv = True
+        set_keys = []
         for key, value in mapping.items():
-            if not self.set(key, value, timeout):
-                rv = False
-        return rv
+            if self.set(key, value, timeout):
+                set_keys.append(key)
+        return set_keys
 
-    def delete_many(self, *keys: str) -> _t.Union[bool, _t.Optional[int]]:
+    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         """Deletes multiple keys at once.
 
         :param keys: The function accepts multiple keys as positional
                      arguments.
-        :returns: Whether all given keys have been deleted.
+        :returns: A list containing all sucessfuly deleted keys
         :rtype: boolean
         """
-        return all(self.delete(key) for key in keys)
+        deleted_keys = []
+        for key in keys:
+            if self.delete(key):
+                deleted_keys.append(key)
+        return deleted_keys
 
-    def has(self, key: str) -> _t.Union[bool, int]:
+    def has(self, key: str) -> bool:
         """Checks if a key exists in the cache without returning it. This is a
         cheap operation that bypasses loading the actual data on the backend.
-
-        This method is optional and may not be implemented on all caches.
 
         :param key: the key to check
         """
@@ -136,7 +138,7 @@ class BaseCache:
             "explicitly if you don't care about performance."
         )
 
-    def clear(self) -> _t.Union[bool, int]:
+    def clear(self) -> bool:
         """Clears the cache.  Keep in mind that not all caches support
         completely clearing the cache.
 
@@ -173,7 +175,6 @@ class BaseCache:
 
 
 class NullCache(BaseCache):
-
     """A cache that doesn't cache.  This can be useful for unit testing.
 
     :param default_timeout: a dummy parameter that is ignored but exists

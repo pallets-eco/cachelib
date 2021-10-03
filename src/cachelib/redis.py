@@ -126,24 +126,26 @@ class RedisCache(BaseCache):
                 pipe.set(name=self.key_prefix + key, value=dump)
             else:
                 pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
-        return pipe.execute()
+        results = pipe.execute()
+        return [k for k, was_set in zip(mapping.keys(), results) if was_set]
 
-    def delete(self, key: str) -> int:
-        return self._client.delete(self.key_prefix + key)
+    def delete(self, key: str) -> bool:
+        return bool(self._client.delete(self.key_prefix + key))
 
-    def delete_many(self, *keys: str) -> _t.Optional[int]:
+    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         if not keys:
-            return None
+            return []
         if self.key_prefix:
             prefixed_keys = [self.key_prefix + key for key in keys]
         else:
             prefixed_keys = [k for k in keys]
-        return self._client.delete(*prefixed_keys)
+        self._client.delete(*prefixed_keys)
+        return [k for k in prefixed_keys if not self.has(k)]
 
-    def has(self, key: str) -> int:
-        return self._client.exists(self.key_prefix + key)
+    def has(self, key: str) -> bool:
+        return bool(self._client.exists(self.key_prefix + key))
 
-    def clear(self) -> int:
+    def clear(self) -> bool:
         status = 0
         if self.key_prefix:
             keys = self._client.keys(self.key_prefix + "*")
@@ -151,10 +153,10 @@ class RedisCache(BaseCache):
                 status = self._client.delete(*keys)
         else:
             status = self._client.flushdb()
-        return status
+        return bool(status)
 
-    def inc(self, key: str, delta: int = 1) -> int:
+    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
         return self._client.incr(name=self.key_prefix + key, amount=delta)
 
-    def dec(self, key: str, delta: int = 1) -> int:
+    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
         return self._client.incr(name=self.key_prefix + key, amount=-delta)

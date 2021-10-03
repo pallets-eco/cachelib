@@ -46,21 +46,26 @@ class UWSGICache(BaseCache):
             return
         return pickle.loads(rv)
 
-    def delete(self, key: str) -> _t.Any:
-        return self._uwsgi.cache_del(key, self.cache)
+    def delete(self, key: str) -> bool:
+        return bool(self._uwsgi.cache_del(key, self.cache))
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
-        return self._uwsgi.cache_update(
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
+        result = self._uwsgi.cache_update(
             key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+        )  # type: bool
+        return result
+
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+        return bool(
+            self._uwsgi.cache_set(
+                key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            )
         )
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
-        return self._uwsgi.cache_set(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
-        )
-
-    def clear(self) -> _t.Any:
-        return self._uwsgi.cache_clear(self.cache)
+    def clear(self) -> bool:
+        return bool(self._uwsgi.cache_clear(self.cache))
 
     def has(self, key: str) -> bool:
         return self._uwsgi.cache_exists(key, self.cache) is not None

@@ -44,12 +44,12 @@ class TestBaseCache:
         cache = self.cache_factory()
         keys = ["bacon", "spam", "eggs"]
         mapping = dict.fromkeys(keys, None)
-        assert cache.set_many(mapping)
+        assert cache.set_many(mapping) == keys
 
     def test_delete_many(self):
         cache = self.cache_factory()
         keys = ["bacon", "spam", "eggs"]
-        assert cache.delete_many(*keys)
+        assert cache.delete_many(*keys) == keys
 
     def test_has(self):
         cache = self.cache_factory()
