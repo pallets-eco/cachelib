@@ -95,31 +95,35 @@ class BaseCache:
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> bool:
+    ) -> _t.List[_t.Any]:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
         :param timeout: the cache timeout for the key in seconds (if not
                         specified, it uses the default timeout). A timeout of
                         0 indicates that the cache never expires.
-        :returns: Whether all given keys have been set.
+        :returns: A list containing all keys sucessfuly set
         :rtype: boolean
         """
-        rv = True
+        set_keys = []
         for key, value in mapping.items():
-            if not self.set(key, value, timeout):
-                rv = False
-        return rv
+            if self.set(key, value, timeout):
+                set_keys.append(key)
+        return set_keys
 
-    def delete_many(self, *keys: str) -> bool:
+    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         """Deletes multiple keys at once.
 
         :param keys: The function accepts multiple keys as positional
                      arguments.
-        :returns: Whether all given keys have been deleted.
+        :returns: A list containing all sucessfuly deleted keys
         :rtype: boolean
         """
-        return all(self.delete(key) for key in keys)
+        deleted_keys = []
+        for key in keys:
+            if self.delete(key):
+                deleted_keys.append(key)
+        return deleted_keys
 
     def has(self, key: str) -> bool:
         """Checks if a key exists in the cache without returning it. This is a
@@ -171,7 +175,6 @@ class BaseCache:
 
 
 class NullCache(BaseCache):
-
     """A cache that doesn't cache.  This can be useful for unit testing.
 
     :param default_timeout: a dummy parameter that is ignored but exists

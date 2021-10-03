@@ -119,15 +119,16 @@ class MemcachedCache(BaseCache):
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> bool:
+    ) -> _t.List[_t.Any]:
         new_mapping = {}
         for key, value in mapping.items():
             key = self._normalize_key(key)
             new_mapping[key] = value
 
         timeout = self._normalize_timeout(timeout)
-        failed_keys = self._client.set_multi(new_mapping, timeout)
-        return not failed_keys
+        failed_keys = self._client.set_multi(new_mapping, timeout) # type: _t.List[_t.Any]
+        k_normkey = zip(mapping.keys(), new_mapping.keys())
+        return [k for k, nkey in k_normkey if nkey not in failed_keys]
 
     def delete(self, key: str) -> bool:
         key = self._normalize_key(key)
@@ -135,13 +136,14 @@ class MemcachedCache(BaseCache):
             return bool(self._client.delete(key))
         return False
 
-    def delete_many(self, *keys: str) -> bool:
+    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         new_keys = []
         for key in keys:
             key = self._normalize_key(key)
             if _test_memcached_key(key):
                 new_keys.append(key)
-        return bool(self._client.delete_multi(new_keys))
+        self._client.delete_multi(new_keys)
+        return [k for k in new_keys if not self.has(k)]
 
     def has(self, key: str) -> bool:
         key = self._normalize_key(key)
