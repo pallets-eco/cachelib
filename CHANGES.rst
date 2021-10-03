@@ -1,7 +1,7 @@
 Version 0.4.0
 -------------
 
-Released 2021-04-12
+Released 2021-10-03
 
 -   All cache types now implement ``BaseCache`` interface both
     in behavior and method return types. Thus, code written
