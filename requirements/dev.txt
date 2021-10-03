@@ -58,13 +58,13 @@ pallets-sphinx-themes==2.0.1
     # via -r docs.in
 pep517==0.10.0
     # via pip-tools
-pip-tools==6.2.0
+pip-tools==6.3.0
     # via -r dev.in
 pluggy==0.13.1
     # via
     #   pytest
     #   tox
-pre-commit==2.14.1
+pre-commit==2.15.0
     # via -r dev.in
 psutil==5.8.0
     # via pytest-xprocess
@@ -100,7 +100,7 @@ six==1.16.0
     #   virtualenv
 snowballstemmer==2.1.0
     # via sphinx
-sphinx==4.1.2
+sphinx==4.2.0
     # via
     #   -r docs.in
     #   pallets-sphinx-themes
@@ -132,9 +132,9 @@ toml==0.10.2
     #   pre-commit
     #   pytest
     #   tox
-tox==3.24.3
+tox==3.24.4
     # via -r dev.in
-types-redis==3.5.7
+types-redis==3.5.9
     # via -r typing.in
 typing-extensions==3.10.0.0
     # via mypy
