@@ -28,7 +28,7 @@ class RedisCache(BaseCache):
 
     def __init__(
         self,
-        host: str = "localhost",
+        host: _t.Any = "localhost",
         port: int = 6379,
         password: _t.Optional[str] = None,
         db: int = 0,
@@ -49,6 +49,8 @@ class RedisCache(BaseCache):
             self._client = redis.Redis(
                 host=host, port=port, password=password, db=db, **kwargs
             )
+        else:
+            self._client = host
         self.key_prefix = key_prefix or ""
 
     def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
