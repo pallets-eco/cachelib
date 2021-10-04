@@ -1,3 +1,12 @@
+Version 0.4.1
+-------------
+
+Released 2021-10-04
+
+-   Fix break in ``RedisCache`` when a host object was passed
+    in ``RedisCache.host`` instead of a string. :pr:`82`
+
+
 Version 0.4.0
 -------------
 
