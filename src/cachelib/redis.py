@@ -28,7 +28,7 @@ class RedisCache(BaseCache):
 
     def __init__(
         self,
-        host: _t.Any  = "localhost",
+        host: _t.Any = "localhost",
         port: int = 6379,
         password: _t.Optional[str] = None,
         db: int = 0,
