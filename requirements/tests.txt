@@ -30,5 +30,5 @@ redis==3.5.3
     # via -r tests.in
 toml==0.10.2
     # via pytest
-uwsgi==2.0.19.1
+uwsgi==2.0.20
     # via -r tests.in
