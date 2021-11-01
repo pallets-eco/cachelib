@@ -8,27 +8,27 @@ attrs==21.2.0
     # via pytest
 iniconfig==1.1.1
     # via pytest
-packaging==20.9
+packaging==21.2
     # via pytest
-pluggy==0.13.1
+pluggy==1.0.0
     # via pytest
 psutil==5.8.0
     # via pytest-xprocess
 py==1.10.0
     # via pytest
 pylibmc==1.6.1
-    # via -r tests.in
+    # via -r requirements/tests.in
 pyparsing==2.4.7
     # via packaging
 pytest==6.2.5
     # via
-    #   -r tests.in
+    #   -r requirements/tests.in
     #   pytest-xprocess
 pytest-xprocess==0.18.1
-    # via -r tests.in
+    # via -r requirements/tests.in
 redis==3.5.3
-    # via -r tests.in
+    # via -r requirements/tests.in
 toml==0.10.2
     # via pytest
-uwsgi==2.0.19.1
-    # via -r tests.in
+uwsgi==2.0.20
+    # via -r requirements/tests.in
