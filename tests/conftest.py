@@ -44,7 +44,7 @@ def redis_server(xprocess):
         args = ["redis-server", "--port 6360"]
 
         def startup_check(self):
-            out = subprocess.run(["redis-cli", "ping"], capture_output=True)
+            out = subprocess.run(["redis-cli", "ping"], stdout=subprocess.PIPE)
             return out.stdout == b"PONG\n"
 
     xprocess.ensure(package_name, Starter)
@@ -64,7 +64,7 @@ def memcached_server(xprocess):
         args = ["memcached", "-vv"]
 
         def startup_check(self):
-            out = subprocess.run(["memcached"], capture_output=True)
+            out = subprocess.run(["memcached"], stderr=subprocess.PIPE)
             return b"Address already" in out.stderr
 
     xprocess.ensure(package_name, Starter)
