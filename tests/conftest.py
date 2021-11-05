@@ -1,4 +1,5 @@
 import os
+import subprocess
 import warnings
 from pathlib import Path
 
@@ -42,6 +43,12 @@ def redis_server(xprocess):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
 
+        def startup_check(self):
+            out = subprocess.run(
+                ["redis-cli", "-p", "6360", "ping"], stdout=subprocess.PIPE
+            )
+            return out.stdout == b"PONG\n"
+
     xprocess.ensure(package_name, Starter)
     yield
     xprocess.getinfo(package_name).terminate()
@@ -57,6 +64,10 @@ def memcached_server(xprocess):
     class Starter(ProcessStarter):
         pattern = "server listening"
         args = ["memcached", "-vv"]
+
+        def startup_check(self):
+            out = subprocess.run(["memcached"], stderr=subprocess.PIPE)
+            return b"Address already" in out.stderr
 
     xprocess.ensure(package_name, Starter)
     yield
