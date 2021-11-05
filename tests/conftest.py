@@ -1,4 +1,5 @@
 import os
+import subprocess
 import warnings
 from pathlib import Path
 
@@ -41,6 +42,10 @@ def redis_server(xprocess):
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
+
+        def startup_check(self):
+            out = subprocess.run(["redis-cli", "ping"], capture_output=True)
+            return out.stdout == b"PONG\n"
 
     xprocess.ensure(package_name, Starter)
     yield
