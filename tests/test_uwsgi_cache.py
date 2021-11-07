@@ -4,7 +4,6 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import UWSGICache
-from cachelib.serializers import UWSGISerializer
 
 
 class SillySerializer:
@@ -17,10 +16,20 @@ class SillySerializer:
         return eval(bvalue.decode())
 
 
-@pytest.fixture(autouse=True, params=[UWSGISerializer, SillySerializer])
+class CustomCache(UWSGICache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[UWSGICache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        uwc = UWSGICache(*args, serializer=request.param(), **kwargs)
+        uwc = request.param(*args, **kwargs)
         uwc.clear()
         return uwc
 

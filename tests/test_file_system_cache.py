@@ -7,7 +7,6 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import FileSystemCache
-from cachelib.serializers import FileSystemSerializer
 
 
 class SillySerializer:
@@ -22,15 +21,26 @@ class SillySerializer:
         # When all file content has been read eval will
         # turn the EOFError into SyntaxError wich is not
         # handled by cachelib
-        except SyntaxError:
-            raise EOFError
+        except SyntaxError as e:
+            raise EOFError from e
         return loaded
 
 
-@pytest.fixture(autouse=True, params=[FileSystemSerializer, SillySerializer])
+class CustomCache(FileSystemCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[FileSystemCache, CustomCache])
 def cache_factory(request, tmpdir):
     def _factory(self, *args, **kwargs):
-        return FileSystemCache(tmpdir, *args, serializer=request.param(), **kwargs)
+        client = request.param(tmpdir, *args, **kwargs)
+        return client
 
     request.cls.cache_factory = _factory
 

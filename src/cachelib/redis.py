@@ -2,10 +2,7 @@ import typing as _t
 import warnings
 
 from cachelib.base import BaseCache
-from cachelib.serializers import BaseSerializer
 from cachelib.serializers import RedisSerializer
-
-default_serializer = RedisSerializer()
 
 
 class RedisCache(BaseCache):
@@ -30,6 +27,8 @@ class RedisCache(BaseCache):
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
+    serializer = RedisSerializer()
+
     def __init__(
         self,
         host: str = "localhost",
@@ -38,18 +37,16 @@ class RedisCache(BaseCache):
         db: int = 0,
         default_timeout: int = 300,
         key_prefix: _t.Optional[str] = None,
-        serializer: BaseSerializer = default_serializer,
         **kwargs: _t.Any
     ):
-        self.serializer = serializer
         BaseCache.__init__(self, default_timeout)
         if host is None:
             raise ValueError("RedisCache host parameter may not be None")
         if isinstance(host, str):
             try:
                 import redis
-            except ImportError:
-                raise RuntimeError("no redis module found")
+            except ImportError as e:
+                raise RuntimeError("no redis module found") from e
             if kwargs.get("decode_responses", None):
                 raise ValueError("decode_responses is not supported by RedisCache.")
             self._client = redis.Redis(

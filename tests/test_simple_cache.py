@@ -5,7 +5,6 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import SimpleCache
-from cachelib.serializers import SimpleSerializer
 
 
 class SillySerializer:
@@ -18,10 +17,20 @@ class SillySerializer:
         return eval(bvalue.decode())
 
 
-@pytest.fixture(autouse=True, params=[SimpleSerializer, SillySerializer])
+class CustomCache(SimpleCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[SimpleCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        return SimpleCache(*args, serializer=request.param(), **kwargs)
+        return request.param(*args, **kwargs)
 
     request.cls.cache_factory = _factory
 

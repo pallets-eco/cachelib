@@ -4,7 +4,6 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import RedisCache
-from cachelib.serializers import RedisSerializer
 
 
 class SillySerializer:
@@ -19,10 +18,20 @@ class SillySerializer:
         return eval(bvalue.decode())
 
 
-@pytest.fixture(autouse=True, params=[RedisSerializer, SillySerializer])
+class CustomCache(RedisCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[RedisCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        rc = RedisCache(*args, port=6360, serializer=request.param(), **kwargs)
+        rc = request.param(*args, port=6360, **kwargs)
         rc._client.flushdb()
         return rc
 

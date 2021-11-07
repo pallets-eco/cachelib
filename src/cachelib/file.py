@@ -8,11 +8,7 @@ from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
-from cachelib.serializers import BaseSerializer
 from cachelib.serializers import FileSystemSerializer
-
-
-default_serializer = FileSystemSerializer()
 
 
 class FileSystemCache(BaseCache):
@@ -36,19 +32,19 @@ class FileSystemCache(BaseCache):
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
 
+    serializer = FileSystemSerializer()
+
     def __init__(
         self,
         cache_dir: str,
         threshold: int = 500,
         default_timeout: int = 300,
         mode: int = 0o600,
-        serializer: BaseSerializer = default_serializer,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
         self._mode = mode
-        self.serializer = serializer
 
         try:
             os.makedirs(self._path)
