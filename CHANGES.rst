@@ -1,3 +1,11 @@
+Version 0.5.0
+-------------
+
+Unreleased
+
+-   Cache types now have configurable serializers. :pr:`63`
+
+
 Version 0.4.1
 -------------
 
@@ -12,7 +20,6 @@ Version 0.4.0
 
 Released 2021-10-03
 
--   Add configurable serialization. :pr:`63`
 -   All cache types now implement ``BaseCache`` interface both
     in behavior and method return types. Thus, code written
     for one cache type should work with any other cache type. :pr:`71`
