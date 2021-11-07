@@ -5,12 +5,12 @@
 #    pip-compile requirements/typing.in
 #
 mypy==0.910
-    # via -r typing.in
+    # via -r requirements/typing.in
 mypy-extensions==0.4.3
     # via mypy
 toml==0.10.2
     # via mypy
-types-redis==3.5.7
-    # via -r typing.in
-typing-extensions==3.10.0.0
+types-redis==3.5.15
+    # via -r requirements/typing.in
+typing-extensions==3.10.0.2
     # via mypy

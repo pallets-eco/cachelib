@@ -28,8 +28,6 @@ class SimpleCache(BaseCache):
     ):
         BaseCache.__init__(self, default_timeout)
         self._cache: _t.Dict[str, _t.Any] = {}
-        # mypy complains about mocks
-        self.clear = self._cache.clear  # type: ignore
         self._threshold = threshold or 500  # threshold = 0
 
     def _over_threshold(self) -> bool:
@@ -74,7 +72,9 @@ class SimpleCache(BaseCache):
         except KeyError:
             return None
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         expires = self._normalize_timeout(timeout)
         self._prune()
         self._cache[key] = (expires, self.serializer.dumps(value))
@@ -98,3 +98,7 @@ class SimpleCache(BaseCache):
             return bool(expires == 0 or expires > time())
         except KeyError:
             return False
+
+    def clear(self) -> bool:
+        self._cache.clear()
+        return not bool(self._cache)

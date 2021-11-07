@@ -83,14 +83,14 @@ class MemcachedCache(BaseCache):
         if _test_memcached_key(key):
             return self._client.get(key)
 
-    def get_dict(self, *keys: str) -> _t.Any:
+    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
         key_mapping = {}
         for key in keys:
             encoded_key = self._normalize_key(key)
             if _test_memcached_key(key):
                 key_mapping[encoded_key] = key
         _keys = list(key_mapping)
-        d = rv = self._client.get_multi(_keys)
+        d = rv = self._client.get_multi(_keys)  # type: _t.Dict[str, _t.Any]
         if self.key_prefix:
             rv = {}
             for key, value in d.items():
@@ -101,53 +101,60 @@ class MemcachedCache(BaseCache):
                     rv[key] = None
         return rv
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
-        return self._client.add(key, value, timeout)
+        return bool(self._client.add(key, value, timeout))
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
-        return self._client.set(key, value, timeout)
+        return bool(self._client.set(key, value, timeout))
 
-    def get_many(self, *keys: str) -> _t.Any:
+    def get_many(self, *keys: str) -> _t.List[_t.Any]:
         d = self.get_dict(*keys)
         return [d[key] for key in keys]
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> bool:
+    ) -> _t.List[_t.Any]:
         new_mapping = {}
         for key, value in mapping.items():
             key = self._normalize_key(key)
             new_mapping[key] = value
 
         timeout = self._normalize_timeout(timeout)
-        failed_keys = self._client.set_multi(new_mapping, timeout)
-        return not failed_keys
+        failed_keys = self._client.set_multi(
+            new_mapping, timeout
+        )  # type: _t.List[_t.Any]
+        k_normkey = zip(mapping.keys(), new_mapping.keys())
+        return [k for k, nkey in k_normkey if nkey not in failed_keys]
 
-    def delete(self, key: str) -> _t.Any:
+    def delete(self, key: str) -> bool:
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return self._client.delete(key)
+            return bool(self._client.delete(key))
+        return False
 
-    def delete_many(self, *keys: str) -> _t.Any:
+    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         new_keys = []
         for key in keys:
             key = self._normalize_key(key)
             if _test_memcached_key(key):
                 new_keys.append(key)
-        return self._client.delete_multi(new_keys)
+        self._client.delete_multi(new_keys)
+        return [k for k in new_keys if not self.has(k)]
 
-    def has(self, key: str) -> _t.Any:
+    def has(self, key: str) -> bool:
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return self._client.append(key, "")
+            return bool(self._client.append(key, ""))
         return False
 
-    def clear(self) -> _t.Any:
-        return self._client.flush_all()
+    def clear(self) -> bool:
+        return bool(self._client.flush_all())
 
     def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
         key = self._normalize_key(key)

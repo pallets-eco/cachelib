@@ -16,7 +16,8 @@ class CommonTests(TestData):
 
     def test_set_get_many(self):
         cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
+        result = cache.set_many(self.sample_pairs)
+        assert result == list(self.sample_pairs.keys())
         values = cache.get_many(*self.sample_pairs)
         assert values == list(self.sample_pairs.values())
 
@@ -36,7 +37,8 @@ class CommonTests(TestData):
     def test_delete_many(self):
         cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
-        assert cache.delete_many(*self.sample_pairs)
+        result = cache.delete_many(*self.sample_pairs)
+        assert result == list(self.sample_pairs.keys())
         assert not any(cache.get_many(*self.sample_pairs))
 
     def test_add(self):
