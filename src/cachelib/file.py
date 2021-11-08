@@ -1,7 +1,6 @@
 import errno
 import logging
 import os
-import pickle
 import tempfile
 import typing as _t
 from hashlib import md5
@@ -9,6 +8,7 @@ from pathlib import Path
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import FileSystemSerializer
 
 
 class FileSystemCache(BaseCache):
@@ -31,6 +31,8 @@ class FileSystemCache(BaseCache):
     _fs_transaction_suffix = ".__wz_cache"
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
+
+    serializer = FileSystemSerializer()
 
     def __init__(
         self,
@@ -96,7 +98,8 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
-                    expires = pickle.load(f)
+                    expires = self.serializer.load(f)
+                    print(expires)
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
@@ -114,7 +117,7 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with open(fname, "rb") as f:
-                    exp_fname_tuples.append((pickle.load(f), fname))
+                    exp_fname_tuples.append((self.serializer.load(f), fname))
             except FileNotFoundError:
                 pass
             except (OSError, EOFError):
@@ -181,12 +184,12 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
-                pickle_time = pickle.load(f)
+                pickle_time = self.serializer.load(f)
                 if pickle_time == 0 or pickle_time >= time():
-                    return pickle.load(f)
+                    return self.serializer.load(f)
         except FileNotFoundError:
             pass
-        except (OSError, EOFError, pickle.PickleError):
+        except (OSError, EOFError):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,
@@ -223,8 +226,8 @@ class FileSystemCache(BaseCache):
                 suffix=self._fs_transaction_suffix, dir=self._path
             )
             with os.fdopen(fd, "wb") as f:
-                pickle.dump(timeout, f, 1)
-                pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
+                self.serializer.dump(timeout, f)  # this returns bool
+                self.serializer.dump(value, f)
             os.replace(tmp, filename)
             os.chmod(filename, self._mode)
             fsize = Path(filename).stat().st_size
@@ -259,14 +262,14 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with open(filename, "rb") as f:
-                pickle_time = pickle.load(f)
+                pickle_time = self.serializer.load(f)
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
                     return False
         except FileNotFoundError:  # if there is no file there is no key
             return False
-        except (OSError, EOFError, pickle.PickleError):
+        except (OSError, EOFError):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,

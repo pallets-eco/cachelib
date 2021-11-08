@@ -1,3 +1,11 @@
+Version 0.5.0
+-------------
+
+Unreleased
+
+-   Cache types now have configurable serializers. :pr:`63`
+
+
 Version 0.4.1
 -------------
 

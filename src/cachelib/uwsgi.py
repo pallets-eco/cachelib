@@ -1,8 +1,8 @@
-import pickle
 import platform
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.serializers import UWSGISerializer
 
 
 class UWSGICache(BaseCache):
@@ -20,7 +20,13 @@ class UWSGICache(BaseCache):
         the cache.
     """
 
-    def __init__(self, default_timeout: int = 300, cache: str = ""):
+    serializer = UWSGISerializer()
+
+    def __init__(
+        self,
+        default_timeout: int = 300,
+        cache: str = "",
+    ):
         BaseCache.__init__(self, default_timeout)
 
         if platform.python_implementation() == "PyPy":
@@ -44,7 +50,7 @@ class UWSGICache(BaseCache):
         rv = self._uwsgi.cache_get(key, self.cache)
         if rv is None:
             return
-        return pickle.loads(rv)
+        return self.serializer.loads(rv)
 
     def delete(self, key: str) -> bool:
         return bool(self._uwsgi.cache_del(key, self.cache))
@@ -53,14 +59,20 @@ class UWSGICache(BaseCache):
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
     ) -> _t.Optional[bool]:
         result = self._uwsgi.cache_update(
-            key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+            key,
+            self.serializer.dumps(value),
+            self._normalize_timeout(timeout),
+            self.cache,
         )  # type: bool
         return result
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         return bool(
             self._uwsgi.cache_set(
-                key, pickle.dumps(value), self._normalize_timeout(timeout), self.cache
+                key,
+                self.serializer.dumps(value),
+                self._normalize_timeout(timeout),
+                self.cache,
             )
         )
 

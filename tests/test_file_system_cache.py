@@ -1,3 +1,4 @@
+import os
 from time import sleep
 
 import pytest
@@ -8,10 +9,38 @@ from has import HasTests
 from cachelib import FileSystemCache
 
 
-@pytest.fixture(autouse=True)
+class SillySerializer:
+    """A pointless serializer only for testing"""
+
+    def dump(self, value, fs):
+        fs.write(f"{repr(value)}{os.linesep}".encode())
+
+    def load(self, fs):
+        try:
+            loaded = eval(fs.readline().decode())
+        # When all file content has been read eval will
+        # turn the EOFError into SyntaxError wich is not
+        # handled by cachelib
+        except SyntaxError as e:
+            raise EOFError from e
+        return loaded
+
+
+class CustomCache(FileSystemCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[FileSystemCache, CustomCache])
 def cache_factory(request, tmpdir):
     def _factory(self, *args, **kwargs):
-        return FileSystemCache(tmpdir, *args, **kwargs)
+        client = request.param(tmpdir, *args, **kwargs)
+        return client
 
     request.cls.cache_factory = _factory
 

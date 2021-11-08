@@ -6,10 +6,32 @@ from has import HasTests
 from cachelib import RedisCache
 
 
-@pytest.fixture(autouse=True)
+class SillySerializer:
+    """A pointless serializer only for testing"""
+
+    def dumps(self, value):
+        return repr(value).encode()
+
+    def loads(self, bvalue):
+        if bvalue is None:
+            return None
+        return eval(bvalue.decode())
+
+
+class CustomCache(RedisCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[RedisCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        rc = RedisCache(*args, port=6360, **kwargs)
+        rc = request.param(*args, port=6360, **kwargs)
         rc._client.flushdb()
         return rc
 

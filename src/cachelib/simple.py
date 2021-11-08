@@ -1,8 +1,8 @@
-import pickle
 import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import SimpleSerializer
 
 
 class SimpleCache(BaseCache):
@@ -19,7 +19,13 @@ class SimpleCache(BaseCache):
                             0 indicates that the cache never expires.
     """
 
-    def __init__(self, threshold: int = 500, default_timeout: int = 300):
+    serializer = SimpleSerializer()
+
+    def __init__(
+        self,
+        threshold: int = 500,
+        default_timeout: int = 300,
+    ):
         BaseCache.__init__(self, default_timeout)
         self._cache: _t.Dict[str, _t.Any] = {}
         self._threshold = threshold or 500  # threshold = 0
@@ -62,8 +68,8 @@ class SimpleCache(BaseCache):
         try:
             expires, value = self._cache[key]
             if expires == 0 or expires > time():
-                return pickle.loads(value)
-        except (KeyError, pickle.PickleError):
+                return self.serializer.loads(value)
+        except KeyError:
             return None
 
     def set(
@@ -71,13 +77,13 @@ class SimpleCache(BaseCache):
     ) -> _t.Optional[bool]:
         expires = self._normalize_timeout(timeout)
         self._prune()
-        self._cache[key] = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+        self._cache[key] = (expires, self.serializer.dumps(value))
         return True
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         expires = self._normalize_timeout(timeout)
         self._prune()
-        item = (expires, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+        item = (expires, self.serializer.dumps(value))
         if key in self._cache:
             return False
         self._cache.setdefault(key, item)

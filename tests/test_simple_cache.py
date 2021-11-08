@@ -8,10 +8,30 @@ from has import HasTests
 from cachelib import SimpleCache
 
 
-@pytest.fixture(autouse=True)
+class SillySerializer:
+    """A pointless serializer only for testing"""
+
+    def dumps(self, value):
+        return repr(value).encode()
+
+    def loads(self, bvalue):
+        return eval(bvalue.decode())
+
+
+class CustomCache(SimpleCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[SimpleCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        return SimpleCache(*args, **kwargs)
+        return request.param(*args, **kwargs)
 
     request.cls.cache_factory = _factory
 
