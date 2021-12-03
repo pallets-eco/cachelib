@@ -6,6 +6,8 @@
 #
 attrs==21.2.0
     # via pytest
+deprecated==1.2.13
+    # via redis
 iniconfig==1.1.1
     # via pytest
 packaging==21.2
@@ -17,18 +19,20 @@ psutil==5.8.0
 py==1.10.0
     # via pytest
 pylibmc==1.6.1
-    # via -r requirements/tests.in
+    # via -r tests.in
 pyparsing==2.4.7
     # via packaging
 pytest==6.2.5
     # via
-    #   -r requirements/tests.in
+    #   -r tests.in
     #   pytest-xprocess
 pytest-xprocess==0.18.1
-    # via -r requirements/tests.in
-redis==3.5.3
-    # via -r requirements/tests.in
+    # via -r tests.in
+redis==4.0.2
+    # via -r tests.in
 toml==0.10.2
     # via pytest
 uwsgi==2.0.20
-    # via -r requirements/tests.in
+    # via -r tests.in
+wrapt==1.13.3
+    # via deprecated
