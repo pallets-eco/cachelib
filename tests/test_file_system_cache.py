@@ -1,4 +1,6 @@
 import os
+import hashlib
+
 from time import sleep
 
 import pytest
@@ -26,7 +28,7 @@ class SillySerializer:
         return loaded
 
 
-class CustomCache(FileSystemCache):
+class CustomSerializerCache(FileSystemCache):
     """Our custom cache client with non-default serializer"""
 
     # overwrite serializer
@@ -36,7 +38,12 @@ class CustomCache(FileSystemCache):
         super().__init__(*args, **kwargs)
 
 
-@pytest.fixture(autouse=True, params=[FileSystemCache, CustomCache])
+class CustomHashingMethodCache(FileSystemCache):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, hash_method=hashlib.sha256, **kwargs)
+
+
+@pytest.fixture(autouse=True, params=[FileSystemCache, CustomSerializerCache, CustomHashingMethodCache])
 def cache_factory(request, tmpdir):
     def _factory(self, *args, **kwargs):
         client = request.param(tmpdir, *args, **kwargs)
