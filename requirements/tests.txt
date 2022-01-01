@@ -10,8 +10,10 @@ deprecated==1.2.13
     # via redis
 iniconfig==1.1.1
     # via pytest
-packaging==21.2
-    # via pytest
+packaging==21.3
+    # via
+    #   pytest
+    #   redis
 pluggy==1.0.0
     # via pytest
 psutil==5.8.0
@@ -28,7 +30,7 @@ pytest==6.2.5
     #   pytest-xprocess
 pytest-xprocess==0.18.1
     # via -r tests.in
-redis==4.0.2
+redis==4.1.0
     # via -r tests.in
 toml==0.10.2
     # via pytest
