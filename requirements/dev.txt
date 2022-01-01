@@ -138,7 +138,7 @@ tomli==1.2.2
     # via
     #   mypy
     #   pep517
-tox==3.24.4
+tox==3.24.5
     # via -r dev.in
 types-redis==4.0.3
     # via -r typing.in
