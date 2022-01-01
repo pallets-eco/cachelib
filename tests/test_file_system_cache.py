@@ -1,6 +1,5 @@
-import os
 import hashlib
-
+import os
 from time import sleep
 
 import pytest
@@ -43,7 +42,10 @@ class CustomHashingMethodCache(FileSystemCache):
         super().__init__(*args, hash_method=hashlib.sha256, **kwargs)
 
 
-@pytest.fixture(autouse=True, params=[FileSystemCache, CustomSerializerCache, CustomHashingMethodCache])
+@pytest.fixture(
+    autouse=True,
+    params=[FileSystemCache, CustomSerializerCache, CustomHashingMethodCache],
+)
 def cache_factory(request, tmpdir):
     def _factory(self, *args, **kwargs):
         client = request.param(tmpdir, *args, **kwargs)
