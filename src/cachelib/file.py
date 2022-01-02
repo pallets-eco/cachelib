@@ -103,7 +103,6 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     expires = self.serializer.load(f)
-                    print(expires)
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
