@@ -42,7 +42,7 @@ class FileSystemCache(BaseCache):
         threshold: int = 500,
         default_timeout: int = 300,
         mode: int = 0o600,
-        hash_method: _t.Any = md5
+        hash_method: _t.Any = md5,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
@@ -253,8 +253,7 @@ class FileSystemCache(BaseCache):
         except FileNotFoundError:  # if file doesn't exist we consider it deleted
             return True
         except OSError:
-            logging.warning(
-                "Exception raised while handling cache file", exc_info=True)
+            logging.warning("Exception raised while handling cache file", exc_info=True)
             return False
         else:
             # Management elements should not count towards threshold
