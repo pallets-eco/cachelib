@@ -25,6 +25,8 @@ class FileSystemCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param mode: the file mode wanted for the cache files, default 0600
+    :param hash_method: Default hashlib.md5. The hash method used to
+                        generate the filename for cached results.
     """
 
     #: used for temporary files by the FileSystemCache
@@ -40,10 +42,12 @@ class FileSystemCache(BaseCache):
         threshold: int = 500,
         default_timeout: int = 300,
         mode: int = 0o600,
+        hash_method: _t.Any = md5,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
+        self._hash_method = hash_method
         self._mode = mode
 
         try:
@@ -99,7 +103,6 @@ class FileSystemCache(BaseCache):
             try:
                 with open(fname, "rb") as f:
                     expires = self.serializer.load(f)
-                    print(expires)
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
@@ -177,7 +180,7 @@ class FileSystemCache(BaseCache):
     def _get_filename(self, key: str) -> str:
         if isinstance(key, str):
             bkey = key.encode("utf-8")  # XXX unicode review
-            bkey_hash = md5(bkey).hexdigest()
+            bkey_hash = self._hash_method(bkey).hexdigest()
         return os.path.join(self._path, bkey_hash)
 
     def get(self, key: str) -> _t.Any:
