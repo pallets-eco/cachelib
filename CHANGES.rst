@@ -1,10 +1,10 @@
 Version 0.6.0
+-------------
 
 Unreleased
 
 - A custom ``hash_method`` may now be provided to ``FileSystemCache`` for
   hashing keys.
-
 
 
 Version 0.5.0
@@ -15,7 +15,6 @@ Released 2021-12-31
 -   Cache types now have configurable serializers. :pr:`63`
 
 
-
 Version 0.4.1
 -------------
 
@@ -23,7 +22,6 @@ Released 2021-10-04
 
 -   Fix break in ``RedisCache`` when a host object was passed
     in ``RedisCache.host`` instead of a string. :pr:`82`
-
 
 
 Version 0.4.0
@@ -38,7 +36,6 @@ Released 2021-10-03
 -   ``FileNotFound`` exceptions will not be logged anymore
     in ``FileSystemCache`` methods in order to avoid polluting
     application log files. :pr:`69`
-
 
 
 Version 0.3.0
@@ -59,7 +56,6 @@ Released 2021-08-12
     ``delete``. :pr:`53`
 
 
-
 Version 0.2.0
 -------------
 
@@ -77,7 +73,6 @@ Released 2021-06-25
 -   When attempting to access non-existent entries with ``Memcached``,
     these will now be initialized with a given value ``delta``.
     :pr:`31`
-
 
 
 Version 0.1.1

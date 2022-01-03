@@ -41,6 +41,12 @@ class CommonTests(TestData):
         assert result == list(self.sample_pairs.keys())
         assert not any(cache.get_many(*self.sample_pairs))
 
+    def test_delete_many_ignore_errors(self):
+        cache = self.cache_factory()
+        cache.set("bacon", "spam")
+        cache.delete_many("eggs", "bacon")
+        assert cache.get("bacon") is None
+
     def test_add(self):
         cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
