@@ -52,8 +52,7 @@ class CommonTests(TestData):
         cache.set_many(self.sample_pairs)
         for k in self.sample_pairs:
             assert not cache.add(k, "updated")
-        assert cache.get_many(
-            *self.sample_pairs) == list(self.sample_pairs.values())
+        assert cache.get_many(*self.sample_pairs) == list(self.sample_pairs.values())
         for k, v in self.sample_pairs.items():
             assert cache.add(f"{k}-new", v)
             assert cache.get(f"{k}-new") == v
