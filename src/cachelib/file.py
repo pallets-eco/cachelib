@@ -258,8 +258,7 @@ class FileSystemCache(BaseCache):
         except FileNotFoundError:  # if file doesn't exist we consider it deleted
             return True
         except OSError:
-            logging.warning(
-                "Exception raised while handling cache file", exc_info=True)
+            logging.warning("Exception raised while handling cache file", exc_info=True)
             return False
         else:
             # Management elements should not count towards threshold
