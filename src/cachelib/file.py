@@ -258,8 +258,7 @@ class FileSystemCache(BaseCache):
         except FileNotFoundError:  # if file doesn't exist we consider it deleted
             return True
         except OSError:
-            logging.warning(
-                "Exception raised while handling cache file", exc_info=True)
+            logging.warning("Exception raised while handling cache file", exc_info=True)
             return False
         else:
             # Management elements should not count towards threshold
@@ -286,15 +285,14 @@ class FileSystemCache(BaseCache):
             )
             return False
 
-    def _run_safely(self, fn, *args, **kwargs):
+    def _run_safely(self, fn: _t.Callable, *args: _t.Any, **kwargs: _t.Any) -> _t.Any:
         """On Windows os.replace, os.chmod and open can yield
         permission errors if executed by two different processes."""
         if platform.system() == "Windows":
-            max_sleep_time = 10
-            total_sleep_time = 0
-            wait_step = 0.001
-
             output = None
+            wait_step = 0.001
+            max_sleep_time = 10.0
+            total_sleep_time = 0.0
 
             while total_sleep_time < max_sleep_time:
                 try:
@@ -311,12 +309,10 @@ class FileSystemCache(BaseCache):
         return output
 
     @contextmanager
-    def _safe_stream_open(self, path, mode):
+    def _safe_stream_open(self, path: str, mode: str) -> _t.Generator:
         fs = self._run_safely(open, path, mode)
-
         if fs is None:
             raise OSError
-
         try:
             yield fs
         finally:
