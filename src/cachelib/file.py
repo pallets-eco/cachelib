@@ -1,10 +1,13 @@
 import errno
 import logging
 import os
+import platform
 import tempfile
 import typing as _t
+from contextlib import contextmanager
 from hashlib import md5
 from pathlib import Path
+from time import sleep
 from time import time
 
 from cachelib.base import BaseCache
@@ -101,7 +104,7 @@ class FileSystemCache(BaseCache):
     def _remove_expired(self, now: float) -> None:
         for fname in self._list_dir():
             try:
-                with open(fname, "rb") as f:
+                with self._safe_stream_open(fname, "rb") as f:
                     expires = self.serializer.load(f)
                 if expires != 0 and expires < now:
                     os.remove(fname)
@@ -119,7 +122,7 @@ class FileSystemCache(BaseCache):
         exp_fname_tuples = []
         for fname in self._list_dir():
             try:
-                with open(fname, "rb") as f:
+                with self._safe_stream_open(fname, "rb") as f:
                     exp_fname_tuples.append((self.serializer.load(f), fname))
             except FileNotFoundError:
                 pass
@@ -186,7 +189,7 @@ class FileSystemCache(BaseCache):
     def get(self, key: str) -> _t.Any:
         filename = self._get_filename(key)
         try:
-            with open(filename, "rb") as f:
+            with self._safe_stream_open(filename, "rb") as f:
                 pickle_time = self.serializer.load(f)
                 if pickle_time == 0 or pickle_time >= time():
                     return self.serializer.load(f)
@@ -231,8 +234,10 @@ class FileSystemCache(BaseCache):
             with os.fdopen(fd, "wb") as f:
                 self.serializer.dump(timeout, f)  # this returns bool
                 self.serializer.dump(value, f)
-            os.replace(tmp, filename)
-            os.chmod(filename, self._mode)
+
+            self._run_safely(os.replace, tmp, filename)
+            self._run_safely(os.chmod, filename, self._mode)
+
             fsize = Path(filename).stat().st_size
         except OSError:
             logging.warning(
@@ -264,7 +269,7 @@ class FileSystemCache(BaseCache):
     def has(self, key: str) -> bool:
         filename = self._get_filename(key)
         try:
-            with open(filename, "rb") as f:
+            with self._safe_stream_open(filename, "rb") as f:
                 pickle_time = self.serializer.load(f)
                 if pickle_time == 0 or pickle_time >= time():
                     return True
@@ -279,3 +284,36 @@ class FileSystemCache(BaseCache):
                 exc_info=True,
             )
             return False
+
+    def _run_safely(self, fn: _t.Callable, *args: _t.Any, **kwargs: _t.Any) -> _t.Any:
+        """On Windows os.replace, os.chmod and open can yield
+        permission errors if executed by two different processes."""
+        if platform.system() == "Windows":
+            output = None
+            wait_step = 0.001
+            max_sleep_time = 10.0
+            total_sleep_time = 0.0
+
+            while total_sleep_time < max_sleep_time:
+                try:
+                    output = fn(*args, **kwargs)
+                except PermissionError:
+                    sleep(wait_step)
+                    total_sleep_time += wait_step
+                    wait_step *= 2
+                else:
+                    break
+        else:
+            output = fn(*args, **kwargs)
+
+        return output
+
+    @contextmanager
+    def _safe_stream_open(self, path: str, mode: str) -> _t.Generator:
+        fs = self._run_safely(open, path, mode)
+        if fs is None:
+            raise OSError
+        try:
+            yield fs
+        finally:
+            fs.close()
