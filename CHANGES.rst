@@ -1,12 +1,12 @@
 Version 0.6.0
 -------------
 
-Unreleased
+Released  2022-01-18
 
 - A custom ``hash_method`` may now be provided to ``FileSystemCache`` for
   hashing keys. :pr:`107`
 
-- Fix ``PermissionError`` issue with ``FileSystemCache`` on Windows. :pr:111
+- Fix ``PermissionError`` issue with ``FileSystemCache`` on Windows. :pr:`111`
 
 
 Version 0.5.0
