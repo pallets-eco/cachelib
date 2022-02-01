@@ -141,7 +141,7 @@ tomli==1.2.2
     #   pep517
 tox==3.24.5
     # via -r dev.in
-types-redis==4.1.1
+types-redis==4.1.13
     # via -r typing.in
 typing-extensions==3.10.0.2
     # via mypy
