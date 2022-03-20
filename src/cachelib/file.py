@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import platform
+import struct
 import tempfile
 import typing as _t
 from contextlib import contextmanager
@@ -105,13 +106,13 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with self._safe_stream_open(fname, "rb") as f:
-                    expires = self.serializer.load(f)
+                    expires = struct.unpack("I", f.read(4))[0]
                 if expires != 0 and expires < now:
                     os.remove(fname)
                     self._update_count(delta=-1)
             except FileNotFoundError:
                 pass
-            except (OSError, EOFError):
+            except (OSError, EOFError, struct.error):
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
                     fname,
@@ -123,10 +124,11 @@ class FileSystemCache(BaseCache):
         for fname in self._list_dir():
             try:
                 with self._safe_stream_open(fname, "rb") as f:
-                    exp_fname_tuples.append((self.serializer.load(f), fname))
+                    timestamp = struct.unpack("I", f.read(4))[0]
+                    exp_fname_tuples.append((timestamp, fname))
             except FileNotFoundError:
                 pass
-            except (OSError, EOFError):
+            except (OSError, EOFError, struct.error):
                 logging.warning(
                     "Exception raised while handling cache file '%s'",
                     fname,
@@ -190,12 +192,12 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with self._safe_stream_open(filename, "rb") as f:
-                pickle_time = self.serializer.load(f)
+                pickle_time = struct.unpack("I", f.read(4))[0]
                 if pickle_time == 0 or pickle_time >= time():
                     return self.serializer.load(f)
         except FileNotFoundError:
             pass
-        except (OSError, EOFError):
+        except (OSError, EOFError, struct.error):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,
@@ -232,7 +234,7 @@ class FileSystemCache(BaseCache):
                 suffix=self._fs_transaction_suffix, dir=self._path
             )
             with os.fdopen(fd, "wb") as f:
-                self.serializer.dump(timeout, f)  # this returns bool
+                f.write(struct.pack("I", timeout))
                 self.serializer.dump(value, f)
 
             self._run_safely(os.replace, tmp, filename)
@@ -270,14 +272,14 @@ class FileSystemCache(BaseCache):
         filename = self._get_filename(key)
         try:
             with self._safe_stream_open(filename, "rb") as f:
-                pickle_time = self.serializer.load(f)
+                pickle_time = struct.unpack("I", f.read(4))[0]
                 if pickle_time == 0 or pickle_time >= time():
                     return True
                 else:
                     return False
         except FileNotFoundError:  # if there is no file there is no key
             return False
-        except (OSError, EOFError):
+        except (OSError, EOFError, struct.error):
             logging.warning(
                 "Exception raised while handling cache file '%s'",
                 filename,
