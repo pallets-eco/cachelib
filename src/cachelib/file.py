@@ -2,8 +2,8 @@ import errno
 import logging
 import os
 import platform
-import tempfile
 import struct
+import tempfile
 import typing as _t
 from contextlib import contextmanager
 from hashlib import md5
