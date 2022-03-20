@@ -1,3 +1,11 @@
+Version 0.7.0
+-------------
+
+Unreleased
+
+- ``FileSystemCache`` now stores universal expiration timestamps using python's ``struct`` module.
+
+
 Version 0.6.0
 -------------
 
