@@ -4,6 +4,8 @@
 #
 #    pip-compile requirements/tests.in
 #
+async-timeout==4.0.2
+    # via redis
 attrs==21.2.0
     # via pytest
 deprecated==1.2.13
@@ -30,7 +32,7 @@ pytest==6.2.5
     #   pytest-xprocess
 pytest-xprocess==0.18.1
     # via -r tests.in
-redis==4.1.4
+redis==4.2.1
     # via -r tests.in
 toml==0.10.2
     # via pytest
