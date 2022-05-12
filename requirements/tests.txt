@@ -32,7 +32,7 @@ pytest==7.1.1
     #   pytest-xprocess
 pytest-xprocess==0.18.1
     # via -r tests.in
-redis==4.2.1
+redis==4.3.1
     # via -r tests.in
 tomli==2.0.1
     # via pytest
