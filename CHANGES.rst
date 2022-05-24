@@ -1,10 +1,18 @@
+Version 0.8.0
+-------------
+
+Unreleased
+
+- Remove deprecated ``RedisCache.load_object`` and ``RedisCache.dump_object``. :pr:`147`
+
+
 Version 0.7.0
 -------------
 
 Released 2022-05-14
 
-- ``FileSystemCache`` now stores universal expiration timestamps using python's ``struct`` module.
-- Drop support for Python 3.6
+- ``FileSystemCache`` now stores universal expiration timestamps using python's ``struct`` module. :pr:`126`
+- Drop support for Python 3.6. :pr:`134`
 
 
 Version 0.6.0
