@@ -83,8 +83,6 @@ class RedisSerializer(BaseSerializer):
         """Dumps an object into a string for redis. By default it serializes
         integers as regular string and pickle dumps everything else.
         """
-        if isinstance(type(value), int):
-            return str(value).encode("ascii")
         return b"!" + pickle.dumps(value, protocol)
 
     def loads(self, value: _t.Optional[bytes]) -> _t.Any:
