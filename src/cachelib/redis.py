@@ -1,5 +1,4 @@
 import typing as _t
-import warnings
 
 from cachelib.base import BaseCache
 from cachelib.serializers import RedisSerializer
@@ -62,39 +61,21 @@ class RedisCache(BaseCache):
             timeout = -1
         return timeout
 
-    def dump_object(self, value: _t.Any) -> bytes:
-        warnings.warn(
-            "'dump_object' is deprecated and will be removed in the future."
-            "This is a proxy call to 'RedisCache.serializer.dumps'",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.serializer.dumps(value)
-
-    def load_object(self, value: _t.Any) -> _t.Any:
-        warnings.warn(
-            "'load_object' is deprecated and will be removed in the future."
-            "This is a proxy call to 'RedisCache.serializer.loads'",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.serializer.loads(value)
-
     def get(self, key: str) -> _t.Any:
-        return self.load_object(self._client.get(self.key_prefix + key))
+        return self.serializer.loads(self._client.get(self.key_prefix + key))
 
     def get_many(self, *keys: str) -> _t.List[_t.Any]:
         if self.key_prefix:
             prefixed_keys = [self.key_prefix + key for key in keys]
         else:
-            prefixed_keys = [k for k in keys]
-        return [self.load_object(x) for x in self._client.mget(prefixed_keys)]
+            prefixed_keys = list(keys)
+        return [self.serializer.loads(x) for x in self._client.mget(prefixed_keys)]
 
     def set(
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
     ) -> _t.Optional[bool]:
         timeout = self._normalize_timeout(timeout)
-        dump = self.dump_object(value)
+        dump = self.serializer.dumps(value)
         if timeout == -1:
             result = self._client.set(name=self.key_prefix + key, value=dump)
         else:
@@ -105,7 +86,7 @@ class RedisCache(BaseCache):
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         timeout = self._normalize_timeout(timeout)
-        dump = self.dump_object(value)
+        dump = self.serializer.dumps(value)
         return self._client.setnx(
             name=self.key_prefix + key, value=dump
         ) and self._client.expire(name=self.key_prefix + key, time=timeout)
@@ -119,7 +100,7 @@ class RedisCache(BaseCache):
         pipe = self._client.pipeline(transaction=False)
 
         for key, value in mapping.items():
-            dump = self.dump_object(value)
+            dump = self.serializer.dumps(value)
             if timeout == -1:
                 pipe.set(name=self.key_prefix + key, value=dump)
             else:
