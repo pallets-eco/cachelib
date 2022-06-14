@@ -1,7 +1,7 @@
 Version 0.8.0
 -------------
 
-Unreleased
+Released 2022-06-13
 
 - Remove deprecated ``RedisCache.load_object`` and ``RedisCache.dump_object``. :pr:`147`
 
