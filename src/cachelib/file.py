@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import platform
+import stat
 import struct
 import tempfile
 import typing as _t
@@ -45,14 +46,20 @@ class FileSystemCache(BaseCache):
         cache_dir: str,
         threshold: int = 500,
         default_timeout: int = 300,
-        mode: int = 0o600,
+        mode: _t.Optional[int] = None,
         hash_method: _t.Any = md5,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
         self._hash_method = hash_method
+
+        # Mode set by user takes precedence. If no mode has
+        # been given, we need to set the correct default based
+        # on user platform.
         self._mode = mode
+        if self._mode is None:
+            self._mode = self._get_compatible_platform_mode()
 
         try:
             os.makedirs(self._path)
@@ -64,6 +71,12 @@ class FileSystemCache(BaseCache):
         # the list_dir can slow initialisation massively
         if self._threshold != 0:
             self._update_count(value=len(list(self._list_dir())))
+
+    def _get_compatible_platform_mode(self) -> int:
+        mode = 0o600  # nix systems
+        if platform.system() == "Windows":
+            mode = stat.S_IWRITE
+        return mode
 
     @property
     def _file_count(self) -> int:

@@ -5,6 +5,7 @@ Unreleased
 
 - Fix bug where cache entries would expire immediately when ``RedisCache.add``
   was called without timeout. :pr:`157`
+- Improve `FileSystemCache.set` compatibility with Windows systems. :pr:`158`
 
 
 Version 0.8.0
