@@ -1,3 +1,12 @@
+Version 0.9.0
+-------------
+
+Unreleased
+
+- Fix bug where cache entries would expire immediately when ``RedisCache.add``
+  was called without timeout. :pr:`157`
+
+
 Version 0.8.0
 -------------
 
