@@ -56,6 +56,11 @@ class RedisCache(BaseCache):
         self.key_prefix = key_prefix or ""
 
     def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+        """Normalize timeout by setting it to default of 300 if
+        not defined (None) or -1 if explicitly set to zero.
+
+        :param timeout: timeout to normalize.
+        """
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout == 0:
             timeout = -1
@@ -87,9 +92,11 @@ class RedisCache(BaseCache):
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
-        return self._client.setnx(
-            name=self.key_prefix + key, value=dump
-        ) and self._client.expire(name=self.key_prefix + key, time=timeout)
+        created = self._client.setnx(name=self.key_prefix + key, value=dump)
+        # handle case where timeout is explicitly set to zero
+        if created and timeout != -1:
+            self._client.expire(name=self.key_prefix + key, time=timeout)
+        return created
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
