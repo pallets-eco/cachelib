@@ -48,11 +48,11 @@ class RedisCache(BaseCache):
                 raise RuntimeError("no redis module found") from err
             if kwargs.get("decode_responses", None):
                 raise ValueError("decode_responses is not supported by RedisCache.")
-            self._client = redis.Redis(
+            self._write_client = self._read_client = redis.Redis(
                 host=host, port=port, password=password, db=db, **kwargs
             )
         else:
-            self._client = host
+            self._read_client = self._write_client = host
         self.key_prefix = key_prefix or ""
 
     def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
@@ -67,14 +67,14 @@ class RedisCache(BaseCache):
         return timeout
 
     def get(self, key: str) -> _t.Any:
-        return self.serializer.loads(self._client.get(self.key_prefix + key))
+        return self.serializer.loads(self._read_client.get(self.key_prefix + key))
 
     def get_many(self, *keys: str) -> _t.List[_t.Any]:
         if self.key_prefix:
             prefixed_keys = [self.key_prefix + key for key in keys]
         else:
             prefixed_keys = list(keys)
-        return [self.serializer.loads(x) for x in self._client.mget(prefixed_keys)]
+        return [self.serializer.loads(x) for x in self._read_client.mget(prefixed_keys)]
 
     def set(
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
@@ -82,9 +82,9 @@ class RedisCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
         if timeout == -1:
-            result = self._client.set(name=self.key_prefix + key, value=dump)
+            result = self._write_client.set(name=self.key_prefix + key, value=dump)
         else:
-            result = self._client.setex(
+            result = self._write_client.setex(
                 name=self.key_prefix + key, value=dump, time=timeout
             )
         return result
@@ -92,10 +92,10 @@ class RedisCache(BaseCache):
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
-        created = self._client.setnx(name=self.key_prefix + key, value=dump)
+        created = self._write_client.setnx(name=self.key_prefix + key, value=dump)
         # handle case where timeout is explicitly set to zero
         if created and timeout != -1:
-            self._client.expire(name=self.key_prefix + key, time=timeout)
+            self._write_client.expire(name=self.key_prefix + key, time=timeout)
         return created
 
     def set_many(
@@ -104,7 +104,7 @@ class RedisCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling redis MULTI
         # which is not supported by twemproxy
-        pipe = self._client.pipeline(transaction=False)
+        pipe = self._write_client.pipeline(transaction=False)
 
         for key, value in mapping.items():
             dump = self.serializer.dumps(value)
@@ -116,7 +116,7 @@ class RedisCache(BaseCache):
         return [k for k, was_set in zip(mapping.keys(), results) if was_set]
 
     def delete(self, key: str) -> bool:
-        return bool(self._client.delete(self.key_prefix + key))
+        return bool(self._write_client.delete(self.key_prefix + key))
 
     def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         if not keys:
@@ -125,24 +125,24 @@ class RedisCache(BaseCache):
             prefixed_keys = [self.key_prefix + key for key in keys]
         else:
             prefixed_keys = [k for k in keys]
-        self._client.delete(*prefixed_keys)
+        self._write_client.delete(*prefixed_keys)
         return [k for k in prefixed_keys if not self.has(k)]
 
     def has(self, key: str) -> bool:
-        return bool(self._client.exists(self.key_prefix + key))
+        return bool(self._read_client.exists(self.key_prefix + key))
 
     def clear(self) -> bool:
         status = 0
         if self.key_prefix:
-            keys = self._client.keys(self.key_prefix + "*")
+            keys = self._read_client.keys(self.key_prefix + "*")
             if keys:
-                status = self._client.delete(*keys)
+                status = self._write_client.delete(*keys)
         else:
-            status = self._client.flushdb()
+            status = self._write_client.flushdb()
         return bool(status)
 
     def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
-        return self._client.incr(name=self.key_prefix + key, amount=delta)
+        return self._write_client.incr(name=self.key_prefix + key, amount=delta)
 
     def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
-        return self._client.incr(name=self.key_prefix + key, amount=-delta)
+        return self._write_client.incr(name=self.key_prefix + key, amount=-delta)
