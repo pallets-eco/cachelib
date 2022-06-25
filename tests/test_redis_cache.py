@@ -32,7 +32,7 @@ class CustomCache(RedisCache):
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
         rc = request.param(*args, port=6360, **kwargs)
-        rc._client.flushdb()
+        rc._write_client.flushdb()
         return rc
 
     request.cls.cache_factory = _factory
