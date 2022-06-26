@@ -26,6 +26,8 @@ class RedisCache(BaseCache):
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
+    _read_client = None
+    _write_client = None
     serializer = RedisSerializer()
 
     def __init__(
