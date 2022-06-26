@@ -26,8 +26,8 @@ class RedisCache(BaseCache):
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
-    _read_client = None
-    _write_client = None
+    _read_client: _t.Any = None
+    _write_client: _t.Any = None
     serializer = RedisSerializer()
 
     def __init__(
@@ -78,9 +78,7 @@ class RedisCache(BaseCache):
             prefixed_keys = list(keys)
         return [self.serializer.loads(x) for x in self._read_client.mget(prefixed_keys)]
 
-    def set(
-        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
-    ) -> _t.Optional[bool]:
+    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
         if timeout == -1:
@@ -91,7 +89,7 @@ class RedisCache(BaseCache):
             )
         return result
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
         created = self._write_client.setnx(name=self.key_prefix + key, value=dump)
@@ -143,8 +141,8 @@ class RedisCache(BaseCache):
             status = self._write_client.flushdb()
         return bool(status)
 
-    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def inc(self, key: str, delta: int = 1) -> _t.Any:
         return self._write_client.incr(name=self.key_prefix + key, amount=delta)
 
-    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def dec(self, key: str, delta: int = 1) -> _t.Any:
         return self._write_client.incr(name=self.key_prefix + key, amount=-delta)
