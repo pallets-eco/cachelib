@@ -3,6 +3,7 @@ Version 0.9.0
 
 Unreleased
 
+- Add separate read/write clients to ``RedisCache`` to improve compatibility with flask-caching. :pr:`159`
 - Fix bug where cache entries would expire immediately when ``RedisCache.add``
   was called without timeout. :pr:`157`
 - Improve `FileSystemCache.set` compatibility with Windows systems. :pr:`158`
