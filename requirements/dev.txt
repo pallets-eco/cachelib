@@ -144,7 +144,7 @@ tomli==1.2.2
     #   build
     #   mypy
     #   pytest
-tox==3.25.0
+tox==3.25.1
     # via -r dev.in
 types-redis==4.3.3
     # via -r typing.in
