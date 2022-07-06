@@ -48,7 +48,7 @@ jinja2==3.0.2
     # via sphinx
 markupsafe==2.0.1
     # via jinja2
-mypy==0.960
+mypy==0.961
     # via -r typing.in
 mypy-extensions==0.4.3
     # via mypy
