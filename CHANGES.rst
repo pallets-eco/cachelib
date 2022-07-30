@@ -1,9 +1,9 @@
 Version 0.10.0
--------------
+--------------
 
 Unreleased
 
-- Improve error message when ``FileSystemCache`` methods are called with non-str keys.
+- Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
 
 
 Version 0.9.0
