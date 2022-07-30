@@ -199,6 +199,8 @@ class FileSystemCache(BaseCache):
         if isinstance(key, str):
             bkey = key.encode("utf-8")  # XXX unicode review
             bkey_hash = self._hash_method(bkey).hexdigest()
+        else:
+            raise TypeError(f"Key must be a string, received type {type(key)}")
         return os.path.join(self._path, bkey_hash)
 
     def get(self, key: str) -> _t.Any:
