@@ -22,7 +22,7 @@ psutil==5.8.0
     # via pytest-xprocess
 py==1.10.0
     # via pytest
-pylibmc==1.6.1
+pylibmc==1.6.3
     # via -r tests.in
 pyparsing==2.4.7
     # via packaging
