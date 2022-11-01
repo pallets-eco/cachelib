@@ -154,7 +154,7 @@ typing-extensions==3.10.0.2
     # via mypy
 urllib3==1.26.7
     # via requests
-uwsgi==2.0.20
+uwsgi==2.0.21
     # via -r tests.in
 virtualenv==20.10.0
     # via
