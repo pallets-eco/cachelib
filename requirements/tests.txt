@@ -36,7 +36,7 @@ redis==4.3.4
     # via -r tests.in
 tomli==2.0.1
     # via pytest
-uwsgi==2.0.20
+uwsgi==2.0.21
     # via -r tests.in
 wrapt==1.13.3
     # via deprecated
