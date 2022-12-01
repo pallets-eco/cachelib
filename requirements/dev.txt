@@ -68,7 +68,7 @@ pallets-sphinx-themes==2.0.2
     # via -r docs.in
 pep517==0.12.0
     # via build
-pip-tools==6.9.0
+pip-tools==6.10.0
     # via -r dev.in
 platformdirs==2.4.0
     # via virtualenv
@@ -143,8 +143,7 @@ toml==0.10.2
     #   tox
 tomli==1.2.2
     # via
-    #   build
-    #   mypy
+    #   pep517
     #   pytest
 tox==3.25.1
     # via -r dev.in
