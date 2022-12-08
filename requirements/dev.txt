@@ -16,7 +16,7 @@ backports-entry-points-selectable==1.1.0
     # via virtualenv
 build==0.8.0
     # via pip-tools
-certifi==2021.10.8
+certifi==2022.12.7
     # via requests
 cfgv==3.3.1
     # via pre-commit
@@ -143,8 +143,7 @@ toml==0.10.2
     #   tox
 tomli==1.2.2
     # via
-    #   build
-    #   mypy
+    #   pep517
     #   pytest
 tox==3.25.1
     # via -r dev.in
