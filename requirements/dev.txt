@@ -24,8 +24,6 @@ charset-normalizer==2.0.7
     # via requests
 click==8.0.3
     # via pip-tools
-deprecated==1.2.13
-    # via redis
 distlib==0.3.3
     # via virtualenv
 docutils==0.17.1
@@ -102,7 +100,7 @@ pytz==2021.3
     # via babel
 pyyaml==6.0
     # via pre-commit
-redis==4.3.4
+redis==4.3.5
     # via -r tests.in
 requests==2.26.0
     # via sphinx
@@ -161,8 +159,6 @@ virtualenv==20.10.0
     #   tox
 wheel==0.37.0
     # via pip-tools
-wrapt==1.13.3
-    # via deprecated
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
