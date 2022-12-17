@@ -136,14 +136,12 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 toml==0.10.2
-    # via
-    #   pre-commit
-    #   tox
+    # via pre-commit
 tomli==1.2.2
     # via
     #   pep517
     #   pytest
-tox==3.25.1
+tox==3.27.1
     # via -r dev.in
 types-redis==4.3.21.6
     # via -r typing.in
