@@ -145,7 +145,7 @@ tomli==1.2.2
     #   pytest
 tox==3.25.1
     # via -r dev.in
-types-redis==4.3.21.3
+types-redis==4.3.21.6
     # via -r typing.in
 typing-extensions==3.10.0.2
     # via mypy
