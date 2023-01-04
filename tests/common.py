@@ -1,6 +1,8 @@
 from time import sleep
 
 import pytest
+from moto import mock_dynamodb
+
 from conftest import TestData
 from conftest import under_uwsgi
 
@@ -8,6 +10,7 @@ from conftest import under_uwsgi
 class CommonTests(TestData):
     """A base set of tests to be run for all cache types"""
 
+    @mock_dynamodb
     def test_set_get(self):
         cache = self.cache_factory()
         for k, v in self.sample_pairs.items():

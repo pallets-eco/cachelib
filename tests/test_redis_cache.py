@@ -31,7 +31,7 @@ class CustomCache(RedisCache):
 @pytest.fixture(autouse=True, params=[RedisCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        rc = request.param(*args, port=6360, **kwargs)
+        rc = request.param(*args, port=6379, **kwargs)
         rc._write_client.flushdb()
         return rc
 

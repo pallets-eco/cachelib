@@ -42,16 +42,16 @@ def redis_server(xprocess):
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
-
+        args = ["echo", "run redis from docker"]
         def startup_check(self):
             out = subprocess.run(
-                ["redis-cli", "-p", "6360", "ping"], stdout=subprocess.PIPE
+                ["redis-cli", "-p", "6379", "ping"], stdout=subprocess.PIPE
             )
             return out.stdout == b"PONG\n"
 
-    xprocess.ensure(package_name, Starter)
+    #xprocess.ensure(package_name, Starter)
     yield
-    xprocess.getinfo(package_name).terminate()
+    #xprocess.getinfo(package_name).terminate()
 
 
 @pytest.fixture(scope="class")
