@@ -28,7 +28,6 @@ def cache_factory(request):
         request.cls.cache_factory = _factory
 
 
-@pytest.mark.usefixtures("dynamodb_local_server")
 class TestDynamoDbCache(CommonTests, ClearTests, HasTests):
     pass
 
