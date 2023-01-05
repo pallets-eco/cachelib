@@ -2,8 +2,12 @@ import datetime
 import logging
 import typing as _t
 
-import boto3  # type: ignore
-from boto3.dynamodb.conditions import Attr # type: ignore
+
+try:
+    import boto3  # type: ignore
+    from boto3.dynamodb.conditions import Attr  # type: ignore
+except ImportError as err:
+    raise RuntimeError("no boto3 module found") from err
 
 from cachelib.base import BaseCache
 from cachelib.serializers import DynamoDbSerializer
