@@ -43,15 +43,16 @@ def redis_server(xprocess):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
         args = ["echo", "run redis from docker"]
+
         def startup_check(self):
             out = subprocess.run(
                 ["redis-cli", "-p", "6379", "ping"], stdout=subprocess.PIPE
             )
             return out.stdout == b"PONG\n"
 
-    #xprocess.ensure(package_name, Starter)
+    xprocess.ensure(package_name, Starter)
     yield
-    #xprocess.getinfo(package_name).terminate()
+    xprocess.getinfo(package_name).terminate()
 
 
 @pytest.fixture(scope="class")
@@ -72,6 +73,19 @@ def memcached_server(xprocess):
     xprocess.ensure(package_name, Starter)
     yield
     xprocess.getinfo(package_name).terminate()
+
+
+@pytest.fixture(scope="class")
+def dynamodb_local_server():
+    import requests
+
+    try:
+        requests.get("http://localhost:8000", timeout=1)
+    except ConnectionError as exc:
+        # "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html"
+        raise Exception(
+            "dynamodb local is required for running the test, but not found "
+        ) from exc
 
 
 class TestData:
