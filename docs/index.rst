@@ -13,6 +13,7 @@ from Werkzeug.
     redis
     memcached
     uwsgi
+    dynamodb
 
 .. toctree::
     :maxdepth: 2

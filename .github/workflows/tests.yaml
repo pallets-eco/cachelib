@@ -42,6 +42,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libmemcached-dev memcached redis-server
+      - name: setup dynamodb-local
+        uses: rrainn/dynamodb-action@v2.0.1
       - name: update pip
         run: |
           pip install -U wheel

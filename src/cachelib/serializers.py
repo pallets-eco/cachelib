@@ -101,3 +101,17 @@ class RedisSerializer(BaseSerializer):
         except ValueError:
             # before 0.8 we did not have serialization. Still support that.
             return value
+
+
+class DynamoDbSerializer(RedisSerializer):
+    """Default serializer for DynamoDbCache."""
+
+    def loads(self, value: _t.Optional[bytes]) -> _t.Any:
+        """The reversal of :meth:`dump_object`. This might be called with
+        None.
+        """
+        from boto3.dynamodb.types import Binary
+
+        if isinstance(value, Binary):
+            value = value.value
+        return super().loads(value)

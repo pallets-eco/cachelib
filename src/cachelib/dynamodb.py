@@ -1,11 +1,11 @@
 import datetime
-import json
+import logging
 
 from cachelib.base import BaseCache
+from cachelib.serializers import DynamoDbSerializer
 
-
-CREATED_AT_FIELD = 'created_at'
-RESPONSE_FIELD = 'response'
+CREATED_AT_FIELD = "created_at"
+RESPONSE_FIELD = "response"
 
 
 def utcnow():
@@ -81,12 +81,15 @@ class DynamoDbCache(BaseCache):
                    by default the class will create its own resource object.
     """
 
+    serializer = DynamoDbSerializer()
+
     def __init__(
-            self,
-            table_name='python-cache',
-            default_timeout=300,
-            key_field='cache_key',
-            expiration_time_field='expiration_time',
+        self,
+        table_name="python-cache",
+        default_timeout=300,
+        key_field="cache_key",
+        expiration_time_field="expiration_time",
+        **kwargs
     ):
         super().__init__(default_timeout)
         self._table_name = table_name
@@ -95,28 +98,33 @@ class DynamoDbCache(BaseCache):
         self._expiration_time_field = expiration_time_field
         import boto3
 
-        self._dynamo = boto3.resource("dynamodb")
+        self._dynamo = boto3.resource("dynamodb", **kwargs)
         try:
             self._table = self._dynamo.Table(table_name)
-
+            self._table.load()
             # catch this exception (triggered if the table doesn't exist)
         except Exception:
             table = self._dynamo.create_table(
-                AttributeDefinitions=[{"AttributeName": key_field, "AttributeType": "S"}],
+                AttributeDefinitions=[
+                    {"AttributeName": key_field, "AttributeType": "S"}
+                ],
                 TableName=table_name,
                 KeySchema=[
                     {"AttributeName": key_field, "KeyType": "HASH"},
                 ],
-                BillingMode='PAY_PER_REQUEST'
+                BillingMode="PAY_PER_REQUEST",
             )
             table.wait_until_exists()
-            dynamo = boto3.client("dynamodb")
+            dynamo = boto3.client("dynamodb", **kwargs)
             dynamo.update_time_to_live(
                 TableName=table_name,
-                TimeToLiveSpecification={"Enabled": True, "AttributeName": expiration_time_field},
+                TimeToLiveSpecification={
+                    "Enabled": True,
+                    "AttributeName": expiration_time_field,
+                },
             )
             self._table = self._dynamo.Table(table_name)
-
+            self._table.load()
 
     def _get_item(self, key, attributes=None):
         """
@@ -136,10 +144,10 @@ class DynamoDbCache(BaseCache):
         if attributes:
             if self._expiration_time_field not in attributes:
                 attributes = list(attributes) + [self._expiration_time_field]
-            kwargs = dict(ProjectionExpression=','.join(attributes))
+            kwargs = dict(ProjectionExpression=",".join(attributes))
 
         response = self._table.get_item(Key={self._key_field: key}, **kwargs)
-        cache_item = response.get('Item')
+        cache_item = response.get("Item")
 
         if cache_item:
             now = int(utcnow().timestamp())
@@ -160,7 +168,7 @@ class DynamoDbCache(BaseCache):
         cache_item = self._get_item(key)
         if cache_item:
             response = cache_item[RESPONSE_FIELD]
-            value = json.loads(response)
+            value = self.serializer.loads(response)
             return value
         return None
 
@@ -174,12 +182,14 @@ class DynamoDbCache(BaseCache):
         """
         try:
             from boto3.dynamodb.conditions import Attr
+
             self._table.delete_item(
                 Key={self._key_field: key},
-                ConditionExpression=Attr(self._key_field).exists()
+                ConditionExpression=Attr(self._key_field).exists(),
             )
             return True
-        except self._dynamo.meta.client.exceptions.ConditionalCheckFailedException:
+        except self._dynamo.meta.client.exceptions.ConditionalCheckFailedException as e:
+            logging.exception(e)
             return False
 
     def _set(self, key, value, timeout=None, overwrite=True):
@@ -197,32 +207,32 @@ class DynamoDbCache(BaseCache):
         """
         now = utcnow()
         expiration_time = now + datetime.timedelta(
-            seconds=self._normalize_timeout(timeout))
-
-        import boto3
-        self._dynamo = boto3.resource("dynamodb")
-        self._table = self._dynamo.Table(self._table_name)
+            seconds=self._normalize_timeout(timeout)
+        )
 
         kwargs = {}
         if not overwrite:
             # Cause the put to fail if a non-expired item with this key
             # already exists
             from boto3.dynamodb.conditions import Attr
-            cond = Attr(self._key_field).not_exists() \
-                | Attr(self._expiration_time_field).lte(int(now.timestamp()))
+
+            cond = Attr(self._key_field).not_exists() | Attr(
+                self._expiration_time_field
+            ).lte(int(now.timestamp()))
             kwargs = dict(ConditionExpression=cond)
 
         try:
-            dump = json.dumps(value)
+            dump = self.serializer.dumps(value)
             item = {
                 self._key_field: key,
                 self._expiration_time_field: int(expiration_time.timestamp()),
                 CREATED_AT_FIELD: now.isoformat(),
-                RESPONSE_FIELD: dump
+                RESPONSE_FIELD: dump,
             }
-            res = self._table.put_item(Item=item, **kwargs)
+            self._table.put_item(Item=item, **kwargs)
             return True
         except Exception as e:
+            logging.exception(e)
             return False
 
     def set(self, key, value, timeout=None):
@@ -235,13 +245,14 @@ class DynamoDbCache(BaseCache):
         return self._get_item(key, [self._expiration_time_field]) is not None
 
     def clear(self):
-        paginator = self._dynamo.meta.client.get_paginator('scan')
-        pages = paginator.paginate(TableName=self._table_name,
-                                   ProjectionExpression=self._key_field)
+        paginator = self._dynamo.meta.client.get_paginator("scan")
+        pages = paginator.paginate(
+            TableName=self._table_name, ProjectionExpression=self._key_field
+        )
 
         with self._table.batch_writer() as batch:
             for page in pages:
-                for item in page['Items']:
+                for item in page["Items"]:
                     batch.delete_item(Key=item)
 
         return True
