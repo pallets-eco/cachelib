@@ -106,12 +106,11 @@ class RedisSerializer(BaseSerializer):
 class DynamoDbSerializer(RedisSerializer):
     """Default serializer for DynamoDbCache."""
 
-    def loads(self, value: _t.Optional[bytes]) -> _t.Any:
+    from boto3.dynamodb.types import Binary  # type: ignore
+
+    def loads(self, value: Binary) -> _t.Any:
         """The reversal of :meth:`dump_object`. This might be called with
         None.
         """
-        from boto3.dynamodb.types import Binary
-
-        if isinstance(value, Binary):
-            value = value.value
+        value = value.value
         return super().loads(value)

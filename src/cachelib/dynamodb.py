@@ -1,5 +1,9 @@
 import datetime
 import logging
+import typing as _t
+
+import boto3  # type: ignore
+from boto3.dynamodb.conditions import Attr # type: ignore
 
 from cachelib.base import BaseCache
 from cachelib.serializers import DynamoDbSerializer
@@ -38,18 +42,17 @@ class DynamoDbCache(BaseCache):
 
     def __init__(
         self,
-        table_name="python-cache",
-        default_timeout=300,
-        key_field="cache_key",
-        expiration_time_field="expiration_time",
-        **kwargs
+        table_name: _t.Optional[str] = "python-cache",
+        default_timeout: int = 300,
+        key_field: _t.Optional[str] = "cache_key",
+        expiration_time_field: _t.Optional[str] = "expiration_time",
+        **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
         self._table_name = table_name
 
         self._key_field = key_field
         self._expiration_time_field = expiration_time_field
-        import boto3
 
         self._dynamo = boto3.resource("dynamodb", **kwargs)
         try:
@@ -79,11 +82,11 @@ class DynamoDbCache(BaseCache):
             self._table = self._dynamo.Table(table_name)
             self._table.load()
 
-    def _utcnow(self):
+    def _utcnow(self) -> _t.Any:
         """Return a tz-aware UTC datetime representing the current time"""
         return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
 
-    def _get_item(self, key, attributes=None):
+    def _get_item(self, key: str, attributes: _t.Optional[list] = None) -> _t.Any:
         """
         Get an item from the cache table, optionally limiting the returned
         attributes.
@@ -113,7 +116,7 @@ class DynamoDbCache(BaseCache):
 
         return None
 
-    def get(self, key):
+    def get(self, key: str) -> _t.Any:
         """
         Get a cache item
 
@@ -127,7 +130,7 @@ class DynamoDbCache(BaseCache):
             return value
         return None
 
-    def delete(self, key):
+    def delete(self, key: str) -> bool:
         """
         Deletes an item from the cache.  This is a no-op if the item doesn't
         exist
@@ -136,7 +139,6 @@ class DynamoDbCache(BaseCache):
         :return: True if the key existed and was deleted
         """
         try:
-            from boto3.dynamodb.conditions import Attr
 
             self._table.delete_item(
                 Key={self._key_field: key},
@@ -147,7 +149,13 @@ class DynamoDbCache(BaseCache):
             logging.exception(e)
             return False
 
-    def _set(self, key, value, timeout=None, overwrite=True):
+    def _set(
+        self,
+        key: str,
+        value: _t.Any,
+        timeout: _t.Optional[int] = None,
+        overwrite: _t.Optional[bool] = True,
+    ) -> _t.Any:
         """
         Store a cache item, with the option to not overwrite existing items
 
@@ -190,16 +198,16 @@ class DynamoDbCache(BaseCache):
             logging.exception(e)
             return False
 
-    def set(self, key, value, timeout=None):
+    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._set(key, value, timeout=timeout, overwrite=True)
 
-    def add(self, key, value, timeout=None):
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         return self._set(key, value, timeout=timeout, overwrite=False)
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         return self._get_item(key, [self._expiration_time_field]) is not None
 
-    def clear(self):
+    def clear(self) -> bool:
         paginator = self._dynamo.meta.client.get_paginator("scan")
         pages = paginator.paginate(
             TableName=self._table_name, ProjectionExpression=self._key_field
