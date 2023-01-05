@@ -1,7 +1,7 @@
-Redis Backend
-=============
+DynamoDb Backend
+================
 
-.. automodule:: cachelib.dynamoDb
+.. automodule:: cachelib.dynamodb
    :members:
    :undoc-members:
    :show-inheritance:

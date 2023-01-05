@@ -8,58 +8,13 @@ CREATED_AT_FIELD = "created_at"
 RESPONSE_FIELD = "response"
 
 
-def utcnow():
-    """Return a tz-aware UTC datetime representing the current time"""
-    return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
-
-
 class DynamoDbCache(BaseCache):
     """
-    Implementation of flask_caching.BaseCache that uses an AWS DynamoDb table
+    Implementation of cachelib.BaseCache that uses an AWS DynamoDb table
     as the backend.
-
-    The DynamoDB table is required to already exist.   The table must be
-    defined with a hash_key of type string, and no sort key.  Additionally,
-    you'll probably want to enable the TTL feature on the table, so that
-    DynamoDB will automatically delete expired cache items.  The hash_key
-    attribute name defaults to 'cache_key', and the ttl attribute name
-    defaults to 'expiration_time'.  These defaults can be changed via
-    constructor parameter, or via app config properties.
 
     Your server process will require dynamodb:GetItem and dynamodb:PutItem
     IAM permissions on the cache table.
-
-    App config:  The factory method for this class uses the following app
-    config attributes:
-
-    CACHE_DYNAMODB_TABLE: (Required) the name of the DynamoDB table to use
-    CACHE_DYNAMODB_KEY_FIELD: The name of the hash key attribute of the
-                              table.  Defaults to 'cache_key'
-    CACHE_DYNAMODB_EXPIRATION_TIME_FIELD: The name of the TTL field. Defaults
-                                          to 'expiration_time'
-
-    Additionally, the CACHE_DEFAULT_TIMEOUT attribute can be used to override
-    default the cache timeout.
-
-    Here is how you could create a DynamoDB table suitable for use by this
-    class using the AWS CLI.
-
-        TABLE_NAME=cache-table
-        KEY_ATTRIBUTE=cache_key
-        TTL_ATTRIBUTE=expiration_time
-
-        aws dynamodb create-table \
-            --table-name $TABLE_NAME \
-            --attribute-definitions AttributeName=$KEY_ATTRIBUTE,AttributeType=S \
-            --key-schema AttributeName=$KEY_ATTRIBUTE,KeyType=HASH \
-            --billing-mode PAY_PER_REQUEST
-
-        aws dynamodb update-time-to-live \
-            --table-name $TABLE_NAME \
-            --time-to-live-specification Enabled=true,AttributeName=$TTL_ATTRIBUTE
-
-    If you use anything other than the default key and TTL attribute names,
-    be sure to update the app config appropriately.
 
     Limitations: DynamoDB table items are limited to 400 KB in size.  Since
     this class stores cached items in a table, the max size of a cache entry
@@ -77,8 +32,6 @@ class DynamoDbCache(BaseCache):
                                   seconds past the epoch.  If you configure
                                   this as the TTL field, then DynamoDB will
                                   automatically delete expired entries.
-    :param dynamo: A boto3 dynamodb resource object. This is mainly for testing;
-                   by default the class will create its own resource object.
     """
 
     serializer = DynamoDbSerializer()
@@ -126,6 +79,10 @@ class DynamoDbCache(BaseCache):
             self._table = self._dynamo.Table(table_name)
             self._table.load()
 
+    def _utcnow(self):
+        """Return a tz-aware UTC datetime representing the current time"""
+        return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+
     def _get_item(self, key, attributes=None):
         """
         Get an item from the cache table, optionally limiting the returned
@@ -150,7 +107,7 @@ class DynamoDbCache(BaseCache):
         cache_item = response.get("Item")
 
         if cache_item:
-            now = int(utcnow().timestamp())
+            now = int(self._utcnow().timestamp())
             if cache_item[self._expiration_time_field] > now:
                 return cache_item
 
@@ -158,12 +115,10 @@ class DynamoDbCache(BaseCache):
 
     def get(self, key):
         """
-        Get a cache item as a Flask Response
+        Get a cache item
 
         :param key: The cache key of the item to fetch
-        :return: If key is found and the item isn't expired, returns a Flask
-                 response object containing the cached response body, status
-                 code, and headers.  Else returns None
+        :return: cache value if not expired, else None
         """
         cache_item = self._get_item(key)
         if cache_item:
@@ -197,7 +152,7 @@ class DynamoDbCache(BaseCache):
         Store a cache item, with the option to not overwrite existing items
 
         :param key: Cache key to use
-        :param value: A value returned by a flask view function
+        :param value: a serializable object
         :param timeout: The timeout in seconds for the cached item, to override
                         the default
         :param overwrite: If true, overwrite any existing cache item with key.
@@ -205,7 +160,7 @@ class DynamoDbCache(BaseCache):
                           non-expired cache item exists with key.
         :return: True if the new item was stored.
         """
-        now = utcnow()
+        now = self._utcnow()
         expiration_time = now + datetime.timedelta(
             seconds=self._normalize_timeout(timeout)
         )
