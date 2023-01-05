@@ -1,6 +1,5 @@
 pytest
 pylibmc
 redis
-#uwsgi
+uwsgi
 pytest-xprocess
-moto

@@ -46,7 +46,7 @@ def redis_server(xprocess):
 
         def startup_check(self):
             out = subprocess.run(
-                ["redis-cli", "-p", "6379", "ping"], stdout=subprocess.PIPE
+                ["redis-cli", "-p", "6360", "ping"], stdout=subprocess.PIPE
             )
             return out.stdout == b"PONG\n"
 
