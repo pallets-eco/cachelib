@@ -20,7 +20,7 @@ def cache_factory(request):
         os.environ.setdefault("AWS_ACCESS_KEY_ID", "RANDOM")
         os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "RANDOM")
         kwargs["endpoint_url"] = "http://localhost:8000"
-        kwargs["region"] = "us-west-2"
+        kwargs["region_name"] = "us-west-2"
         rc = request.param(*args, **kwargs)
         rc.clear()
         return rc
