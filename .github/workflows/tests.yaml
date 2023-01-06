@@ -37,11 +37,17 @@ jobs:
       - name: install external dependencies Mac
         if: matrix.os == 'macos-latest'
         run: brew install libmemcached memcached redis
+      - name: Setup Docker on macOS
+        if: matrix.os == 'macos-latest'
+        uses: docker-practice/actions-setup-docker@master
+        timeout-minutes: 12
       - name: install external dependencies Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install libmemcached-dev memcached redis-server
+      - name: setup dynamodb-local
+        uses: rrainn/dynamodb-action@v2.0.1
       - name: update pip
         run: |
           pip install -U wheel

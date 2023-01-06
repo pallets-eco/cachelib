@@ -75,6 +75,7 @@ class CommonTests(TestData):
                 " of such feature must be handled differently"
                 " from other cache types."
             )
+
         cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
             cache.set(f"{k}-t0", v, timeout=0)
