@@ -115,7 +115,7 @@ class DynamoDbCache(BaseCache):
 
         if cache_item:
             now = int(self._utcnow().timestamp())
-            if cache_item[self._expiration_time_field] > now:
+            if cache_item.get(self._expiration_time_field, now + 100) > now:
                 return cache_item
 
         return None
@@ -172,10 +172,8 @@ class DynamoDbCache(BaseCache):
                           non-expired cache item exists with key.
         :return: True if the new item was stored.
         """
+        timeout = self._normalize_timeout(timeout)
         now = self._utcnow()
-        expiration_time = now + datetime.timedelta(
-            seconds=self._normalize_timeout(timeout)
-        )
 
         kwargs = {}
         if not overwrite:
@@ -191,10 +189,12 @@ class DynamoDbCache(BaseCache):
             dump = self.serializer.dumps(value)
             item = {
                 self._key_field: key,
-                self._expiration_time_field: int(expiration_time.timestamp()),
                 CREATED_AT_FIELD: now.isoformat(),
                 RESPONSE_FIELD: dump,
             }
+            if timeout > 0:
+                expiration_time = now + datetime.timedelta(seconds=timeout)
+                item[self._expiration_time_field] = int(expiration_time.timestamp())
             self._table.put_item(Item=item, **kwargs)
             return True
         except Exception as e:

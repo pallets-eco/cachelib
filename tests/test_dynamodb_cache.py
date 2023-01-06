@@ -31,10 +31,3 @@ def cache_factory(request):
 
 class TestDynamoDbCache(CommonTests, ClearTests, HasTests):
     pass
-
-    def test_expiration(self):
-        # skip
-        issue_reference = (
-            "https://github.com/aws/aws-sdk-js/issues/1527#issuecomment-305026722"
-        )
-        pytest.skip(f"ttl is not supported on dynamodb local {issue_reference}")
