@@ -37,6 +37,9 @@ jobs:
       - name: install external dependencies Mac
         if: matrix.os == 'macos-latest'
         run: brew install libmemcached memcached redis
+      - name: Setup Docker on macOS
+        if: matrix.os == 'macos-latest'
+        uses: douglascamata/setup-docker-macos-action@v1-alpha
       - name: install external dependencies Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
