@@ -40,6 +40,8 @@ class DynamoDbCache(BaseCache):
                                   seconds past the epoch.  If you configure
                                   this as the TTL field, then DynamoDB will
                                   automatically delete expired entries.
+    :param key_prefix: A prefix that should be added to all keys.
+
     """
 
     serializer = DynamoDbSerializer()
@@ -50,6 +52,7 @@ class DynamoDbCache(BaseCache):
         default_timeout: int = 300,
         key_field: _t.Optional[str] = "cache_key",
         expiration_time_field: _t.Optional[str] = "expiration_time",
+        key_prefix: _t.Optional[str] = None,
         **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
@@ -57,6 +60,7 @@ class DynamoDbCache(BaseCache):
 
         self._key_field = key_field
         self._expiration_time_field = expiration_time_field
+        self.key_prefix = key_prefix or ""
 
         self._dynamo = boto3.resource("dynamodb", **kwargs)
         try:
@@ -127,7 +131,7 @@ class DynamoDbCache(BaseCache):
         :param key: The cache key of the item to fetch
         :return: cache value if not expired, else None
         """
-        cache_item = self._get_item(key)
+        cache_item = self._get_item(self.key_prefix + key)
         if cache_item:
             response = cache_item[RESPONSE_FIELD]
             value = self.serializer.loads(response)
@@ -145,7 +149,7 @@ class DynamoDbCache(BaseCache):
         try:
 
             self._table.delete_item(
-                Key={self._key_field: key},
+                Key={self._key_field: self.key_prefix + key},
                 ConditionExpression=Attr(self._key_field).exists(),
             )
             return True
@@ -202,13 +206,16 @@ class DynamoDbCache(BaseCache):
             return False
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
-        return self._set(key, value, timeout=timeout, overwrite=True)
+        return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=True)
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
-        return self._set(key, value, timeout=timeout, overwrite=False)
+        return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=False)
 
     def has(self, key: str) -> bool:
-        return self._get_item(key, [self._expiration_time_field]) is not None
+        return (
+            self._get_item(self.key_prefix + key, [self._expiration_time_field])
+            is not None
+        )
 
     def clear(self) -> bool:
         paginator = self._dynamo.meta.client.get_paginator("scan")
