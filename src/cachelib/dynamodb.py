@@ -6,8 +6,8 @@ import typing as _t
 try:
     import boto3  # type: ignore
     from boto3.dynamodb.conditions import Attr  # type: ignore
-except ImportError as err:
-    raise RuntimeError("no boto3 module found") from err
+except ImportError:
+    logging.warning("no boto3 module found")
 
 from cachelib.base import BaseCache
 from cachelib.serializers import DynamoDbSerializer
@@ -181,7 +181,6 @@ class DynamoDbCache(BaseCache):
         if not overwrite:
             # Cause the put to fail if a non-expired item with this key
             # already exists
-            from boto3.dynamodb.conditions import Attr
 
             cond = Attr(self._key_field).not_exists() | Attr(
                 self._expiration_time_field
