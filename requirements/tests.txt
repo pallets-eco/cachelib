@@ -11,9 +11,7 @@ attrs==21.2.0
 iniconfig==1.1.1
     # via pytest
 packaging==21.3
-    # via
-    #   pytest
-    #   redis
+    # via pytest
 pluggy==1.0.0
     # via pytest
 psutil==5.8.0
@@ -30,7 +28,7 @@ pytest==7.2.0
     #   pytest-xprocess
 pytest-xprocess==0.22.2
     # via -r tests.in
-redis==4.3.5
+redis==4.4.0
     # via -r tests.in
 uwsgi==2.0.21
     # via -r tests.in
