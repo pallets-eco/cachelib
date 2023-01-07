@@ -139,7 +139,7 @@ toml==0.10.2
     # via pre-commit
 tomli==1.2.2
     # via pep517
-tox==3.27.1
+tox==3.28.0
     # via -r dev.in
 types-redis==4.3.21.6
     # via -r typing.in
