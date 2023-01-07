@@ -65,7 +65,7 @@ pallets-sphinx-themes==2.0.3
     # via -r docs.in
 pep517==0.12.0
     # via build
-pip-tools==6.12.0
+pip-tools==6.12.1
     # via -r dev.in
 platformdirs==2.4.0
     # via virtualenv
