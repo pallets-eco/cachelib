@@ -4,7 +4,8 @@ Version 0.10.0
 Unreleased
 
 - Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
-- Added ``DynamoDb`` as a cache backend
+- Added ``DynamoDb`` as a cache backend :pr:`209`
+
 
 Version 0.9.0
 -------------
