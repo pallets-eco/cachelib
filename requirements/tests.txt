@@ -8,8 +8,20 @@ async-timeout==4.0.2
     # via redis
 attrs==21.2.0
     # via pytest
+boto3==1.26.45
+    # via -r tests.in
+botocore==1.29.45
+    # via
+    #   boto3
+    #   s3transfer
+exceptiongroup==1.1.0
+    # via pytest
 iniconfig==1.1.1
     # via pytest
+jmespath==1.0.1
+    # via
+    #   boto3
+    #   botocore
 packaging==21.3
     # via pytest
 pluggy==1.0.0
@@ -28,7 +40,17 @@ pytest==7.2.0
     #   pytest-xprocess
 pytest-xprocess==0.22.2
     # via -r tests.in
+python-dateutil==2.8.2
+    # via botocore
 redis==4.4.0
     # via -r tests.in
+s3transfer==0.6.0
+    # via boto3
+six==1.16.0
+    # via python-dateutil
+tomli==2.0.1
+    # via pytest
+urllib3==1.26.13
+    # via botocore
 uwsgi==2.0.21
     # via -r tests.in

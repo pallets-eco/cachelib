@@ -1,5 +1,6 @@
 from cachelib.base import BaseCache
 from cachelib.base import NullCache
+from cachelib.dynamodb import DynamoDbCache
 from cachelib.file import FileSystemCache
 from cachelib.memcached import MemcachedCache
 from cachelib.redis import RedisCache
@@ -14,5 +15,6 @@ __all__ = [
     "MemcachedCache",
     "RedisCache",
     "UWSGICache",
+    "DynamoDbCache",
 ]
 __version__ = "0.9.0"

@@ -58,7 +58,7 @@ class BaseCache:
         :param keys: The function accepts multiple keys as positional
                      arguments.
         """
-        return dict(zip(keys, self.get_many(*keys)))
+        return dict(zip(keys, self.get_many(*keys)))  # noqa: B905
 
     def set(
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None

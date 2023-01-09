@@ -113,7 +113,8 @@ class RedisCache(BaseCache):
             else:
                 pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
         results = pipe.execute()
-        return [k for k, was_set in zip(mapping.keys(), results) if was_set]
+        res = zip(mapping.keys(), results)  # noqa: B905
+        return [k for k, was_set in res if was_set]
 
     def delete(self, key: str) -> bool:
         return bool(self._write_client.delete(self.key_prefix + key))
