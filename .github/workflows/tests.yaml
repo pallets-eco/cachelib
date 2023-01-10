@@ -49,6 +49,8 @@ jobs:
           sudo apt-get install libmemcached-dev memcached redis-server
       - name: setup dynamodb-local
         uses: rrainn/dynamodb-action@v2.0.1
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.8.0
       - name: update pip
         run: |
           pip install -U wheel

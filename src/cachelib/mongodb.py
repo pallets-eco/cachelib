@@ -39,7 +39,7 @@ class MongoDbCache(BaseCache):
 
     def __init__(
         self,
-        host: _t.Optional[str] = "mongodb://127.0.0.1:27017/python-cache",
+        host: _t.Optional[str] = "mongodb://127.0.0.1:27017/python-cache&serverSelectionTimeoutMs=5000",
         collection: _t.Optional[str] = "python-cache",
         default_timeout: int = 300,
         key_prefix: _t.Optional[str] = None,

@@ -14,9 +14,7 @@ def cache_factory(request):
     )
 
     def _factory(self, *args, **kwargs):
-        url = "mongodb+srv://datalake_test_user:xas7rPIDozTvEdDg@development.ewxgy.mongodb.net/datalake_test?retryWrites=true&w=majority&serverSelectionTimeoutMs=5000"
 
-        kwargs["host"] = url
         kwargs["collection"] = "flask-session-test"
         rc = request.param(*args, **kwargs)
         rc.clear()
