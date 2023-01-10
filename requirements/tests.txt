@@ -14,6 +14,8 @@ botocore==1.29.45
     # via
     #   boto3
     #   s3transfer
+dnspython==2.2.1
+    # via pymongo
 exceptiongroup==1.1.0
     # via pytest
 iniconfig==1.1.1
@@ -22,6 +24,8 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
+mongoengine==0.25.0
+    # via -r tests.in
 packaging==21.3
     # via pytest
 pluggy==1.0.0
@@ -32,6 +36,8 @@ py==1.10.0
     # via pytest-xprocess
 pylibmc==1.6.3
     # via -r tests.in
+pymongo==4.3.3
+    # via mongoengine
 pyparsing==2.4.7
     # via packaging
 pytest==7.2.0

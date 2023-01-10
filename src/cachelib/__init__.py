@@ -6,7 +6,7 @@ from cachelib.memcached import MemcachedCache
 from cachelib.redis import RedisCache
 from cachelib.simple import SimpleCache
 from cachelib.uwsgi import UWSGICache
-
+from cachelib.mongodb import MongoDbCache
 __all__ = [
     "BaseCache",
     "NullCache",
@@ -16,5 +16,6 @@ __all__ = [
     "RedisCache",
     "UWSGICache",
     "DynamoDbCache",
+    "MongoDbCache"
 ]
 __version__ = "0.9.0"
