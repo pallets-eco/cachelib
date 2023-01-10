@@ -50,7 +50,9 @@ jobs:
       - name: setup dynamodb-local
         uses: rrainn/dynamodb-action@v2.0.1
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.8.0
+        uses: wbari/start-mongoDB@v0.2
+        with:
+          mongoDBVersion: 'latest'
       - name: update pip
         run: |
           pip install -U wheel
