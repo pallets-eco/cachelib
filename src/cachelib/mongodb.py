@@ -3,21 +3,13 @@ import logging
 import typing as _t
 
 
-
 try:
-    from mongoengine import Document, StringField, BinaryField, DateTimeField # type: ignore
-    from mongoengine.context_managers import switch_collection # type: ignore
+    import pymongo
 except ImportError:
-    logging.warning("no mongoengine module found")
+    logging.warning("no pymongo module found")
 
 from cachelib.base import BaseCache
 from cachelib.serializers import BaseSerializer
-
-
-class MongoCacheDocument(Document): # type: ignore
-    key = StringField(required=True, unique=True)
-    val = BinaryField(required=True)
-    expiration = DateTimeField()
 
 
 class MongoDbCache(BaseCache):
@@ -27,7 +19,8 @@ class MongoDbCache(BaseCache):
 
     Limitations: maximum MongoDB document size is 16mb
 
-    :param host: mongodb connection string including database name
+    :param host: mongodb connection string
+    :param db: mongodb database name
     :param collection: mongodb collection name
     :param default_timeout: Set the timeout in seconds after which cache entries
                             expire
@@ -39,15 +32,18 @@ class MongoDbCache(BaseCache):
 
     def __init__(
         self,
-        host: _t.Optional[str] = "mongodb://127.0.0.1:27017/python-cache&serverSelectionTimeoutMs=5000",
-        collection: _t.Optional[str] = "python-cache",
+        host: _t.Optional[
+            str
+        ] = "mongodb://127.0.0.1:27017/python-cache&serverSelectionTimeoutMs=5000",
+        db: _t.Optional[str] = "cache-db",
+        collection: _t.Optional[str] = "cache-collection",
         default_timeout: int = 300,
         key_prefix: _t.Optional[str] = None,
         **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
-        from mongoengine import connect
-        self.client = connect(host=host, uuidrepresentation='standard')
+        client = pymongo.MongoClient(host=host)  # type: ignore
+        self.client = client[db][collection]  # type: ignore
         self.key_prefix = key_prefix or ""
         self.collection = collection
 
@@ -56,8 +52,8 @@ class MongoDbCache(BaseCache):
         return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
 
     def _expire_records(self) -> _t.Any:
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-            Cache.objects(expiration__lte=self._utcnow()).delete()
+        res = self.client.delete_many({"expiration": {"$lte": self._utcnow()}})
+        return res
 
     def get(self, key: str) -> _t.Any:
         """
@@ -67,14 +63,11 @@ class MongoDbCache(BaseCache):
         :return: cache value if not expired, else None
         """
         self._expire_records()
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-
-            cache_item = Cache.objects(key=self.key_prefix + key).first()
-            if cache_item:
-                response = cache_item.val
-                value = self.serializer.loads(response)
-                return value
-            return None
+        record = self.client.find_one({"id": self.key_prefix + key})
+        value = None
+        if record:
+            value = self.serializer.loads(record["val"])
+        return value
 
     def delete(self, key: str) -> bool:
         """
@@ -84,10 +77,8 @@ class MongoDbCache(BaseCache):
         :param key: Key of the item to delete.
         :return: True if the key existed and was deleted
         """
-        res = 0
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-            res = Cache.objects(key=self.key_prefix + key).delete()
-        return res > 0
+        res = self.client.delete_one({"id": self.key_prefix + key})
+        return res.deleted_count > 0
 
     def _set(
         self,
@@ -111,53 +102,48 @@ class MongoDbCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         now = self._utcnow()
 
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-            record = Cache.objects(key=self.key_prefix + key).first()
-
-            if (not overwrite) and record:
-                # fail if a non-expired item with this key
-                # already exists
+        if not overwrite:
+            # fail if a non-expired item with this key
+            # already exists
+            if self.has(key):
                 return False
 
-            if not record:
-                record = Cache(key=self.key_prefix+key)
-            dump = self.serializer.dumps(value)
-            record.val = dump
-            if timeout > 0:
-                expiration_time = now + datetime.timedelta(seconds=timeout)
-                record.expiration = expiration_time
-            record.save()
-            return True
+        dump = self.serializer.dumps(value)
+        record = {"id": self.key_prefix + key, "val": dump}
+
+        if timeout > 0:
+            record["expiration"] = now + datetime.timedelta(seconds=timeout)
+        self.client.update_one({"id": self.key_prefix + key}, {"$set": record}, True)
+        return True
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         self._expire_records()
-        return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=True)
+        return self._set(key, value, timeout=timeout, overwrite=True)
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         self._expire_records()
-        return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=False)
+        return self._set(key, value, timeout=timeout, overwrite=False)
 
     def has(self, key: str) -> bool:
         self._expire_records()
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-            record = Cache.objects(key=self.key_prefix + key).first()
-            return record is not None
+        record = self.get(key)
+        return record is not None
 
     def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         self._expire_records()
         res = list(keys)
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-            count = Cache.objects(key__in=[self.key_prefix+key for key in keys]).delete()
-            if count != len(keys):
+        filter = {"id": {"$in": [self.key_prefix + key for key in keys]}}
+        result = self.client.delete_many(filter)
 
-                existing_keys = Cache.objects(key__in=[self.key_prefix+key for key in keys]).distinct('key')
-                existing_keys = [item[len(self.key_prefix):] for item in existing_keys]
-                res = [item for item in keys if item not in existing_keys]
+        if result.deleted_count != len(keys):
+
+            existing_keys = [
+                item["id"][len(self.key_prefix) :] for item in self.client.find(filter)
+            ]
+            res = [item for item in keys if item not in existing_keys]
 
         return res
 
     def clear(self) -> bool:
-        with switch_collection(MongoCacheDocument, self.collection) as Cache:
-            Cache.objects.delete()
-
+        self.client.drop()
         return True

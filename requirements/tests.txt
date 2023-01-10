@@ -24,8 +24,6 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-mongoengine==0.25.0
-    # via -r tests.in
 packaging==21.3
     # via pytest
 pluggy==1.0.0
