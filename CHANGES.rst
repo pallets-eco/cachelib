@@ -1,3 +1,10 @@
+Version 0.11.0
+--------------
+
+Unreleased
+
+- Added ``MongoDb`` as a cache backend
+
 Version 0.10.0
 --------------
 
@@ -5,7 +12,6 @@ Released 2023-01-09
 
 - Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
 - Added ``DynamoDb`` as a cache backend :pr:`209`
-- Added ``MongoDb`` as a cache backend
 
 Version 0.9.0
 -------------
