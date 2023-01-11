@@ -19,7 +19,7 @@ class MongoDbCache(BaseCache):
 
     Limitations: maximum MongoDB document size is 16mb
 
-    :param host: mongodb connection string
+    :param client: mongodb client or connection string
     :param db: mongodb database name
     :param collection: mongodb collection name
     :param default_timeout: Set the timeout in seconds after which cache entries
