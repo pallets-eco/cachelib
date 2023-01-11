@@ -4,7 +4,7 @@ import typing as _t
 
 
 try:
-    import pymongo
+    import pymongo  # type: ignore
 except ImportError:
     logging.warning("no pymongo module found")
 
@@ -42,8 +42,8 @@ class MongoDbCache(BaseCache):
         **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
-        client = pymongo.MongoClient(host=host)  # type: ignore
-        self.client = client[db][collection]  # type: ignore
+        client = pymongo.MongoClient(host=host)
+        self.client = client[db][collection]
         self.key_prefix = key_prefix or ""
         self.collection = collection
 
@@ -78,7 +78,8 @@ class MongoDbCache(BaseCache):
         :return: True if the key existed and was deleted
         """
         res = self.client.delete_one({"id": self.key_prefix + key})
-        return res.deleted_count > 0
+        deleted = bool(res.deleted_count > 0)
+        return deleted
 
     def _set(
         self,
