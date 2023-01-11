@@ -14,6 +14,7 @@ from Werkzeug.
     memcached
     uwsgi
     dynamodb
+    mongodb
 
 .. toctree::
     :maxdepth: 2
