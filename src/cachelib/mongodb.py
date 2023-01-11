@@ -121,6 +121,55 @@ class MongoDbCache(BaseCache):
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=True)
 
+    def set_many(
+        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
+    ) -> _t.List[_t.Any]:
+        self._expire_records()
+        from pymongo import UpdateOne
+
+        operations = []
+        now = self._utcnow()
+        timeout = self._normalize_timeout(timeout)
+        for key, val in mapping.items():
+            dump = self.serializer.dumps(val)
+
+            record = {"id": self.key_prefix + key, "val": dump}
+
+            if timeout > 0:
+                record["expiration"] = now + datetime.timedelta(seconds=timeout)
+            operations.append(
+                UpdateOne({"id": self.key_prefix + key}, {"$set": record}, upsert=True),
+            )
+
+        result = self.client.bulk_write(operations)
+        keys = list(mapping.keys())
+        if result.bulk_api_result["nUpserted"] != len(keys):
+            query = self.client.find(
+                {"id": {"$in": [self.key_prefix + key for key in keys]}}
+            )
+            keys = []
+            for item in query:
+                keys.append(item["id"])
+        return keys
+
+    def get_many(self, *keys: str) -> _t.List[_t.Any]:
+        results = self.get_dict(*keys)
+        values = []
+        for key in keys:
+            values.append(results.get(key, None))
+        return values
+
+    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
+        self._expire_records()
+        query = self.client.find(
+            {"id": {"$in": [self.key_prefix + key for key in keys]}}
+        )
+        results = dict.fromkeys(keys, None)
+        for item in query:
+            value = self.serializer.loads(item["val"])
+            results[item["id"][len(self.key_prefix) :]] = value
+        return results
+
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=False)
