@@ -32,9 +32,7 @@ class MongoDbCache(BaseCache):
 
     def __init__(
         self,
-        host: _t.Optional[
-            str
-        ] = "mongodb://127.0.0.1:27017/python-cache&serverSelectionTimeoutMs=5000",
+        client: _t.Any = None,
         db: _t.Optional[str] = "cache-db",
         collection: _t.Optional[str] = "cache-collection",
         default_timeout: int = 300,
@@ -42,7 +40,8 @@ class MongoDbCache(BaseCache):
         **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
-        client = pymongo.MongoClient(host=host)
+        if client is None or isinstance(client, str):
+            client = pymongo.MongoClient(host=client)
         self.client = client[db][collection]
         self.key_prefix = key_prefix or ""
         self.collection = collection
