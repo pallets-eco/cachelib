@@ -1,13 +1,5 @@
 import datetime
-import logging
 import typing as _t
-
-
-try:
-    import boto3  # type: ignore
-    from boto3.dynamodb.conditions import Attr  # type: ignore
-except ImportError:
-    logging.warning("no boto3 module found")
 
 from cachelib.base import BaseCache
 from cachelib.serializers import DynamoDbSerializer
@@ -56,13 +48,19 @@ class DynamoDbCache(BaseCache):
         **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
-        self._table_name = table_name
 
+        try:
+            import boto3  # type: ignore
+        except ImportError as err:
+            raise RuntimeError("no boto3 module found") from err
+
+        self._table_name = table_name
         self._key_field = key_field
         self._expiration_time_field = expiration_time_field
         self.key_prefix = key_prefix or ""
-
         self._dynamo = boto3.resource("dynamodb", **kwargs)
+        self._attr = boto3.dynamodb.conditions.Attr
+
         try:
             self._table = self._dynamo.Table(table_name)
             self._table.load()
@@ -150,11 +148,10 @@ class DynamoDbCache(BaseCache):
 
             self._table.delete_item(
                 Key={self._key_field: self.key_prefix + key},
-                ConditionExpression=Attr(self._key_field).exists(),
+                ConditionExpression=self._attr(self._key_field).exists(),
             )
             return True
-        except self._dynamo.meta.client.exceptions.ConditionalCheckFailedException as e:
-            logging.exception(e)
+        except self._dynamo.meta.client.exceptions.ConditionalCheckFailedException:
             return False
 
     def _set(
@@ -184,7 +181,7 @@ class DynamoDbCache(BaseCache):
             # Cause the put to fail if a non-expired item with this key
             # already exists
 
-            cond = Attr(self._key_field).not_exists() | Attr(
+            cond = self._attr(self._key_field).not_exists() | self._attr(
                 self._expiration_time_field
             ).lte(int(now.timestamp()))
             kwargs = dict(ConditionExpression=cond)
@@ -201,8 +198,7 @@ class DynamoDbCache(BaseCache):
                 item[self._expiration_time_field] = int(expiration_time.timestamp())
             self._table.put_item(Item=item, **kwargs)
             return True
-        except Exception as e:
-            logging.exception(e)
+        except Exception:
             return False
 
     def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
