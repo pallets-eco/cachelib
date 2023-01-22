@@ -1,3 +1,11 @@
+Version 0.10.1
+--------------
+
+Unreleased
+
+- Fix logging pollution due to ``DynamoDB`` logging handler
+
+
 Version 0.10.0
 --------------
 
