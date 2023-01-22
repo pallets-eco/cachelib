@@ -9,7 +9,7 @@ Unreleased
 Version 0.10.0
 --------------
 
-Released 2023-01-09
+Released 2023-01-22
 
 - Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
 - Added ``DynamoDb`` as a cache backend :pr:`209`
