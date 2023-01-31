@@ -1,3 +1,11 @@
+Version 0.10.2
+--------------
+
+Released 2023-01-31
+
+- Fix broken release
+
+
 Version 0.10.1
 --------------
 

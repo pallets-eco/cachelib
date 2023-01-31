@@ -17,4 +17,4 @@ __all__ = [
     "UWSGICache",
     "DynamoDbCache",
 ]
-__version__ = "0.10.1"
+__version__ = "0.10.2"
