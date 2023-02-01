@@ -15,7 +15,7 @@ babel==2.9.1
 backports-entry-points-selectable==1.1.0
     # via virtualenv
 boto3==1.26.54
-    # via -r requirements/tests.in
+    # via -r tests.in
 botocore==1.29.54
     # via
     #   boto3
@@ -36,8 +36,6 @@ docutils==0.17.1
     # via
     #   sphinx
     #   sphinx-tabs
-exceptiongroup==1.1.0
-    # via pytest
 filelock==3.3.2
     # via
     #   tox
@@ -47,8 +45,6 @@ identify==2.3.3
 idna==3.3
     # via requests
 imagesize==1.2.0
-    # via sphinx
-importlib-metadata==6.0.0
     # via sphinx
 iniconfig==1.1.1
     # via pytest
@@ -63,7 +59,7 @@ jmespath==1.0.1
 markupsafe==2.0.1
     # via jinja2
 mypy==0.991
-    # via -r requirements/typing.in
+    # via -r typing.in
 mypy-extensions==0.4.3
     # via mypy
 nodeenv==1.6.0
@@ -76,19 +72,19 @@ packaging==21.3
     #   sphinx
     #   tox
 pallets-sphinx-themes==2.0.3
-    # via -r requirements/docs.in
+    # via -r docs.in
 pep517==0.12.0
     # via build
 pip-tools==6.12.1
-    # via -r requirements/dev.in
+    # via -r dev.in
 platformdirs==2.4.0
     # via virtualenv
 pluggy==1.0.0
     # via
     #   pytest
     #   tox
-pre-commit==2.21.0
-    # via -r requirements/dev.in
+pre-commit==3.0.2
+    # via -r dev.in
 psutil==5.8.0
     # via pytest-xprocess
 py==1.10.0
@@ -100,15 +96,15 @@ pygments==2.10.0
     #   sphinx
     #   sphinx-tabs
 pylibmc==1.6.3
-    # via -r requirements/tests.in
+    # via -r tests.in
 pyparsing==2.4.7
     # via packaging
 pytest==7.2.0
     # via
-    #   -r requirements/tests.in
+    #   -r tests.in
     #   pytest-xprocess
 pytest-xprocess==0.22.2
-    # via -r requirements/tests.in
+    # via -r tests.in
 python-dateutil==2.8.2
     # via botocore
 pytz==2021.3
@@ -116,7 +112,7 @@ pytz==2021.3
 pyyaml==6.0
     # via pre-commit
 redis==4.4.0
-    # via -r requirements/tests.in
+    # via -r tests.in
 requests==2.26.0
     # via sphinx
 s3transfer==0.6.0
@@ -130,15 +126,15 @@ snowballstemmer==2.1.0
     # via sphinx
 sphinx==5.1.1
     # via
-    #   -r requirements/docs.in
+    #   -r docs.in
     #   pallets-sphinx-themes
     #   sphinx-issues
     #   sphinx-tabs
     #   sphinxcontrib-log-cabinet
 sphinx-issues==3.0.1
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinx-tabs==3.4.0
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
@@ -148,22 +144,17 @@ sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-log-cabinet==1.0.1
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 tomli==2.0.1
-    # via
-    #   build
-    #   mypy
-    #   pep517
-    #   pytest
-    #   tox
+    # via pep517
 tox==3.28.0
-    # via -r requirements/dev.in
+    # via -r dev.in
 types-redis==4.4.0.0
-    # via -r requirements/typing.in
+    # via -r typing.in
 typing-extensions==3.10.0.2
     # via mypy
 urllib3==1.26.7
@@ -171,15 +162,13 @@ urllib3==1.26.7
     #   botocore
     #   requests
 uwsgi==2.0.21
-    # via -r requirements/tests.in
+    # via -r tests.in
 virtualenv==20.10.0
     # via
     #   pre-commit
     #   tox
 wheel==0.38.1
     # via pip-tools
-zipp==3.11.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
