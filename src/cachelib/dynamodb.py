@@ -145,7 +145,6 @@ class DynamoDbCache(BaseCache):
         :return: True if the key existed and was deleted
         """
         try:
-
             self._table.delete_item(
                 Key={self._key_field: self.key_prefix + key},
                 ConditionExpression=self._attr(self._key_field).exists(),
