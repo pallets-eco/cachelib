@@ -8,9 +8,9 @@ async-timeout==4.0.2
     # via redis
 attrs==21.2.0
     # via pytest
-boto3==1.26.45
+boto3==1.26.69
     # via -r tests.in
-botocore==1.29.45
+botocore==1.29.69
     # via
     #   boto3
     #   s3transfer
