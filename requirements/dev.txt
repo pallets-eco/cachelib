@@ -24,12 +24,18 @@ build==0.8.0
     # via pip-tools
 certifi==2022.12.7
     # via requests
+cffi==1.15.1
+    # via cryptography
 cfgv==3.3.1
     # via pre-commit
 charset-normalizer==2.0.7
     # via requests
 click==8.0.3
     # via pip-tools
+cryptography==39.0.1
+    # via
+    #   types-pyopenssl
+    #   types-redis
 distlib==0.3.3
     # via virtualenv
 docutils==0.17.1
@@ -91,6 +97,8 @@ py==1.10.0
     # via
     #   pytest-xprocess
     #   tox
+pycparser==2.21
+    # via cffi
 pygments==2.10.0
     # via
     #   sphinx
@@ -153,7 +161,9 @@ tomli==2.0.1
     # via pep517
 tox==3.28.0
     # via -r dev.in
-types-redis==4.4.0.0
+types-pyopenssl==23.0.0.2
+    # via types-redis
+types-redis==4.5.1.0
     # via -r typing.in
 typing-extensions==3.10.0.2
     # via mypy
