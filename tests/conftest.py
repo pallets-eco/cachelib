@@ -25,7 +25,8 @@ def pytest_sessionfinish(session, exitstatus):
             warnings.warn(
                 "Pytest could not find tox 'TMPDIR' in the environment,"
                 " make sure the variable is set in the project tox.ini"
-                " file if you are running under tox."
+                " file if you are running under tox.",
+                stacklevel=2,
             )
         else:
             with open(script_path, mode="w") as f:
