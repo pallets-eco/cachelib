@@ -112,3 +112,30 @@ class DynamoDbSerializer(RedisSerializer):
         """
         value = value.value
         return super().loads(value)
+
+
+
+import pickle
+import bitstruct.c as bitstruct
+
+value = '加密金'
+STRUCT = bitstruct.compile('t72')
+
+print(STRUCT.unpack(STRUCT.pack(value))[0], len(STRUCT.pack(value)))
+print(pickle.loads(pickle.dumps(value)), len(pickle.dumps(value)))
+
+
+
+value = 1
+STRUCT = bitstruct.compile('u32')
+
+print(STRUCT.unpack(STRUCT.pack(value))[0], len(STRUCT.pack(value)))
+print(pickle.loads(pickle.dumps(value)), len(pickle.dumps(value)))
+
+
+
+value = True
+STRUCT = bitstruct.compile('b1')
+
+print(STRUCT.unpack(STRUCT.pack(value))[0], len(STRUCT.pack(value)))
+print(pickle.loads(pickle.dumps(value)), len(pickle.dumps(value)))
