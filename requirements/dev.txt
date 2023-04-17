@@ -159,7 +159,7 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 tomli==2.0.1
     # via pep517
-tox==4.4.7
+tox==4.4.8
     # via -r dev.in
 types-pyopenssl==23.0.0.2
     # via types-redis
