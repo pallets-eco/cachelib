@@ -163,7 +163,7 @@ tox==4.4.7
     # via -r dev.in
 types-pyopenssl==23.0.0.2
     # via types-redis
-types-redis==4.5.1.4
+types-redis==4.5.4.1
     # via -r typing.in
 typing-extensions==3.10.0.2
     # via mypy
