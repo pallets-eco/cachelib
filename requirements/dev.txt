@@ -122,7 +122,7 @@ pytz==2021.3
     # via babel
 pyyaml==6.0
     # via pre-commit
-redis==4.5.1
+redis==4.5.4
     # via -r tests.in
 requests==2.26.0
     # via sphinx
