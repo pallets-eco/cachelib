@@ -80,9 +80,7 @@ class RedisSerializer(BaseSerializer):
     """Default serializer for RedisCache."""
 
     def dumps(self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL) -> bytes:
-        """Dumps an object into a string for redis. By default it serializes
-        integers as regular string and pickle dumps everything else.
-        """
+        """Dumps an object into a string for redis, using pickle by default."""
         return b"!" + pickle.dumps(value, protocol)
 
     def loads(self, value: _t.Optional[bytes]) -> _t.Any:
