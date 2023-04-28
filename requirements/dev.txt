@@ -54,7 +54,7 @@ identify==2.3.3
     # via pre-commit
 idna==3.3
     # via requests
-imagesize==1.2.0
+imagesize==1.4.1
     # via sphinx
 iniconfig==1.1.1
     # via pytest
@@ -102,7 +102,7 @@ py==1.10.0
     # via pytest-xprocess
 pycparser==2.21
     # via cffi
-pygments==2.10.0
+pygments==2.15.1
     # via
     #   sphinx
     #   sphinx-tabs
@@ -132,7 +132,7 @@ six==1.16.0
     # via python-dateutil
 snowballstemmer==2.1.0
     # via sphinx
-sphinx==5.1.1
+sphinx==6.2.1
     # via
     #   -r docs.in
     #   pallets-sphinx-themes
