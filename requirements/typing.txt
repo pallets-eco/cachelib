@@ -10,7 +10,7 @@ cryptography==39.0.1
     # via
     #   types-pyopenssl
     #   types-redis
-mypy==1.1.1
+mypy==1.2.0
     # via -r typing.in
 mypy-extensions==1.0.0
     # via mypy
