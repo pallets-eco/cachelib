@@ -6,8 +6,6 @@
 #
 async-timeout==4.0.2
     # via redis
-attrs==21.2.0
-    # via pytest
 boto3==1.26.104
     # via -r tests.in
 botocore==1.29.104
@@ -32,7 +30,7 @@ pylibmc==1.6.3
     # via -r tests.in
 pyparsing==2.4.7
     # via packaging
-pytest==7.2.2
+pytest==7.3.1
     # via
     #   -r tests.in
     #   pytest-xprocess
