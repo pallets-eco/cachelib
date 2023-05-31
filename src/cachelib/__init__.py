@@ -19,4 +19,4 @@ __all__ = [
     "DynamoDbCache",
     "MongoDbCache",
 ]
-__version__ = "0.10.0"
+__version__ = "0.10.2"

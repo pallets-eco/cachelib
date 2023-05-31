@@ -2,12 +2,6 @@ import datetime
 import logging
 import typing as _t
 
-
-try:
-    import pymongo  # type: ignore
-except ImportError:
-    logging.warning("no pymongo module found")
-
 from cachelib.base import BaseCache
 from cachelib.serializers import BaseSerializer
 
@@ -40,8 +34,14 @@ class MongoDbCache(BaseCache):
         **kwargs: _t.Any
     ):
         super().__init__(default_timeout)
+        try:
+            import pymongo  # type: ignore
+        except ImportError:
+            logging.warning("no pymongo module found")
+
         if client is None or isinstance(client, str):
             client = pymongo.MongoClient(host=client)
+        client.ensure_index([("id", pymongo.ASCENDING)])
         self.client = client[db][collection]
         self.key_prefix = key_prefix or ""
         self.collection = collection
