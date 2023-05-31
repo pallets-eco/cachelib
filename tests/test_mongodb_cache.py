@@ -14,6 +14,11 @@ def cache_factory(request):
         kwargs["key_prefix"] = "prefix"
 
         rc = request.param(*args, **kwargs)
+        index_info = rc.client.index_information()
+        all_keys = {
+            subkey[0] for value in index_info.values() for subkey in value["key"]
+        }
+        assert "id" in all_keys, "Failed to create index on 'id' field"
         rc.clear()
         return rc
 

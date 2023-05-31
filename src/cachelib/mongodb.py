@@ -41,8 +41,13 @@ class MongoDbCache(BaseCache):
 
         if client is None or isinstance(client, str):
             client = pymongo.MongoClient(host=client)
-        client.ensure_index([("id", pymongo.ASCENDING)])
         self.client = client[db][collection]
+        index_info = self.client.index_information()
+        all_keys = {
+            subkey[0] for value in index_info.values() for subkey in value["key"]
+        }
+        if "id" not in all_keys:
+            self.client.create_index("id", unique=True)
         self.key_prefix = key_prefix or ""
         self.collection = collection
 
