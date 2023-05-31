@@ -185,7 +185,6 @@ class MongoDbCache(BaseCache):
         result = self.client.delete_many(filter)
 
         if result.deleted_count != len(keys):
-
             existing_keys = [
                 item["id"][len(self.key_prefix) :] for item in self.client.find(filter)
             ]
