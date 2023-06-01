@@ -46,7 +46,7 @@ docutils==0.18.1
     # via
     #   sphinx
     #   sphinx-tabs
-filelock==3.10.0
+filelock==3.12.0
     # via
     #   tox
     #   virtualenv
@@ -72,7 +72,7 @@ mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.6.0
     # via pre-commit
-packaging==23.0
+packaging==23.1
     # via
     #   build
     #   pallets-sphinx-themes
@@ -86,7 +86,7 @@ pep517==0.12.0
     # via build
 pip-tools==6.12.3
     # via -r dev.in
-platformdirs==3.1.1
+platformdirs==3.5.1
     # via
     #   tox
     #   virtualenv
@@ -159,7 +159,7 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 tomli==2.0.1
     # via pep517
-tox==4.4.8
+tox==4.5.2
     # via -r dev.in
 types-pyopenssl==23.0.0.2
     # via types-redis
@@ -173,7 +173,7 @@ urllib3==1.26.7
     #   requests
 uwsgi==2.0.21
     # via -r tests.in
-virtualenv==20.21.0
+virtualenv==20.23.0
     # via
     #   pre-commit
     #   tox
