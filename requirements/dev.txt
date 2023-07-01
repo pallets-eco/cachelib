@@ -94,7 +94,7 @@ pluggy==1.0.0
     # via
     #   pytest
     #   tox
-pre-commit==3.2.1
+pre-commit==3.3.3
     # via -r dev.in
 psutil==5.8.0
     # via pytest-xprocess
