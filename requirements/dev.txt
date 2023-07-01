@@ -66,7 +66,7 @@ jmespath==1.0.1
     #   botocore
 markupsafe==2.0.1
     # via jinja2
-mypy==1.1.1
+mypy==1.4.1
     # via -r typing.in
 mypy-extensions==1.0.0
     # via mypy
@@ -165,7 +165,7 @@ types-pyopenssl==23.0.0.2
     # via types-redis
 types-redis==4.5.4.1
     # via -r typing.in
-typing-extensions==3.10.0.2
+typing-extensions==4.7.0
     # via mypy
 urllib3==1.26.7
     # via
