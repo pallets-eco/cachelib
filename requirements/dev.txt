@@ -102,7 +102,7 @@ py==1.10.0
     # via pytest-xprocess
 pycparser==2.21
     # via cffi
-pygments==2.10.0
+pygments==2.15.0
     # via
     #   sphinx
     #   sphinx-tabs
