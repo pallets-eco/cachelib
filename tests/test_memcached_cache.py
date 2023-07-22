@@ -10,7 +10,11 @@ from cachelib import MemcachedCache
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
         mc = MemcachedCache(*args, **kwargs)
-        mc._client.flush_all()
+        if mc.pylibmc_used:
+            with mc._client.reserve(block=mc.blocking) as client:
+                client.flush_all()
+        else:
+            mc._client.flush_all()
         return mc
 
     request.cls.cache_factory = _factory
