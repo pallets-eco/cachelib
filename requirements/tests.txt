@@ -48,5 +48,5 @@ six==1.16.0
     # via python-dateutil
 urllib3==1.26.13
     # via botocore
-uwsgi==2.0.21
+uwsgi==2.0.22
     # via -r tests.in
