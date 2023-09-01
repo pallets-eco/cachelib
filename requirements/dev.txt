@@ -20,7 +20,7 @@ botocore==1.29.104
     #   s3transfer
 build==0.8.0
     # via pip-tools
-cachetools==5.3.0
+cachetools==5.3.1
     # via tox
 certifi==2022.12.7
     # via requests
@@ -28,7 +28,7 @@ cffi==1.15.1
     # via cryptography
 cfgv==3.3.1
     # via pre-commit
-chardet==5.1.0
+chardet==5.2.0
     # via tox
 charset-normalizer==2.0.7
     # via requests
@@ -40,13 +40,13 @@ cryptography==39.0.1
     # via
     #   types-pyopenssl
     #   types-redis
-distlib==0.3.6
+distlib==0.3.7
     # via virtualenv
 docutils==0.18.1
     # via
     #   sphinx
     #   sphinx-tabs
-filelock==3.10.0
+filelock==3.12.3
     # via
     #   tox
     #   virtualenv
@@ -72,7 +72,7 @@ mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.6.0
     # via pre-commit
-packaging==23.0
+packaging==23.1
     # via
     #   build
     #   pallets-sphinx-themes
@@ -86,11 +86,11 @@ pep517==0.12.0
     # via build
 pip-tools==6.12.3
     # via -r dev.in
-platformdirs==3.1.1
+platformdirs==3.10.0
     # via
     #   tox
     #   virtualenv
-pluggy==1.0.0
+pluggy==1.3.0
     # via
     #   pytest
     #   tox
@@ -108,7 +108,7 @@ pygments==2.10.0
     #   sphinx-tabs
 pylibmc==1.6.3
     # via -r tests.in
-pyproject-api==1.5.1
+pyproject-api==1.6.1
     # via tox
 pytest==7.2.2
     # via
@@ -159,7 +159,7 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 tomli==2.0.1
     # via pep517
-tox==4.4.8
+tox==4.11.0
     # via -r dev.in
 types-pyopenssl==23.0.0.2
     # via types-redis
@@ -173,7 +173,7 @@ urllib3==1.26.7
     #   requests
 uwsgi==2.0.21
     # via -r tests.in
-virtualenv==20.21.0
+virtualenv==20.24.4
     # via
     #   pre-commit
     #   tox
