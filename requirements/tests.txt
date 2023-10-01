@@ -4,9 +4,9 @@
 #
 #    pip-compile requirements/tests.in
 #
-boto3==1.26.104
+boto3==1.28.57
     # via -r tests.in
-botocore==1.29.104
+botocore==1.31.57
     # via
     #   boto3
     #   s3transfer
@@ -38,7 +38,7 @@ python-dateutil==2.8.2
     # via botocore
 redis==5.0.0
     # via -r tests.in
-s3transfer==0.6.0
+s3transfer==0.7.0
     # via boto3
 six==1.16.0
     # via python-dateutil
