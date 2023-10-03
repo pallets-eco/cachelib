@@ -42,7 +42,7 @@ s3transfer==0.6.0
     # via boto3
 six==1.16.0
     # via python-dateutil
-urllib3==1.26.13
+urllib3==1.26.17
     # via botocore
 uwsgi==2.0.21
     # via -r tests.in
