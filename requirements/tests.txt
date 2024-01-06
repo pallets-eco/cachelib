@@ -4,12 +4,16 @@
 #
 #    pip-compile requirements/tests.in
 #
+async-timeout==4.0.3
+    # via redis
 boto3==1.26.104
     # via -r tests.in
 botocore==1.29.104
     # via
     #   boto3
     #   s3transfer
+exceptiongroup==1.2.0
+    # via pytest
 iniconfig==1.1.1
     # via pytest
 jmespath==1.0.1
@@ -28,7 +32,7 @@ pylibmc==1.6.3
     # via -r tests.in
 pyparsing==2.4.7
     # via packaging
-pytest==7.4.2
+pytest==7.4.4
     # via
     #   -r tests.in
     #   pytest-xprocess
@@ -42,6 +46,8 @@ s3transfer==0.6.0
     # via boto3
 six==1.16.0
     # via python-dateutil
+tomli==2.0.1
+    # via pytest
 urllib3==1.26.13
     # via botocore
 uwsgi==2.0.21
