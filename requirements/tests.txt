@@ -36,7 +36,7 @@ pytest-xprocess==0.22.2
     # via -r tests.in
 python-dateutil==2.8.2
     # via botocore
-redis==5.0.0
+redis==5.0.1
     # via -r tests.in
 s3transfer==0.6.0
     # via boto3
