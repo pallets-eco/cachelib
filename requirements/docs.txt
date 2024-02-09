@@ -18,7 +18,7 @@ docutils==0.18.1
     #   sphinx-tabs
 idna==3.3
     # via requests
-imagesize==1.2.0
+imagesize==1.4.1
     # via sphinx
 importlib-metadata==7.0.1
     # via sphinx
@@ -44,7 +44,7 @@ requests==2.31.0
     # via sphinx
 snowballstemmer==2.1.0
     # via sphinx
-sphinx==5.1.1
+sphinx==7.2.6
     # via
     #   -r docs.in
     #   pallets-sphinx-themes
@@ -67,7 +67,7 @@ sphinxcontrib-log-cabinet==1.0.1
     # via -r docs.in
 sphinxcontrib-qthelp==1.0.3
     # via sphinx
-sphinxcontrib-serializinghtml==1.1.5
+sphinxcontrib-serializinghtml==1.1.10
     # via sphinx
 urllib3==1.26.7
     # via requests
