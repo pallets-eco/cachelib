@@ -10,7 +10,7 @@ cryptography==42.0.0
     # via
     #   types-pyopenssl
     #   types-redis
-mypy==1.1.1
+mypy==1.8.0
     # via -r typing.in
 mypy-extensions==1.0.0
     # via mypy
@@ -22,5 +22,5 @@ types-pyopenssl==23.0.0.2
     # via types-redis
 types-redis==4.6.0.7
     # via -r typing.in
-typing-extensions==3.10.0.2
+typing-extensions==4.9.0
     # via mypy
