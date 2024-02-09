@@ -6,7 +6,6 @@ from cachelib.serializers import SimpleSerializer
 
 
 class SimpleCache(BaseCache):
-
     """Simple memory cache for single process environments.  This class exists
     mainly for the development server and is not 100% thread safe.  It tries
     to use as many atomic operations as possible and no locks for simplicity
