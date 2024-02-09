@@ -143,7 +143,7 @@ sphinx==5.1.1
     #   sphinxcontrib-log-cabinet
 sphinx-issues==4.0.0
     # via -r docs.in
-sphinx-tabs==3.4.1
+sphinx-tabs==3.4.5
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
