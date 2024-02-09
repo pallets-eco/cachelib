@@ -22,7 +22,7 @@ jmespath==1.0.1
     #   botocore
 packaging==21.3
     # via pytest
-pluggy==1.0.0
+pluggy==1.4.0
     # via pytest
 psutil==5.8.0
     # via pytest-xprocess
@@ -32,7 +32,7 @@ pylibmc==1.6.3
     # via -r tests.in
 pyparsing==2.4.7
     # via packaging
-pytest==7.4.2
+pytest==8.0.0
     # via
     #   -r tests.in
     #   pytest-xprocess

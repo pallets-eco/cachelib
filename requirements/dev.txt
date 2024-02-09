@@ -112,7 +112,7 @@ pylibmc==1.6.3
     # via -r tests.in
 pyproject-api==1.6.1
     # via tox
-pytest==7.4.2
+pytest==8.0.0
     # via
     #   -r tests.in
     #   pytest-xprocess
