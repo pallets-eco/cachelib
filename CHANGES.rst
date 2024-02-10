@@ -1,3 +1,10 @@
+Version 0.12.0
+--------------
+
+Unreleased
+
+- ``RedisCache`` now supports callables as key prefix
+
 Version 0.11.0
 --------------
 
