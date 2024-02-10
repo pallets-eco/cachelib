@@ -24,24 +24,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: Linux, python: '3.9', os: ubuntu-latest, tox: py39}
-          - {name: Mac, python: '3.9', os: macos-latest, tox: py39}
+          - {name: Linux, python: '3.12', os: ubuntu-latest, tox: py312}
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
-          - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
+          - {name: '3.9', python: '3.9', os: ubuntu-latest, tox: py39}
           - {name: '3.10', python: '3.10', os: ubuntu-latest, tox: py310}
-          - {name: Typing, python: '3.9', os: ubuntu-latest, tox: typing}
+          - {name: '3.11', python: '3.11', os: ubuntu-latest, tox: py311}
+          - {name: '3.12', python: '3.12', os: ubuntu-latest, tox: py312}
+          - {name: Typing, python: '3.12', os: ubuntu-latest, tox: typing}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-      - name: install external dependencies Mac
-        if: matrix.os == 'macos-latest'
-        run: brew install libmemcached memcached redis
-      - name: Setup Docker on macOS
-        if: matrix.os == 'macos-latest'
-        uses: docker-practice/actions-setup-docker@master
-        timeout-minutes: 12
       - name: install external dependencies Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
