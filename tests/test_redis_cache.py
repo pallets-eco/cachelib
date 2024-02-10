@@ -38,6 +38,15 @@ def cache_factory(request):
     request.cls.cache_factory = _factory
 
 
+def my_callable_key() -> str:
+    return "bacon"
+
+
 @pytest.mark.usefixtures("redis_server")
 class TestRedisCache(CommonTests, ClearTests, HasTests):
-    pass
+    def test_callable_key(self):
+        cache = self.cache_factory()
+        assert cache.set(my_callable_key, "sausages")
+        assert cache.get(my_callable_key) == "sausages"
+        assert cache.set(lambda: "spam", "sausages")
+        assert cache.get(lambda: "spam") == "sausages"
