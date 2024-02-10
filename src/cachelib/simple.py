@@ -39,10 +39,7 @@ class SimpleCache(BaseCache):
 
     def _remove_older(self) -> None:
         k_ordered = (
-            k
-            for k, v in sorted(
-                self._cache.items(), key=lambda item: item[1][0]  # type: ignore
-            )
+            k for k, v in sorted(self._cache.items(), key=lambda item: item[1][0])
         )
         for k in k_ordered:
             self._cache.pop(k, None)
