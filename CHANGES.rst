@@ -1,15 +1,16 @@
 Version 0.12.0
 --------------
 
-Unreleased
+Released 2024-02-11
 
 - ``RedisCache`` now supports callables as keys
 - Added ``MongoDB`` as a cache backend
 
+
 Version 0.11.0
 --------------
 
-Released 2024-02010
+Released 2024-02-10
 
 - Drop python 3.7 support
 - Add python 3.11 support
