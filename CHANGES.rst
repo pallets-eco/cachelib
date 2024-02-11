@@ -1,6 +1,18 @@
+Version 0.12.0
+--------------
+
 Unreleased
 
-- Added ``MongoDb`` as a cache backend
+- ``RedisCache`` now supports callables as keys
+- Added ``MongoDB`` as a cache backend
+
+Version 0.11.0
+--------------
+
+Released 2024-02010
+
+- Drop python 3.7 support
+- Add python 3.11 support
 
 
 Version 0.10.2
@@ -14,7 +26,7 @@ Released 2023-01-31
 Version 0.10.1
 --------------
 
-Unreleased
+Released 2023-01-22
 
 - Fix logging pollution due to ``DynamoDB`` logging handler
 
