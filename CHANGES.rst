@@ -4,6 +4,7 @@ Version 0.12.0
 Unreleased
 
 - ``RedisCache`` now supports callables as keys
+- Added ``MongoDB`` as a cache backend
 
 Version 0.11.0
 --------------
@@ -37,7 +38,6 @@ Released 2023-01-22
 
 - Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
 - Added ``DynamoDb`` as a cache backend :pr:`209`
-
 
 Version 0.9.0
 -------------

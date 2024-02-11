@@ -4,3 +4,4 @@ redis
 uwsgi
 pytest-xprocess
 boto3
+pymongo

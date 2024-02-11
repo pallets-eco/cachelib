@@ -3,6 +3,7 @@ from cachelib.base import NullCache
 from cachelib.dynamodb import DynamoDbCache
 from cachelib.file import FileSystemCache
 from cachelib.memcached import MemcachedCache
+from cachelib.mongodb import MongoDbCache
 from cachelib.redis import RedisCache
 from cachelib.simple import SimpleCache
 from cachelib.uwsgi import UWSGICache
@@ -16,5 +17,6 @@ __all__ = [
     "RedisCache",
     "UWSGICache",
     "DynamoDbCache",
+    "MongoDbCache",
 ]
 __version__ = "0.11.0"
