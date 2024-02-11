@@ -6,7 +6,6 @@ from cachelib.serializers import SimpleSerializer
 
 
 class SimpleCache(BaseCache):
-
     """Simple memory cache for single process environments.  This class exists
     mainly for the development server and is not 100% thread safe.  It tries
     to use as many atomic operations as possible and no locks for simplicity
@@ -40,10 +39,7 @@ class SimpleCache(BaseCache):
 
     def _remove_older(self) -> None:
         k_ordered = (
-            k
-            for k, v in sorted(
-                self._cache.items(), key=lambda item: item[1][0]  # type: ignore
-            )
+            k for k, v in sorted(self._cache.items(), key=lambda item: item[1][0])
         )
         for k in k_ordered:
             self._cache.pop(k, None)

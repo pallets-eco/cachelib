@@ -6,19 +6,21 @@
 #
 cffi==1.15.1
     # via cryptography
-cryptography==39.0.1
+cryptography==42.0.0
     # via
     #   types-pyopenssl
     #   types-redis
-mypy==1.1.1
+mypy==1.8.0
     # via -r typing.in
 mypy-extensions==1.0.0
     # via mypy
 pycparser==2.21
     # via cffi
+tomli==2.0.1
+    # via mypy
 types-pyopenssl==23.0.0.2
     # via types-redis
-types-redis==4.5.4.1
+types-redis==4.6.0.20240106
     # via -r typing.in
-typing-extensions==3.10.0.2
+typing-extensions==4.9.0
     # via mypy
