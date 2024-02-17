@@ -9,7 +9,7 @@ alabaster==0.7.16
 babel==2.14.0
     # via sphinx
 boto3==1.34.39
-    # via -r requirements/tests.in
+    # via -r tests.in
 botocore==1.34.39
     # via
     #   boto3
@@ -65,7 +65,7 @@ jmespath==1.0.1
 markupsafe==2.1.5
     # via jinja2
 mypy==1.8.0
-    # via -r requirements/typing.in
+    # via -r typing.in
 mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.8.0
@@ -79,9 +79,9 @@ packaging==23.2
     #   sphinx
     #   tox
 pallets-sphinx-themes==2.1.1
-    # via -r requirements/docs.in
+    # via -r docs.in
 pip-tools==7.3.0
-    # via -r requirements/dev.in
+    # via -r dev.in
 platformdirs==4.2.0
     # via
     #   tox
@@ -91,7 +91,7 @@ pluggy==1.4.0
     #   pytest
     #   tox
 pre-commit==3.6.1
-    # via -r requirements/dev.in
+    # via -r dev.in
 psutil==5.9.8
     # via pytest-xprocess
 pycparser==2.21
@@ -101,25 +101,25 @@ pygments==2.17.2
     #   sphinx
     #   sphinx-tabs
 pylibmc==1.6.3
-    # via -r requirements/tests.in
+    # via -r tests.in
 pymongo==4.6.1
-    # via -r requirements/tests.in
+    # via -r tests.in
 pyproject-api==1.6.1
     # via tox
 pyproject-hooks==1.0.0
     # via build
 pytest==8.0.0
     # via
-    #   -r requirements/tests.in
+    #   -r tests.in
     #   pytest-xprocess
 pytest-xprocess==0.23.0
-    # via -r requirements/tests.in
+    # via -r tests.in
 python-dateutil==2.8.2
     # via botocore
 pyyaml==6.0.1
     # via pre-commit
 redis==5.0.1
-    # via -r requirements/tests.in
+    # via -r tests.in
 requests==2.31.0
     # via sphinx
 s3transfer==0.10.0
@@ -130,15 +130,15 @@ snowballstemmer==2.2.0
     # via sphinx
 sphinx==7.2.6
     # via
-    #   -r requirements/docs.in
+    #   -r docs.in
     #   pallets-sphinx-themes
     #   sphinx-issues
     #   sphinx-tabs
     #   sphinxcontrib-log-cabinet
 sphinx-issues==4.0.0
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinx-tabs==3.4.5
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-applehelp==1.0.8
     # via sphinx
 sphinxcontrib-devhelp==1.0.6
@@ -148,17 +148,17 @@ sphinxcontrib-htmlhelp==2.0.5
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-log-cabinet==1.0.1
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-qthelp==1.0.7
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.10
     # via sphinx
 tox==4.12.1
-    # via -r requirements/dev.in
+    # via -r dev.in
 types-pyopenssl==24.0.0.20240130
     # via types-redis
 types-redis==4.6.0.20240106
-    # via -r requirements/typing.in
+    # via -r typing.in
 typing-extensions==4.9.0
     # via mypy
 urllib3==2.0.7
@@ -166,7 +166,7 @@ urllib3==2.0.7
     #   botocore
     #   requests
 uwsgi==2.0.24
-    # via -r requirements/tests.in
+    # via -r tests.in
 virtualenv==20.25.0
     # via
     #   pre-commit
