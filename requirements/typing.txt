@@ -11,14 +11,14 @@ cryptography==42.0.0
     #   types-pyopenssl
     #   types-redis
 mypy==1.8.0
-    # via -r requirements/typing.in
+    # via -r typing.in
 mypy-extensions==1.0.0
     # via mypy
 pycparser==2.21
     # via cffi
 types-pyopenssl==23.0.0.2
     # via types-redis
-types-redis==4.6.0.20240106
-    # via -r requirements/typing.in
+types-redis==4.6.0.20240218
+    # via -r typing.in
 typing-extensions==4.9.0
     # via mypy
