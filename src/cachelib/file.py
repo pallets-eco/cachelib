@@ -1,4 +1,5 @@
 import errno
+import hashlib
 import logging
 import os
 import platform
@@ -7,13 +8,20 @@ import struct
 import tempfile
 import typing as _t
 from contextlib import contextmanager
-from hashlib import md5
 from pathlib import Path
 from time import sleep
 from time import time
 
 from cachelib.base import BaseCache
 from cachelib.serializers import FileSystemSerializer
+
+
+def _lazy_md5(string: bytes = b"") -> _t.Any:
+    """Don't access ``hashlib.md5`` until runtime. FIPS builds may not include
+    md5, in which case the import and use as a default would fail before the
+    developer can configure something else.
+    """
+    return hashlib.md5(string)
 
 
 class FileSystemCache(BaseCache):
@@ -38,6 +46,8 @@ class FileSystemCache(BaseCache):
     _fs_transaction_suffix = ".__wz_cache"
     #: keep amount of files in a cache element
     _fs_count_file = "__wz_cache_count"
+    #: default file name hashing method
+    _default_hash_method = staticmethod(_lazy_md5)
 
     serializer = FileSystemSerializer()
 
@@ -47,12 +57,15 @@ class FileSystemCache(BaseCache):
         threshold: int = 500,
         default_timeout: int = 300,
         mode: _t.Optional[int] = None,
-        hash_method: _t.Any = md5,
+        hash_method: _t.Any = None,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
         self._threshold = threshold
-        self._hash_method = hash_method
+
+        self._hash_method = self._default_hash_method
+        if hash_method is not None:
+            self._hash_method = hash_method
 
         # Mode set by user takes precedence. If no mode has
         # been given, we need to set the correct default based
