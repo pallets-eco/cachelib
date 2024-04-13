@@ -155,7 +155,7 @@ sphinxcontrib-qthelp==1.0.7
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.10
     # via sphinx
-tox==4.12.1
+tox==4.14.2
     # via -r dev.in
 types-pyopenssl==24.0.0.20240130
     # via types-redis
