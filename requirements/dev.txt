@@ -38,7 +38,7 @@ cryptography==42.0.2
     #   types-redis
 distlib==0.3.8
     # via virtualenv
-dnspython==2.5.0
+dnspython==2.6.1
     # via pymongo
 docutils==0.20.1
     # via
