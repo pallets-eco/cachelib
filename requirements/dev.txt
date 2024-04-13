@@ -32,7 +32,7 @@ click==8.1.7
     # via pip-tools
 colorama==0.4.6
     # via tox
-cryptography==42.0.2
+cryptography==42.0.4
     # via
     #   types-pyopenssl
     #   types-redis
