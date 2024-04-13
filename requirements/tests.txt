@@ -4,9 +4,9 @@
 #
 #    pip-compile requirements/tests.in
 #
-boto3==1.34.39
-    # via -r requirements/tests.in
-botocore==1.34.39
+boto3==1.34.84
+    # via -r tests.in
+botocore==1.34.84
     # via
     #   boto3
     #   s3transfer
@@ -25,24 +25,24 @@ pluggy==1.4.0
 psutil==5.9.8
     # via pytest-xprocess
 pylibmc==1.6.3
-    # via -r requirements/tests.in
+    # via -r tests.in
 pymongo==4.6.1
-    # via -r requirements/tests.in
+    # via -r tests.in
 pytest==8.0.0
     # via
-    #   -r requirements/tests.in
+    #   -r tests.in
     #   pytest-xprocess
 pytest-xprocess==0.23.0
-    # via -r requirements/tests.in
+    # via -r tests.in
 python-dateutil==2.8.2
     # via botocore
 redis==5.0.1
-    # via -r requirements/tests.in
+    # via -r tests.in
 s3transfer==0.10.0
     # via boto3
 six==1.16.0
     # via python-dateutil
-urllib3
+urllib3==2.2.1
     # via botocore
 uwsgi==2.0.24
-    # via -r requirements/tests.in
+    # via -r tests.in
