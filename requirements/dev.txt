@@ -112,7 +112,7 @@ pytest==8.0.0
     # via
     #   -r tests.in
     #   pytest-xprocess
-pytest-xprocess==0.23.0
+pytest-xprocess==1.0.1
     # via -r tests.in
 python-dateutil==2.8.2
     # via botocore
