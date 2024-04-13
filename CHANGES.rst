@@ -1,3 +1,14 @@
+Version 0.13.0
+--------------
+
+Unreleased
+
+-   default ``hashlib.md5`` may not be available in FIPS builds. We
+    now do not access it at import time on ``FileSystemCache``so developers
+    have time to change the default.
+    ``hashlib.md5`` will be lazy loaded when a new default is not provided
+
+
 Version 0.12.0
 --------------
 
