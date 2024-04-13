@@ -80,7 +80,7 @@ packaging==23.2
     #   tox
 pallets-sphinx-themes==2.1.1
     # via -r docs.in
-pip-tools==7.3.0
+pip-tools==7.4.1
     # via -r dev.in
 platformdirs==4.2.0
     # via
@@ -107,7 +107,9 @@ pymongo==4.6.1
 pyproject-api==1.6.1
     # via tox
 pyproject-hooks==1.0.0
-    # via build
+    # via
+    #   build
+    #   pip-tools
 pytest==8.0.0
     # via
     #   -r tests.in
