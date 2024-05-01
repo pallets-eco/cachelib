@@ -102,7 +102,7 @@ pygments==2.17.2
     #   sphinx-tabs
 pylibmc==1.6.3
     # via -r tests.in
-pymongo==4.6.1
+pymongo==4.7.1
     # via -r tests.in
 pyproject-api==1.6.1
     # via tox
