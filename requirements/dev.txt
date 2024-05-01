@@ -167,7 +167,7 @@ urllib3==2.0.7
     # via
     #   botocore
     #   requests
-uwsgi==2.0.24
+uwsgi==2.0.25.1
     # via -r tests.in
 virtualenv==20.25.0
     # via
