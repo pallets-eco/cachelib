@@ -86,7 +86,7 @@ platformdirs==4.2.0
     # via
     #   tox
     #   virtualenv
-pluggy==1.4.0
+pluggy==1.5.0
     # via
     #   pytest
     #   tox
@@ -110,7 +110,7 @@ pyproject-hooks==1.0.0
     # via
     #   build
     #   pip-tools
-pytest==8.0.0
+pytest==8.2.0
     # via
     #   -r tests.in
     #   pytest-xprocess
