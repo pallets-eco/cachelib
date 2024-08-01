@@ -16,7 +16,7 @@ botocore==1.34.39
     #   s3transfer
 build==1.0.3
     # via pip-tools
-cachetools==5.3.2
+cachetools==5.4.0
     # via tox
 certifi==2024.2.2
     # via requests
@@ -44,7 +44,7 @@ docutils==0.20.1
     # via
     #   sphinx
     #   sphinx-tabs
-filelock==3.13.1
+filelock==3.15.4
     # via
     #   tox
     #   virtualenv
@@ -70,7 +70,7 @@ mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.8.0
     # via pre-commit
-packaging==23.2
+packaging==24.1
     # via
     #   build
     #   pallets-sphinx-themes
@@ -82,11 +82,11 @@ pallets-sphinx-themes==2.1.3
     # via -r docs.in
 pip-tools==7.4.1
     # via -r dev.in
-platformdirs==4.2.0
+platformdirs==4.2.2
     # via
     #   tox
     #   virtualenv
-pluggy==1.4.0
+pluggy==1.5.0
     # via
     #   pytest
     #   tox
@@ -104,7 +104,7 @@ pylibmc==1.6.3
     # via -r tests.in
 pymongo==4.6.1
     # via -r tests.in
-pyproject-api==1.6.1
+pyproject-api==1.7.1
     # via tox
 pyproject-hooks==1.0.0
     # via
@@ -155,7 +155,7 @@ sphinxcontrib-qthelp==1.0.7
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.10
     # via sphinx
-tox==4.15.0
+tox==4.16.0
     # via -r dev.in
 types-pyopenssl==24.0.0.20240130
     # via types-redis
@@ -169,7 +169,7 @@ urllib3==2.0.7
     #   requests
 uwsgi==2.0.24
     # via -r tests.in
-virtualenv==20.25.0
+virtualenv==20.26.3
     # via
     #   pre-commit
     #   tox
