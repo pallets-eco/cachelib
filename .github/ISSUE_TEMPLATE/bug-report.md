@@ -5,7 +5,7 @@ about: Report a bug in CacheLib (not other projects which depend on CacheLib)
 
 <!--
 This issue tracker is a tool to address bugs in CacheLib itself. Please
-use Pallets Discord or Stack Overflow for questions about your own code.
+use the Pallets Discord for questions about your own code.
 
 Replace this comment with a clear outline of what the bug is.
 -->

@@ -31,8 +31,7 @@ class UWSGICache(BaseCache):
 
         if platform.python_implementation() == "PyPy":
             raise RuntimeError(
-                "uWSGI caching does not work under PyPy, see "
-                "the docs for more details."
+                "uWSGI caching does not work under PyPy, see the docs for more details."
             )
 
         try:

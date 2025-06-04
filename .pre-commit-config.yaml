@@ -1,30 +1,18 @@
-ci:
-  autoupdate_schedule: monthly
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.2
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: d19233b89771be2d89273f163f5edc5a39bbc34a  # frozen: v0.11.12
     hooks:
-      - id: pyupgrade
-        args: ["--py37-plus"]
-  - repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.12.0
+      - id: ruff
+      - id: ruff-format
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: eaecadae7e858b1c3449db8172193c4c966262d1  # frozen: 0.7.10
     hooks:
-      - id: reorder-python-imports
-        args: ["--application-directories", "src"]
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
-    hooks:
-      - id: flake8
-        additional_dependencies:
-          - flake8-bugbear
-          - flake8-implicit-str-concat
+      - id: uv-lock
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b  # frozen: v5.0.0
     hooks:
+      - id: check-merge-conflict
+      - id: debug-statements
       - id: fix-byte-order-marker
       - id: trailing-whitespace
       - id: end-of-file-fixer

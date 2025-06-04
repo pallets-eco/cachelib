@@ -31,11 +31,11 @@ class MongoDbCache(BaseCache):
         collection: _t.Optional[str] = "cache-collection",
         default_timeout: int = 300,
         key_prefix: _t.Optional[str] = None,
-        **kwargs: _t.Any
+        **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
         try:
-            import pymongo  # type: ignore
+            import pymongo
         except ImportError:
             logging.warning("no pymongo module found")
 
