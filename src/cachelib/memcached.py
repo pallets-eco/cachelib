@@ -4,7 +4,6 @@ from time import time
 
 from cachelib.base import BaseCache
 
-
 _test_memcached_key = re.compile(r"[^\x00-\x21\xff]{1,250}$").match
 
 
