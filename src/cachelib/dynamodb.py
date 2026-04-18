@@ -90,7 +90,7 @@ class DynamoDbCache(BaseCache):
 
     def _utcnow(self) -> _t.Any:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        return datetime.datetime.now(datetime.timezone.utc)
 
     def _get_item(
         self, key: str, attributes: _t.Optional[_t.List[_t.Any]] = None
