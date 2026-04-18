@@ -82,6 +82,7 @@ filterwarnings = [
     "default::pytest.PytestUnraisableExceptionWarning",
     "default::DeprecationWarning:cachelib.uwsgi",
     "default::DeprecationWarning:cachelib.redis",
+    "default::DeprecationWarning:botocore",
 ]
 
 [tool.coverage.run]
