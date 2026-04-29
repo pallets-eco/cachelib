@@ -64,10 +64,10 @@ def memcached_server(xprocess):
 
     class Starter(ProcessStarter):
         pattern = "server listening"
-        args = ["memcached", "-vv"]
+        args = ["memcached", "-vv", "-p", "11212"]
 
         def startup_check(self):
-            out = subprocess.run(["memcached"], stderr=subprocess.PIPE)
+            out = subprocess.run(["memcached", "-p", "11212"], stderr=subprocess.PIPE)
             return b"Address already" in out.stderr
 
     xprocess.ensure(package_name, Starter)
