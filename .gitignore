@@ -1,31 +1,8 @@
-# general things to ignore
-build/
-dist/
-*.egg-info/
-*.egg
-*.eggs
-*.py[cod]
+.idea/
+.vscode/
 __pycache__/
-*.so
-*~
-venv/
-env/
-.DS_Store
-*.swp
-docs/_build
-
-# due to using t/nox and pytest
-.tox
-.cache
-.pytest_cache
-.coverage
+dist/
+.coverage*
 htmlcov/
-.xprocess
-.vscode
-.python-version
-/.idea/.gitignore
-/.idea/cachelib.iml
-/.idea/misc.xml
-/.idea/modules.xml
-/.idea/inspectionProfiles/profiles_settings.xml
-/.idea/vcs.xml
+.tox/
+docs/_build/

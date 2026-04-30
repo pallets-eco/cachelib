@@ -31,11 +31,11 @@ class MongoDbCache(BaseCache):
         collection: _t.Optional[str] = "cache-collection",
         default_timeout: int = 300,
         key_prefix: _t.Optional[str] = None,
-        **kwargs: _t.Any
+        **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
         try:
-            import pymongo  # type: ignore
+            import pymongo
         except ImportError:
             logging.warning("no pymongo module found")
 
@@ -53,7 +53,7 @@ class MongoDbCache(BaseCache):
 
     def _utcnow(self) -> _t.Any:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        return datetime.datetime.now(datetime.timezone.utc)
 
     def _expire_records(self) -> _t.Any:
         res = self.client.delete_many({"expiration": {"$lte": self._utcnow()}})

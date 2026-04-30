@@ -17,7 +17,7 @@ class BaseSerializer:
         )
 
     def dump(
-        self, value: int, f: _t.IO, protocol: int = pickle.HIGHEST_PROTOCOL
+        self, value: int, f: _t.IO[bytes], protocol: int = pickle.HIGHEST_PROTOCOL
     ) -> None:
         try:
             pickle.dump(value, f, protocol)
