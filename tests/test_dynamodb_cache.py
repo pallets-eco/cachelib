@@ -29,5 +29,6 @@ def cache_factory(request):
         request.cls.cache_factory = _factory
 
 
+@pytest.mark.network
 class TestDynamoDbCache(CommonTests, ClearTests, HasTests):
     pass
