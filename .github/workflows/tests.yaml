@@ -43,9 +43,7 @@ jobs:
       - uses: wbari/start-mongoDB@eb9a4b97a1a252bbaebb98f5fc088ca1f972905a # v0.2
         with:
           mongoDBVersion: 'latest'
-      - run: uv run --locked --no-default-groups --group dev tox run
-        env:
-          TOX_ENV: ${{ matrix.tox || format('py{0}', matrix.python) }}
+      - run: uv run --locked --no-default-groups --group dev tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
   typing:
     runs-on: ubuntu-latest
     steps:
