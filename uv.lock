@@ -202,7 +202,8 @@ tests = [
     { name = "pytest-xprocess" },
     { name = "redis", version = "6.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "redis", version = "6.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-    { name = "uwsgi" },
+    { name = "uwsgi", version = "2.0.25", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "uwsgi", version = "2.0.30", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
 ]
 typing = [
     { name = "mypy", version = "1.14.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
@@ -236,7 +237,8 @@ tests = [
     { name = "pytest" },
     { name = "pytest-xprocess" },
     { name = "redis" },
-    { name = "uwsgi" },
+    { name = "uwsgi", marker = "python_full_version < '3.9'", specifier = "==2.0.25" },
+    { name = "uwsgi", marker = "python_full_version >= '3.9'", specifier = ">=2.0.26" },
 ]
 typing = [
     { name = "mypy" },
@@ -2233,8 +2235,23 @@ wheels = [
 
 [[package]]
 name = "uwsgi"
+version = "2.0.25"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.9'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c5/d6/72d625b5664468df51c5a082668b3f127cc0b154f7bb22763ac71b081d6a/uwsgi-2.0.25.tar.gz", hash = "sha256:a0463d00a31f382a560b631adfbcf0a342c748ce04b3408e5bae1b401653d217", size = 811901, upload-time = "2024-04-13T19:44:39.925Z" }
+
+[[package]]
+name = "uwsgi"
 version = "2.0.30"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version == '3.11.*'",
+    "python_full_version == '3.10.*'",
+    "python_full_version == '3.9.*'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/6f/f0/d794e9c7359f488b158e88c9e718c5600efdb74a0daf77331e5ffb6c87c4/uwsgi-2.0.30.tar.gz", hash = "sha256:c12aa652124f062ac216077da59f6d247bd7ef938234445881552e58afb1eb5f", size = 822560, upload-time = "2025-06-03T08:13:53.772Z" }
 
 [[package]]

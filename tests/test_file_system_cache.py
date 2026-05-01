@@ -20,7 +20,7 @@ class SillySerializer:
         try:
             loaded = eval(fs.readline().decode())
         # When all file content has been read eval will
-        # turn the EOFError into SyntaxError wich is not
+        # turn the EOFError into SyntaxError which is not
         # handled by cachelib
         except SyntaxError as e:
             raise EOFError from e

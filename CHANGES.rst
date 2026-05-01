@@ -140,7 +140,7 @@ Released 2021-08-12
     lost. :pr:`52`
 -   ``FileSystemCache`` logs system-related exceptions. :pr:`51`
 -   Removal of expired entries in ``FileSystemCache`` is only triggered
-    if the number of entries is over the ``threshhold`` when calling
+    if the number of entries is over the ``threshold`` when calling
     ``set``. ``get`` ``has`` still return ``None`` and ``False``
     respectively for expired entries, but will not remove the files. All
     removals happen at pruning time or explicitly with ``clear`` and
