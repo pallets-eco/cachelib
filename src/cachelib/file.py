@@ -41,7 +41,7 @@ class FileSystemCache(BaseCache):
     :param hash_method: Default hashlib.md5. The hash method used to
                         generate the filename for cached results.
                         Default is lazy loaded and can be overridden by
-                        seeting  `_default_hash_method`
+                        setting  `_default_hash_method`
     """
 
     #: used for temporary files by the FileSystemCache
