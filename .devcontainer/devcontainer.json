@@ -1,0 +1,32 @@
+{
+    "name": "pallets-eco/cachelib",
+    "image": "mcr.microsoft.com/devcontainers/python:3",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "charliermarsh.ruff"
+            ],
+            "settings": {
+                "python.formatting.provider": "charliermarsh.ruff",
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.editor.codeActionsOnSave": {
+                    "source.organizeImports": true,
+                    "source.fixAll": true
+                },
+                "python.testing.pytestArgs": [
+                    "tests"
+                ],
+                "python.editor.formatOnSave": true,
+                "files.exclude": {
+                    ".coverage": true,
+                    ".pytest_cache": true,
+                    "__pycache__": true,
+                    ".ruff_cache": true
+                }
+            }
+        }
+    },
+    "postCreateCommand": ". .devcontainer/setup.sh"
+}
