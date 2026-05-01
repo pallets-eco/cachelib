@@ -40,7 +40,7 @@ class FileSystemCache(BaseCache):
     :param mode: the file mode wanted for the cache files, default 0600
     :param hash_method: Default hashlib.md5. The hash method used to
                         generate the filename for cached results.
-                        Default is lazy loaded and can be overriden by
+                        Default is lazy loaded and can be overridden by
                         seeting  `_default_hash_method`
     """
 
