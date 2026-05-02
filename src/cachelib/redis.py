@@ -137,7 +137,7 @@ class RedisCache(BaseCache):
         else:
             prefixed_keys = [k for k in keys]
         self._write_client.delete(*prefixed_keys)
-        return [k for k in prefixed_keys if not self.has(k)]
+        return [k for k in keys if not self.has(k)]
 
     def has(self, key: str) -> bool:
         return bool(self._read_client.exists(f"{self._get_prefix()}{key}"))
