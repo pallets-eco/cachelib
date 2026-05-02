@@ -101,6 +101,31 @@ class RedisSerializer(BaseSerializer):
             return value
 
 
+class ValkeySerializer(BaseSerializer):
+    """Default serializer for ValkeyCache."""
+
+    def dumps(self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL) -> bytes:
+        """Dumps an object into a string for valkey, using pickle by default."""
+        return b"!" + pickle.dumps(value, protocol)
+
+    def loads(self, value: _t.Optional[bytes]) -> _t.Any:
+        """The reversal of :meth:`dump_object`. This might be called with
+        None.
+        """
+        if value is None:
+            return None
+        if value.startswith(b"!"):
+            try:
+                return pickle.loads(value[1:])
+            except pickle.PickleError:
+                return None
+        try:
+            return int(value)
+        except ValueError:
+            # before 0.8 we did not have serialization. Still support that.
+            return value
+
+
 class DynamoDbSerializer(RedisSerializer):
     """Default serializer for DynamoDbCache."""
 

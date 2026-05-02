@@ -5,6 +5,8 @@ Unreleased
 
 - improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
 - replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
+- Add valkey backend :pr:`441`
+
 
 Version 0.13.0
 --------------
