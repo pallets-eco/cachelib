@@ -17,7 +17,7 @@ class BaseSerializer:
         )
 
     def dump(
-        self, value: int, f: _t.IO, protocol: int = pickle.HIGHEST_PROTOCOL
+        self, value: int, f: _t.IO[bytes], protocol: int = pickle.HIGHEST_PROTOCOL
     ) -> None:
         try:
             pickle.dump(value, f, protocol)
@@ -59,7 +59,7 @@ class BaseSerializer:
 
 The following classes can be used to further customize
 serialiation behaviour. Alternatively, any serializer can be
-overriden in order to use a custom serializer with a different
+overridden in order to use a custom serializer with a different
 strategy altogether.
 """
 

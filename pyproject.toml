@@ -1,0 +1,213 @@
+[project]
+name = "cachelib"
+version = "0.14.0.dev"
+description = "A collection of cache libraries in the same API interface."
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE.txt"]
+maintainers = [{ name = "Pallets Ecosystem", email = "contact@palletsprojects.com" }]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Typing :: Typed",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Donate = "https://palletsprojects.com/donate"
+Documentation = "https://cachelib.readthedocs.io"
+Changes = "https://cachelib.readthedocs.io/page/changes/"
+Source = "https://github.com/pallets-eco/cachelib/"
+Chat = "https://discord.gg/pallets"
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "tox",
+    "tox-uv",
+]
+docs = [
+    "pallets-sphinx-themes",
+    "sphinx",
+    "sphinxcontrib-log-cabinet",
+    "sphinx-tabs",
+]
+docs-auto = [
+    "sphinx-autobuild",
+]
+gha-update = [
+    "gha-update ; python_full_version >= '3.12'",
+]
+pre-commit = [
+    "pre-commit",
+    "pre-commit-uv ; python_full_version >= '3.9'",
+]
+tests = [
+    "boto3",
+    "pylibmc",
+    "pymongo",
+    "pytest",
+    "pytest-xprocess",
+    "redis",
+    "uwsgi==2.0.25; python_version < '3.9'",
+    "uwsgi>=2.0.26; python_version >= '3.9'",
+]
+typing = [
+    "mypy",
+    "pyright",
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.sdist]
+include = [
+    "docs/",
+    "tests/",
+    "CHANGES.rst",
+    "uv.lock"
+]
+exclude = [
+    "docs/_build/",
+]
+
+[tool.uv]
+default-groups = ["dev", "pre-commit", "tests", "typing"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "default::pytest.PytestUnraisableExceptionWarning",
+    "default::DeprecationWarning:cachelib.uwsgi",
+    "default::DeprecationWarning:cachelib.redis",
+    "default::DeprecationWarning:botocore",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["cachelib", "tests"]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if t.TYPE_CHECKING",
+    "raise NotImplementedError",
+    ": \\.{3}",
+]
+
+[tool.mypy]
+python_version = "3.8"
+files = ["src"]
+show_error_codes = true
+pretty = true
+strict = true
+
+[tool.pyright]
+pythonVersion = "3.8"
+include = ["src"]
+typeCheckingMode = "standard"
+
+[tool.ruff]
+src = ["src"]
+fix = true
+show-fixes = true
+output-format = "full"
+
+[tool.ruff.lint]
+select = [
+    "B",  # flake8-bugbear
+    "E",  # pycodestyle error
+    "F",  # pyflakes
+    "I",  # isort
+    "UP",  # pyupgrade
+    "W",  # pycodestyle warning
+]
+ignore = [
+    "UP038",  # keep isinstance tuple
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+order-by-type = false
+
+[tool.tox]
+env_list = [
+    "py3.14", "py3.13", "py3.12", "py3.11", "py3.10", "py3.9", "py3.8",
+    "style",
+    "typing",
+    "docs",
+]
+
+[tool.tox.env_run_base]
+description = "pytest on latest dependency versions"
+runner = "uv-venv-lock-runner"
+package = "wheel"
+wheel_build_env = ".pkg"
+constrain_package_deps = true
+use_frozen_constraints = true
+dependency_groups = ["tests"]
+set_env = { TMPDIR = "{env_tmp_dir}" }
+commands = [
+    [
+        "pytest", "-v", "-rs", "--tb=short",
+        "--capture=tee-sys", "--basetemp={env_tmp_dir}",
+        { replace = "posargs", default = [], extend = true },
+    ],
+    [
+        "uwsgi", "--python", "{env_bin_dir}/pytest", "--pyargv",
+        "-v -rs --tb=short --capture=tee-sys --basetemp={env_tmp_dir} {posargs} -kUwsgi",
+        "--cache2", "name=default,items=100", "--master",
+    ],
+    ["python", "{envtmpdir}/return_pytest_exit_code.py"],
+]
+
+[tool.tox.env.style]
+description = "run all pre-commit hooks on all files"
+dependency_groups = ["pre-commit"]
+skip_install = true
+commands = [["pre-commit", "run", "--all-files"]]
+
+[tool.tox.env.typing]
+description = "run static type checkers"
+dependency_groups = ["tests", "typing"]
+commands = [
+    ["mypy"],
+]
+
+[tool.tox.env.docs]
+description = "build docs"
+dependency_groups = ["docs"]
+commands = [["sphinx-build", "-E", "-W", "-b", "dirhtml", "docs", "docs/_build/dirhtml"]]
+
+[tool.tox.env.docs-auto]
+description = "continuously rebuild docs and start a local server"
+dependency_groups = ["docs", "docs-auto"]
+commands = [["sphinx-autobuild", "-W", "-b", "dirhtml", "--watch", "src", "docs", "docs/_build/dirhtml"]]
+
+[tool.tox.env.update-actions]
+description = "update GitHub Actions pins"
+labels = ["update"]
+dependency_groups = ["gha-update"]
+skip_install = true
+commands = [["gha-update"]]
+
+[tool.tox.env.update-pre_commit]
+description = "update pre-commit pins"
+labels = ["update"]
+dependency_groups = ["pre-commit"]
+skip_install = true
+commands = [["pre-commit", "autoupdate", "--freeze", "-j4"]]
+
+[tool.tox.env.update-requirements]
+description = "update uv lock"
+labels = ["update"]
+dependency_groups = []
+no_default_groups = true
+skip_install = true
+commands = [["uv", "lock", {replace = "posargs", default = ["-U"], extend = true}]]

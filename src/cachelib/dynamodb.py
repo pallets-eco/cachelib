@@ -45,7 +45,7 @@ class DynamoDbCache(BaseCache):
         key_field: _t.Optional[str] = "cache_key",
         expiration_time_field: _t.Optional[str] = "expiration_time",
         key_prefix: _t.Optional[str] = None,
-        **kwargs: _t.Any
+        **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
 
@@ -90,9 +90,11 @@ class DynamoDbCache(BaseCache):
 
     def _utcnow(self) -> _t.Any:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        return datetime.datetime.now(datetime.timezone.utc)
 
-    def _get_item(self, key: str, attributes: _t.Optional[list] = None) -> _t.Any:
+    def _get_item(
+        self, key: str, attributes: _t.Optional[_t.List[_t.Any]] = None
+    ) -> _t.Any:
         """
         Get an item from the cache table, optionally limiting the returned
         attributes.

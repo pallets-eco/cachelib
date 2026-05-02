@@ -102,7 +102,7 @@ class BaseCache:
         :param timeout: the cache timeout for the key in seconds (if not
                         specified, it uses the default timeout). A timeout of
                         0 indicates that the cache never expires.
-        :returns: A list containing all keys sucessfuly set
+        :returns: A list containing all keys successfully set
         :rtype: boolean
         """
         set_keys = []
@@ -116,7 +116,7 @@ class BaseCache:
 
         :param keys: The function accepts multiple keys as positional
                      arguments.
-        :returns: A list containing all sucessfuly deleted keys
+        :returns: A list containing all successfully deleted keys
         :rtype: boolean
         """
         deleted_keys = []

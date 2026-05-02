@@ -24,8 +24,8 @@ def pytest_sessionfinish(session, exitstatus):
         except KeyError:
             warnings.warn(
                 "Pytest could not find tox 'TMPDIR' in the environment,"
-                " make sure the variable is set in the project tox.ini"
-                " file if you are running under tox.",
+                " make sure the variable is set in the project tox"
+                " config if you are running under tox.",
                 stacklevel=2,
             )
         else:
@@ -64,10 +64,10 @@ def memcached_server(xprocess):
 
     class Starter(ProcessStarter):
         pattern = "server listening"
-        args = ["memcached", "-vv"]
+        args = ["memcached", "-vv", "-p", "11212"]
 
         def startup_check(self):
-            out = subprocess.run(["memcached"], stderr=subprocess.PIPE)
+            out = subprocess.run(["memcached", "-p", "11212"], stderr=subprocess.PIPE)
             return b"Address already" in out.stderr
 
     xprocess.ensure(package_name, Starter)

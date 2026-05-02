@@ -9,6 +9,7 @@ from cachelib import MemcachedCache
 @pytest.fixture(autouse=True)
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
+        kwargs.setdefault("servers", ["127.0.0.1:11212"])
         mc = MemcachedCache(*args, **kwargs)
         if mc.pylibmc_used:
             with mc._client.reserve(block=mc.blocking) as client:

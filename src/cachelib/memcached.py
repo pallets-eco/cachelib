@@ -4,12 +4,10 @@ from time import time
 
 from cachelib.base import BaseCache
 
-
 _test_memcached_key = re.compile(r"[^\x00-\x21\xff]{1,250}$").match
 
 
 class MemcachedCache(BaseCache):
-
     """A cache that uses memcached as backend.
 
     The first argument can either be an object that resembles the API of a
@@ -150,13 +148,9 @@ class MemcachedCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         if self.pylibmc_used:
             with self._client.reserve(block=self.blocking) as mc:
-                failed_keys = mc.set_multi(
-                    new_mapping, timeout
-                )  # type: _t.List[_t.Any]
+                failed_keys = mc.set_multi(new_mapping, timeout)  # type: _t.List[_t.Any]
         else:
-            failed_keys = self._client.set_multi(
-                new_mapping, timeout
-            )  # type: _t.List[_t.Any]
+            failed_keys = self._client.set_multi(new_mapping, timeout)  # type: _t.List[_t.Any]
         k_normkey = zip(mapping.keys(), new_mapping.keys())  # noqa: B905
         return [k for k, nkey in k_normkey if nkey not in failed_keys]
 

@@ -20,7 +20,7 @@ class SillySerializer:
         try:
             loaded = eval(fs.readline().decode())
         # When all file content has been read eval will
-        # turn the EOFError into SyntaxError wich is not
+        # turn the EOFError into SyntaxError which is not
         # handled by cachelib
         except SyntaxError as e:
             raise EOFError from e
@@ -42,9 +42,21 @@ class CustomHashingMethodCache(FileSystemCache):
         super().__init__(*args, hash_method=hashlib.sha256, **kwargs)
 
 
+class CustomDefaultHashingMethodCache(FileSystemCache):
+    _default_hash_method = hashlib.sha256
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 @pytest.fixture(
     autouse=True,
-    params=[FileSystemCache, CustomSerializerCache, CustomHashingMethodCache],
+    params=[
+        FileSystemCache,
+        CustomSerializerCache,
+        CustomHashingMethodCache,
+        CustomDefaultHashingMethodCache,
+    ],
 )
 def cache_factory(request, tmpdir):
     def _factory(self, *args, **kwargs):
