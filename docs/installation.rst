@@ -14,7 +14,7 @@ There are no required dependencies beyond Python itself. CacheLib is a
 standalone library that works out of the box.
 
 Optional Dependencies
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 These distributions will not be installed automatically. CacheLib will
 detect and use them if you install them.
@@ -86,7 +86,7 @@ Install CacheLib
 Within the activated environment, use the following command to install
 CacheLib:
 
-.. code-block:: text
+.. code-block:: sh
 
     $ pip install cachelib
 
