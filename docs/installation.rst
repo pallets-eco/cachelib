@@ -1,11 +1,13 @@
 Installation
 ============
 
+
 Python Version
 --------------
 
 We recommend using the latest version of Python. CacheLib supports
 Python 3.8 and newer.
+
 
 Dependencies
 ------------
@@ -13,11 +15,15 @@ Dependencies
 There are no required dependencies beyond Python itself. CacheLib is a
 standalone library that works out of the box.
 
+
 Optional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-These distributions will not be installed automatically. CacheLib will
-detect and use them if you install them.
+When you install CacheLib :class:`.SimpleCache` and :class:`.FileSystemCache`
+will work without any additional dependencies.
+However, some backends require additional dependencies to be installed.
+CacheLib will detect and use them if they are already installed but you will
+need to install them manually if you want to use the corresponding backends:
 
 -   `redis-py <https://redis-py.readthedocs.io/>`_ for
     :class:`.RedisCache`.
@@ -28,6 +34,7 @@ detect and use them if you install them.
     for :class:`.DynamoDbCache`.
 -   `pymongo <https://pymongo.readthedocs.io/>`_ for
     :class:`.MongoDbCache`.
+
 
 Virtual Environments
 --------------------
@@ -46,6 +53,7 @@ projects or the operating system's packages.
 
 Python comes bundled with the :mod:`venv` module to create virtual
 environments.
+
 
 .. _install-create-env:
 
@@ -72,6 +80,7 @@ Create a project folder and a :file:`.venv` folder within:
          > cd myproject
          > py -3 -m venv .venv
 
+
 .. _install-activate-env:
 
 Activate the environment
@@ -95,6 +104,7 @@ Before you work on your project, activate the corresponding environment:
 
 Your shell prompt will change to show the name of the activated
 environment.
+
 
 Install CacheLib
 ----------------
