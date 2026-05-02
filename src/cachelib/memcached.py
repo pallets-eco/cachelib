@@ -124,9 +124,7 @@ class MemcachedCache(BaseCache):
             new_mapping[key] = value
 
         timeout = self._normalize_timeout(timeout)
-        failed_keys = self._client.set_multi(
-            new_mapping, timeout
-        )  # type: _t.List[_t.Any]
+        failed_keys = self._client.set_multi(new_mapping, timeout)  # type: _t.List[_t.Any]
         k_normkey = zip(mapping.keys(), new_mapping.keys())  # noqa: B905
         return [k for k, nkey in k_normkey if nkey not in failed_keys]
 

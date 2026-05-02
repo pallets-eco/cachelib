@@ -71,7 +71,7 @@ class CommonTests(TestData):
         if under_uwsgi():
             pytest.skip(
                 "uwsgi uses a separate sweeper thread to clean"
-                " expired chache entries, thus the testing"
+                " expired cache entries, thus the testing"
                 " of such feature must be handled differently"
                 " from other cache types."
             )

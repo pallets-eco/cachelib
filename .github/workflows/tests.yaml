@@ -1,69 +1,69 @@
 name: Tests
 on:
-  push:
-    branches:
-      - main
-      - '*.x'
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '*.rst'
   pull_request:
-    branches:
-      - main
-      - '*.x'
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '*.rst'
+    paths-ignore: ['docs/**', 'README.md', 'CHANGES.rst']
+  push:
+    branches: [main, stable]
+    paths-ignore: ['docs/**', 'README.md', 'CHANGES.rst']
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   tests:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name || matrix.python }}
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {name: Linux, python: '3.11', os: ubuntu-latest, tox: py311}
-          - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
-          - {name: '3.9', python: '3.9', os: ubuntu-latest, tox: py39}
-          - {name: '3.10', python: '3.10', os: ubuntu-latest, tox: py310}
-          - {name: '3.11', python: '3.11', os: ubuntu-latest, tox: py311}
-          - {name: Typing, python: '3.12', os: ubuntu-latest, tox: typing}
+          - {python: '3.14'}
+          - {python: '3.13'}
+          - {python: '3.12'}
+          - {python: '3.11'}
+          - {python: '3.10'}
+          - {python: '3.9'}
+          - {python: '3.8'}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          enable-cache: true
+          prune-cache: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python }}
-      - name: install external dependencies Linux
-        if: matrix.os == 'ubuntu-latest'
+      - name: install external dependencies
         run: |
           sudo apt-get update
           sudo apt-get install libmemcached-dev memcached redis-server
-      - name: setup dynamodb-local
-        uses: rrainn/dynamodb-action@v2.0.1
-      - name: Start MongoDB
-        uses: wbari/start-mongoDB@v0.2
+      - uses: rrainn/dynamodb-action@36eaff1005b37a22258716d4280f9e0377b834aa # v4.0.0
+      - uses: wbari/start-mongoDB@eb9a4b97a1a252bbaebb98f5fc088ca1f972905a # v0.2
         with:
           mongoDBVersion: 'latest'
-      - name: update pip
-        run: |
-          pip install -U wheel
-          pip install -U setuptools
-          python -m pip install -U pip
-      - name: get pip cache dir
-        id: pip-cache
-        run: echo "::set-output name=dir::$(pip cache dir)"
-      - name: cache pip
-        uses: actions/cache@v2
+      - run: uv run --locked --no-default-groups --group dev tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
+  typing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: pip|${{ runner.os }}|${{ matrix.python }}|${{ hashFiles('setup.py') }}|${{ hashFiles('requirements/*.txt') }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          enable-cache: true
+          prune-cache: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version-file: pyproject.toml
+      - name: install external dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libmemcached-dev
       - name: cache mypy
-        if: matrix.tox == 'typing'
-        uses: actions/cache@v2
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: ./.mypy_cache
-          key: mypy|${{ matrix.python }}|${{ hashFiles('setup.cfg') }}
-      - run: pip install tox
-      - run: tox -e ${{ matrix.tox }}
+          key: mypy|${{ hashFiles('pyproject.toml') }}
+      - run: uv run --locked --no-default-groups --group dev tox run -e typing

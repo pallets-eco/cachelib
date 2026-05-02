@@ -40,8 +40,8 @@ class FileSystemCache(BaseCache):
     :param mode: the file mode wanted for the cache files, default 0600
     :param hash_method: Default hashlib.md5. The hash method used to
                         generate the filename for cached results.
-                        Default is lazy loaded and can be overriden by
-                        seeting  `_default_hash_method`
+                        Default is lazy loaded and can be overridden by
+                        setting  `_default_hash_method`
     """
 
     #: used for temporary files by the FileSystemCache
@@ -314,7 +314,9 @@ class FileSystemCache(BaseCache):
             )
             return False
 
-    def _run_safely(self, fn: _t.Callable, *args: _t.Any, **kwargs: _t.Any) -> _t.Any:
+    def _run_safely(
+        self, fn: _t.Callable[..., _t.Any], *args: _t.Any, **kwargs: _t.Any
+    ) -> _t.Any:
         """On Windows os.replace, os.chmod and open can yield
         permission errors if executed by two different processes."""
         if platform.system() == "Windows":
@@ -338,7 +340,9 @@ class FileSystemCache(BaseCache):
         return output
 
     @contextmanager
-    def _safe_stream_open(self, path: str, mode: str) -> _t.Generator:
+    def _safe_stream_open(
+        self, path: str, mode: str
+    ) -> _t.Generator[_t.Any, None, None]:
         fs = self._run_safely(open, path, mode)
         if fs is None:
             raise OSError
