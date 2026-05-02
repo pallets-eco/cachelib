@@ -9,7 +9,7 @@ User's Guide
 ------------
 
 The user guide is the best place to start if you are new to CacheLib. It
-includes a quick start guide.
+includes installation instructions and a quickstart guide.
 
 .. toctree::
     :maxdepth: 2
