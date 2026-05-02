@@ -14,6 +14,7 @@ includes a quick start guide.
 .. toctree::
     :maxdepth: 2
 
+    installation
     quickstart
 
 
