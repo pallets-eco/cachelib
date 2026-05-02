@@ -47,35 +47,51 @@ projects or the operating system's packages.
 Python comes bundled with the :mod:`venv` module to create virtual
 environments.
 
+.. _install-create-env:
+
 Create an environment
 ~~~~~~~~~~~~~~~~~~~~~
 
-Create a project folder and a ``.venv`` folder within:
+Create a project folder and a :file:`.venv` folder within:
 
-.. code-block:: text
+.. tabs::
 
-    # macOS/Linux
-    $ mkdir myproject
-    $ cd myproject
-    $ python3 -m venv .venv
+   .. group-tab:: macOS/Linux
 
-    # Windows
-    > mkdir myproject
-    > cd myproject
-    > py -3 -m venv .venv
+      .. code-block:: text
+
+         $ mkdir myproject
+         $ cd myproject
+         $ python3 -m venv .venv
+
+   .. group-tab:: Windows
+
+      .. code-block:: text
+
+         > mkdir myproject
+         > cd myproject
+         > py -3 -m venv .venv
+
+.. _install-activate-env:
 
 Activate the environment
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before you work on your project, activate the corresponding environment:
 
-.. code-block:: text
+.. tabs::
 
-    # macOS/Linux
-    $ . .venv/bin/activate
+   .. group-tab:: macOS/Linux
 
-    # Windows
-    > .venv\Scripts\activate
+      .. code-block:: text
+
+         $ . .venv/bin/activate
+
+   .. group-tab:: Windows
+
+      .. code-block:: text
+
+         > .venv\Scripts\activate
 
 Your shell prompt will change to show the name of the activated
 environment.
