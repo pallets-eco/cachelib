@@ -75,6 +75,28 @@ def memcached_server(xprocess):
     xprocess.getinfo(package_name).terminate()
 
 
+@pytest.fixture(scope="class")
+def valkey_server(xprocess):
+    package_name = "valkey"
+    pytest.importorskip(
+        modname=package_name, reason=f"could not find python package {package_name}"
+    )
+
+    class Starter(ProcessStarter):
+        pattern = "[Rr]eady to accept connections"
+        args = ["valkey-server", "--port 6370"]
+
+        def startup_check(self):
+            out = subprocess.run(
+                ["valkey-cli", "-p", "6370", "ping"], stdout=subprocess.PIPE
+            )
+            return out.stdout == b"PONG\n"
+
+    xprocess.ensure(package_name, Starter)
+    yield
+    xprocess.getinfo(package_name).terminate()
+
+
 class TestData:
     """This class centralizes all data samples used in tests"""
 
