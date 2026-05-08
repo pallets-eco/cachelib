@@ -45,14 +45,16 @@ pre-commit = [
     "pre-commit-uv ; python_full_version >= '3.9'",
 ]
 tests = [
-    "boto3",
+    "boto3==1.37.38; python_full_version < '3.9'",
+    "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
+    "boto3; python_full_version >= '3.10'",
     "pylibmc",
     "pymongo",
     "pytest",
     "pytest-xprocess",
     "redis",
-    "uwsgi==2.0.25; python_version < '3.9'",
-    "uwsgi>=2.0.26; python_version >= '3.9'",
+    "uwsgi==2.0.25; python_full_version < '3.10'",
+    "uwsgi; python_full_version >= '3.10'",
 ]
 typing = [
     "mypy",
