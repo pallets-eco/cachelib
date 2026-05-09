@@ -80,9 +80,11 @@ class SimpleCache(BaseCache):
         expires = self._normalize_timeout(timeout)
         self._prune()
         item = (expires, self.serializer.dumps(value))
-        if key in self._cache:
+        # key exists and is not expired, do not add
+        if self.has(key):
             return False
-        self._cache.setdefault(key, item)
+        # key does not exist or is expired, add it
+        self._cache[key] = item
         return True
 
     def delete(self, key: str) -> bool:

@@ -40,8 +40,8 @@ class FileSystemCache(BaseCache):
     :param mode: the file mode wanted for the cache files, default 0600
     :param hash_method: Default hashlib.md5. The hash method used to
                         generate the filename for cached results.
-                        Default is lazy loaded and can be overriden by
-                        seeting  `_default_hash_method`
+                        Default is lazy loaded and can be overridden by
+                        setting  `_default_hash_method`
     """
 
     #: used for temporary files by the FileSystemCache
@@ -317,25 +317,24 @@ class FileSystemCache(BaseCache):
     def _run_safely(
         self, fn: _t.Callable[..., _t.Any], *args: _t.Any, **kwargs: _t.Any
     ) -> _t.Any:
-        """On Windows os.replace, os.chmod and open can yield
-        permission errors if executed by two different processes."""
-        if platform.system() == "Windows":
-            output = None
-            wait_step = 0.001
-            max_sleep_time = 10.0
-            total_sleep_time = 0.0
+        """On some filesystems (e.g. SMB/CIFS on Linux, NTFS on Windows)
+        os.replace, os.chmod and open can yield PermissionError when executed
+        by two different processes concurrently. Retries with exponential
+        backoff on all platforms."""
+        output = None
+        wait_step = 0.001
+        max_sleep_time = 10.0
+        total_sleep_time = 0.0
 
-            while total_sleep_time < max_sleep_time:
-                try:
-                    output = fn(*args, **kwargs)
-                except PermissionError:
-                    sleep(wait_step)
-                    total_sleep_time += wait_step
-                    wait_step *= 2
-                else:
-                    break
-        else:
-            output = fn(*args, **kwargs)
+        while total_sleep_time < max_sleep_time:
+            try:
+                output = fn(*args, **kwargs)
+            except PermissionError:
+                sleep(wait_step)
+                total_sleep_time += wait_step
+                wait_step *= 2
+            else:
+                break
 
         return output
 

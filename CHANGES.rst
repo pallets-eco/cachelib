@@ -1,3 +1,21 @@
+Version 0.14.0
+--------------
+
+Released 2026-05-09
+
+- Improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
+- Replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
+- Fix ``FileSystemCache`` permission errors on Network Attached Storage (NAS) when trying
+  to perform operations on files that are open in other processes :pr:`424`
+- Fix ``delete_many()`` in ``RedisCache`` and ``MemcachedCache`` incorrectly reporting
+  failed deletions due to comparing normalized keys against non-normalized keys :pr:`443`
+- Fix serializer returning an unbound variable error instead of ``None`` when a
+  ``pickle`` error is raised during serialization :pr:`448`
+- Fix ``add()`` in ``SimpleCache`` treating expired keys as still valid, preventing them
+  from being overwritten until explicitly deleted :pr:`449`
+- Add valkey backend :pr:`441`
+
+
 Version 0.13.0
 --------------
 
@@ -132,7 +150,7 @@ Released 2021-08-12
     lost. :pr:`52`
 -   ``FileSystemCache`` logs system-related exceptions. :pr:`51`
 -   Removal of expired entries in ``FileSystemCache`` is only triggered
-    if the number of entries is over the ``threshhold`` when calling
+    if the number of entries is over the ``threshold`` when calling
     ``set``. ``get`` ``has`` still return ``None`` and ``False``
     respectively for expired entries, but will not remove the files. All
     removals happen at pruning time or explicitly with ``clear`` and

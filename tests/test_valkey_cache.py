@@ -4,7 +4,7 @@ from common import CommonTests
 from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
 
-from cachelib import RedisCache
+from cachelib import ValkeyCache
 
 
 class SillySerializer:
@@ -19,7 +19,7 @@ class SillySerializer:
         return eval(bvalue.decode())
 
 
-class CustomCache(RedisCache):
+class CustomCache(ValkeyCache):
     """Our custom cache client with non-default serializer"""
 
     # overwrite serializer
@@ -29,10 +29,10 @@ class CustomCache(RedisCache):
         super().__init__(*args, **kwargs)
 
 
-@pytest.fixture(autouse=True, params=[RedisCache, CustomCache])
+@pytest.fixture(autouse=True, params=[ValkeyCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
-        rc = request.param(*args, port=6360, **kwargs)
+        rc = request.param(*args, port=6370, **kwargs)
         rc._write_client.flushdb()
         return rc
 
@@ -43,8 +43,8 @@ def my_callable_key() -> str:
     return "bacon"
 
 
-@pytest.mark.usefixtures("redis_server")
-class TestRedisCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
+@pytest.mark.usefixtures("valkey_server")
+class TestValkeyCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
     def test_callable_key(self):
         cache = self.cache_factory()
         assert cache.set(my_callable_key, "sausages")

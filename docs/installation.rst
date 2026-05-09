@@ -35,6 +35,8 @@ need to install them manually if you want to use the corresponding backends:
     for :class:`.DynamoDbCache`.
 -   `pymongo <https://pymongo.readthedocs.io/>`_ for
     :class:`.MongoDbCache`.
+-   `valkey-py <https://valkey-py.readthedocs.io/en/latest/>`_ for
+    :class:`.ValkeyCache`.
 
 
 Virtual Environments
