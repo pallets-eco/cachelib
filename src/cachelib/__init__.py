@@ -7,6 +7,7 @@ from cachelib.mongodb import MongoDbCache
 from cachelib.redis import RedisCache
 from cachelib.simple import SimpleCache
 from cachelib.uwsgi import UWSGICache
+from cachelib.valkey import ValkeyCache
 
 __all__ = [
     "BaseCache",
@@ -18,5 +19,6 @@ __all__ = [
     "UWSGICache",
     "DynamoDbCache",
     "MongoDbCache",
+    "ValkeyCache",
 ]
 __version__ = "0.14.0.dev"

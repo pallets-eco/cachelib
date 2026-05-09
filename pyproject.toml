@@ -53,6 +53,7 @@ tests = [
     "pytest",
     "pytest-xprocess",
     "redis",
+    "valkey",
     "uwsgi==2.0.25; python_full_version < '3.10'",
     "uwsgi; python_full_version >= '3.10'",
 ]

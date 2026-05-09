@@ -38,7 +38,7 @@ jobs:
       - name: install external dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libmemcached-dev memcached redis-server
+          sudo apt-get install libmemcached-dev memcached redis-server valkey
       - uses: rrainn/dynamodb-action@36eaff1005b37a22258716d4280f9e0377b834aa # v4.0.0
       - uses: wbari/start-mongoDB@eb9a4b97a1a252bbaebb98f5fc088ca1f972905a # v0.2
         with:

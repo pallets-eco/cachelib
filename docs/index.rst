@@ -35,6 +35,7 @@ method, this part of the documentation is for you.
     uwsgi
     dynamodb
     mongodb
+    valkey
 
 
 Additional Notes

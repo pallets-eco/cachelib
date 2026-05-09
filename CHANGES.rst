@@ -13,6 +13,7 @@ Unreleased
   ``pickle`` error is raised during serialization :pr:`448`
 - fix ``add()`` in ``SimpleCache`` treating expired keys as still valid, preventing them
   from being overwritten until explicitly deleted :pr:`449`
+- Add valkey backend :pr:`441`
 
 
 Version 0.13.0
