@@ -22,7 +22,7 @@ class SillySerializer:
         try:
             loaded = eval(fs.readline().decode())
         # When all file content has been read eval will
-        # turn the EOFError into SyntaxError wich is not
+        # turn the EOFError into SyntaxError which is not
         # handled by cachelib
         except SyntaxError as e:
             raise EOFError from e
@@ -195,3 +195,26 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
         # Each wait should double the previous
         assert sleep_calls[1] == sleep_calls[0] * 2
         assert sleep_calls[2] == sleep_calls[1] * 2
+
+    def test_mgmt_element_set_not_counted(self, tmpdir):
+        """set with mgmt_element=True should not affect _file_count."""
+        cache = FileSystemCache(tmpdir)
+        before = cache._file_count
+        cache.set("__internal_key", 42, mgmt_element=True)
+        assert cache._file_count == before
+
+    def test_mgmt_element_delete_not_counted(self, tmpdir):
+        """delete with mgmt_element=True should not affect _file_count."""
+        cache = FileSystemCache(tmpdir)
+        cache.set("__internal_key", 42, mgmt_element=True)
+        before = cache._file_count
+        cache.delete("__internal_key", mgmt_element=True)
+        assert cache._file_count == before
+
+    def test_has_on_expired_key_returns_false(self, tmpdir):
+        from time import sleep
+
+        cache = FileSystemCache(tmpdir)
+        cache.set("expiring", "value", timeout=1)
+        sleep(2)
+        assert cache.has("expiring") is False

@@ -59,7 +59,7 @@ class BaseSerializer:
 
 The following classes can be used to further customize
 serialiation behaviour. Alternatively, any serializer can be
-overriden in order to use a custom serializer with a different
+overridden in order to use a custom serializer with a different
 strategy altogether.
 """
 
