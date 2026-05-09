@@ -1,6 +1,6 @@
 [project]
 name = "cachelib"
-version = "0.14.0"
+version = "0.15.0.dev"
 description = "A collection of cache libraries in the same API interface."
 readme = "README.md"
 license = "BSD-3-Clause"
