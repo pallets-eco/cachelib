@@ -38,11 +38,14 @@ class BaseSerializer:
     strings and byte strings is the default for most cache types.
     """
 
-    def dumps(self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL) -> bytes:
+    def dumps(
+        self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL
+    ) -> _t.Optional[bytes]:
         try:
             serialized = pickle.dumps(value, protocol)
         except (pickle.PickleError, pickle.PicklingError) as e:
             self._warn(e)
+            return None
         return serialized
 
     def loads(self, bvalue: bytes) -> _t.Any:

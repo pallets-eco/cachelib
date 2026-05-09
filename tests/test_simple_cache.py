@@ -60,6 +60,14 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests):
         cache = self.cache_factory(threshold=0)
         assert cache._threshold == 500
 
+    def test_add_on_expired_key_succeeds(self):
+        """add() on a key whose TTL has elapsed should succeed."""
+        cache = self.cache_factory()
+        cache.set("key", "original", timeout=0.1)
+        sleep(0.5)
+        assert cache.add("key", "new") is True
+        assert cache.get("key") == "new"
+
     def test_has_on_expired_key_returns_false(self):
         cache = self.cache_factory()
         cache.set("key", "value", timeout=0.1)
