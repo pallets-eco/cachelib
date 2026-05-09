@@ -7,6 +7,13 @@ Unreleased
 - replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
 - fix ``FileSystemCache`` permission errors on Network Attached Storage (NAS) when trying
   to perform operations on files that are open in other processes :pr:`424`
+- fix ``delete_many()`` in ``RedisCache`` and ``MemcachedCache`` incorrectly reporting
+  failed deletions due to comparing normalized keys against non-normalized keys :pr:`443`
+- fix serializer returning an unbound variable error instead of ``None`` when a
+  ``pickle`` error is raised during serialization :pr:`448`
+- fix ``add()`` in ``SimpleCache`` treating expired keys as still valid, preventing them
+  from being overwritten until explicitly deleted :pr:`449`
+
 
 Version 0.13.0
 --------------
