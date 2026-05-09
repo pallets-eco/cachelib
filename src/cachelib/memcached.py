@@ -135,14 +135,14 @@ class MemcachedCache(BaseCache):
         return False
 
     def delete_many(self, *keys: str) -> _t.List[_t.Any]:
-        new_keys = set()
-        normalized_keys = set()
+        new_keys = []
+        normalized_keys = []
         for key in keys:
             normalized = self._normalize_key(key)
             if _test_memcached_key(normalized):
-                new_keys.add(key)
-                normalized_keys.add(normalized)
-        self._client.delete_multi(list(normalized_keys))
+                new_keys.append(key)
+                normalized_keys.append(normalized)
+        self._client.delete_multi(normalized_keys)
         return [k for k in new_keys if not self.has(k)]
 
     def has(self, key: str) -> bool:
