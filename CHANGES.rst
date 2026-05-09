@@ -5,6 +5,8 @@ Unreleased
 
 - improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
 - replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
+- fix ``FileSystemCache`` permission errors on Network Attached Storage (NAS) when trying
+  to perform operations on files that are open in other processes :pr:`424`
 
 Version 0.13.0
 --------------
