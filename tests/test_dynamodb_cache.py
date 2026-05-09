@@ -1,6 +1,7 @@
 import pytest
 from clear import ClearTests
 from common import CommonTests
+from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
 
 from cachelib import DynamoDbCache
@@ -29,10 +30,5 @@ def cache_factory(request):
         request.cls.cache_factory = _factory
 
 
-class TestDynamoDbCache(CommonTests, ClearTests, HasTests):
-    def test_delete_many_with_prefix(self):
-        cache = self.cache_factory(key_prefix="test_prefix:")
-        cache.set_many({"foo": 1, "bar": 2, "baz": 3})
-        result = cache.delete_many("foo", "bar", "baz")
-        assert result == ["foo", "bar", "baz"]
-        assert not any(cache.get_many("foo", "bar", "baz"))
+class TestDynamoDbCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
+    pass
