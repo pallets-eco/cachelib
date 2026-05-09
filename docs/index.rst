@@ -30,12 +30,14 @@ method, this part of the documentation is for you.
     base
     simple
     file
+    redis_base
     redis
     memcached
     uwsgi
     dynamodb
     mongodb
     valkey
+    serializers
 
 
 Additional Notes
