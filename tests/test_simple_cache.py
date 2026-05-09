@@ -54,3 +54,18 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests):
             assert cache.set(k, v)
             assert f"{k}-t5.0" in cache._cache.keys()
             assert f"{k}-t0.1" not in cache._cache.keys()
+
+    def test_threshold_zero_defaults_to_500(self):
+        """SimpleCache(threshold=0) should silently use 500, not 0."""
+        cache = self.cache_factory(threshold=0)
+        assert cache._threshold == 500
+
+    def test_has_on_expired_key_returns_false(self):
+        cache = self.cache_factory()
+        cache.set("key", "value", timeout=0.1)
+        sleep(0.5)
+        assert cache.has("key") is False
+
+    def test_delete_nonexistent_returns_false(self):
+        cache = self.cache_factory()
+        assert cache.delete("does_not_exist") is False
