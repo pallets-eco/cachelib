@@ -1,7 +1,7 @@
 Version 0.14.0
 --------------
 
-Unreleased
+Released 2026-05-09
 
 - Improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
 - Replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
