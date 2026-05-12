@@ -152,6 +152,7 @@ wheel_build_env = ".pkg"
 constrain_package_deps = true
 use_frozen_constraints = true
 dependency_groups = ["tests"]
+pass_env = ["CI"]
 set_env = { TMPDIR = "{env_tmp_dir}" }
 commands = [
     [
