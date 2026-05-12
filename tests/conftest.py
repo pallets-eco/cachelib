@@ -40,6 +40,10 @@ def redis_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
+    if os.environ.get("CI", "false") == "true":
+        yield
+        return
+
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
@@ -62,6 +66,10 @@ def memcached_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
+    if os.environ.get("CI", "false") == "true":
+        yield
+        return
+
     class Starter(ProcessStarter):
         pattern = "server listening"
         args = ["memcached", "-vv", "-p", "11212"]
@@ -81,6 +89,10 @@ def valkey_server(xprocess):
     pytest.importorskip(
         modname=package_name, reason=f"could not find python package {package_name}"
     )
+
+    if os.environ.get("CI", "false") == "true":
+        yield
+        return
 
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
