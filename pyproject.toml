@@ -71,16 +71,16 @@ pre-commit = [
 tests = [
     "boto3==1.37.38; python_full_version < '3.9'",
     "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
-    "boto3; python_full_version >= '3.10'",
-    "pylibmc",
+    "boto3>=1.43.6; python_full_version >= '3.10'",
+    "pylibmc>=1.6.3",
     "pymongo==4.10.1; python_full_version < '3.9'",
     "pymongo>=4.11; python_full_version >= '3.9'",
     "pytest",
     "pytest-xprocess",
-    "redis",
-    "valkey",
+    "redis>=6.0.0",
+    "valkey>=6.1.0",
     "uwsgi==2.0.25; python_full_version < '3.10'",
-    "uwsgi; python_full_version >= '3.10'",
+    "uwsgi>=2.0.28; python_full_version >= '3.10'",
 ]
 typing = [
     "mypy",
