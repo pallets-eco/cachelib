@@ -24,6 +24,57 @@ jobs:
           - {python: '3.10'}
           - {python: '3.9'}
           - {python: '3.8'}
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:3.3.0
+        ports:
+          - 8000:8000
+        # health checks
+        options: >-
+          --health-cmd "bash -c 'echo > /dev/tcp/localhost/8000'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      memcached:
+        image: memcached:1.6.41
+        ports:
+          - 11212:11211
+        # health checks
+        options: >-
+          --health-cmd "timeout 5 bash -c 'echo > /dev/tcp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:8.3.1
+        ports:
+          - 27017:27017
+        # health checks
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:8.6.3
+        ports:
+          - 6360:6379
+        # health checks
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      valkey:
+        image: valkey/valkey:9.0.4
+        ports:
+          - 6370:6379
+        # health checks
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -38,11 +89,7 @@ jobs:
       - name: install external dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libmemcached-dev memcached redis-server valkey
-      - uses: rrainn/dynamodb-action@36eaff1005b37a22258716d4280f9e0377b834aa # v4.0.0
-      - uses: wbari/start-mongoDB@eb9a4b97a1a252bbaebb98f5fc088ca1f972905a # v0.2
-        with:
-          mongoDBVersion: 'latest'
+          sudo apt-get install libmemcached-dev
       - run: uv run --locked --no-default-groups --group dev tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
   typing:
     runs-on: ubuntu-latest
