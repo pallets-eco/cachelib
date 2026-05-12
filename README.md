@@ -17,8 +17,31 @@ Werkzeug.
 
 Install from [PyPI]:
 
-```
-$ pip install cachelib
+```sh
+pip install cachelib
 ```
 
 [PyPI]: https://pypi.org/project/cachelib/
+
+## A Minimal Example
+
+```python
+from cachelib import SimpleCache
+
+# Create a cache instance
+cache = SimpleCache()
+
+# Set a value in the cache
+cache.set('my_key', 'my_value')
+
+# Retrieve the value from the cache
+value = cache.get('my_key')
+print(value)  # Output: my_value
+
+# Delete the value from the cache
+cache.delete('my_key')
+
+# Try to retrieve the deleted value
+value = cache.get('my_key')
+print(value)  # Output: None
+```
