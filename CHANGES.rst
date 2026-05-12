@@ -2,7 +2,7 @@ Version 0.15.0
 --------------
 
 - Add support for optional dependencies in pyproject.toml to allow users to
-  install the dependencies for specific cache backends as needed. :pr:`458`
+  install the dependencies for specific cache backends as needed. :pr:`459`
 
 
 Version 0.14.0
