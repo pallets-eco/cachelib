@@ -3,6 +3,17 @@
 A collection of cache libraries in the same API interface. Extracted from
 Werkzeug.
 
+Supported backends include:
+
+- [DynamoDbCache](./src/cachelib/dynamodb.py) ([DynamoDB](https://aws.amazon.com/dynamodb/))
+- [FileSystemCache](./src/cachelib/file.py) (file based)
+- [MemcachedCache](./src/cachelib/memcached.py) ([Memcached](https://memcached.org/))
+- [MongoDbCache](./src/cachelib/mongodb.py) ([MongoDB](https://www.mongodb.com/))
+- [RedisCache](./src/cachelib/redis.py) ([Redis](https://redis.io/))
+- [SimpleCache](./src/cachelib/simple.py) (in-memory, single-process)
+- [UWSGICache](./src/cachelib/uwsgi.py) ([uWSGI](https://uwsgi-docs.readthedocs.io/))
+- [ValkeyCache](./src/cachelib/valkey.py) ([Valkey](https://valkey.io/))
+
 ## Pallets Ecosystem
 
 > [!IMPORTANT]\
