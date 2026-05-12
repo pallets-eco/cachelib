@@ -258,6 +258,33 @@ name = "cachelib"
 version = "0.15.0.dev0"
 source = { editable = "." }
 
+[package.optional-dependencies]
+dynamodb = [
+    { name = "boto3", version = "1.37.38", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "boto3", version = "1.40.65", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "boto3", version = "1.43.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+memcached = [
+    { name = "pylibmc" },
+]
+mongodb = [
+    { name = "pymongo", version = "4.10.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "pymongo", version = "4.17.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+]
+redis = [
+    { name = "redis", version = "6.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "redis", version = "7.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "redis", version = "7.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+uwsgi = [
+    { name = "uwsgi", version = "2.0.25", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and sys_platform != 'win32'" },
+    { name = "uwsgi", version = "2.0.31", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform != 'win32'" },
+]
+valkey = [
+    { name = "valkey", version = "6.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "valkey", version = "6.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "ruff" },
@@ -322,6 +349,16 @@ typing = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "boto3", marker = "extra == 'dynamodb'" },
+    { name = "pylibmc", marker = "extra == 'memcached'" },
+    { name = "pymongo", marker = "extra == 'mongodb'" },
+    { name = "redis", marker = "extra == 'redis'" },
+    { name = "uwsgi", marker = "python_full_version >= '3.10' and sys_platform != 'win32' and extra == 'uwsgi'" },
+    { name = "uwsgi", marker = "python_full_version < '3.10' and sys_platform != 'win32' and extra == 'uwsgi'", specifier = "==2.0.25" },
+    { name = "valkey", marker = "extra == 'valkey'" },
+]
+provides-extras = ["dynamodb", "memcached", "mongodb", "redis", "uwsgi", "valkey"]
 
 [package.metadata.requires-dev]
 dev = [

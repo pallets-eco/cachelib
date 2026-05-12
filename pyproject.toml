@@ -22,6 +22,27 @@ Changes = "https://cachelib.readthedocs.io/page/changes/"
 Source = "https://github.com/pallets-eco/cachelib/"
 Chat = "https://discord.gg/pallets"
 
+[project.optional-dependencies]
+dynamodb = [
+    "boto3",
+]
+memcached = [
+    "pylibmc",
+]
+mongodb = [
+    "pymongo",
+]
+redis = [
+    "redis",
+]
+uwsgi = [
+    "uwsgi==2.0.25; python_full_version < '3.10' and platform_system != 'Windows'",
+    "uwsgi; python_full_version >= '3.10' and platform_system != 'Windows'",
+]
+valkey = [
+    "valkey",
+]
+
 [dependency-groups]
 dev = [
     "ruff",

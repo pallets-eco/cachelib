@@ -24,18 +24,28 @@ will work without any additional dependencies.
 However, some backends require additional dependencies to be installed.
 
 CacheLib will detect and use them if they are already installed but you will
-need to install them manually if you want to use the corresponding backends:
+need to install the corresponding optional dependency extra if you want to use
+one of those backends:
 
--   `redis-py <https://redis-py.readthedocs.io/>`_ for
+-   ``cachelib[redis]`` installs
+    `redis-py <https://redis-py.readthedocs.io/>`_ for
     :class:`.RedisCache`.
--   `pylibmc <https://sendapatch.se/projects/pylibmc/>`_ or
+-   ``cachelib[memcached]`` installs
+    `pylibmc <https://sendapatch.se/projects/pylibmc/>`_ for
+    :class:`.MemcachedCache`. CacheLib can also use
     `python-memcached <https://github.com/linuxfoundation/python-memcached>`_
-    for :class:`.MemcachedCache`.
--   `boto3 <https://boto3.amazonaws.com/v1/documentation/api/latest/index.html>`_
+    if it is already installed.
+-   ``cachelib[dynamodb]`` installs
+    `boto3 <https://boto3.amazonaws.com/v1/documentation/api/latest/index.html>`_
     for :class:`.DynamoDbCache`.
--   `pymongo <https://pymongo.readthedocs.io/>`_ for
+-   ``cachelib[mongodb]`` installs
+    `pymongo <https://pymongo.readthedocs.io/>`_ for
     :class:`.MongoDbCache`.
--   `valkey-py <https://valkey-py.readthedocs.io/en/latest/>`_ for
+-   ``cachelib[uwsgi]`` installs
+    `uWSGI <https://uwsgi-docs.readthedocs.io/>`_ for
+    :class:`.UWSGICache` on supported platforms.
+-   ``cachelib[valkey]`` installs
+    `valkey-py <https://valkey-py.readthedocs.io/en/latest/>`_ for
     :class:`.ValkeyCache`.
 
 
