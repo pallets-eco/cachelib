@@ -22,6 +22,30 @@ Changes = "https://cachelib.readthedocs.io/page/changes/"
 Source = "https://github.com/pallets-eco/cachelib/"
 Chat = "https://discord.gg/pallets"
 
+[project.optional-dependencies]
+dynamodb = [
+    "boto3==1.37.38; python_full_version < '3.9'",
+    "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
+    "boto3>=1.43.6; python_full_version >= '3.10'",
+]
+memcached = [
+    "pylibmc>=1.6.3",
+]
+mongodb = [
+    "pymongo==4.10.1; python_full_version < '3.9'",
+    "pymongo>=4.11; python_full_version >= '3.9'",
+]
+redis = [
+    "redis>=6.0.0",
+]
+valkey = [
+    "valkey>=6.1.0",
+]
+uwsgi = [
+    "uwsgi==2.0.25; python_full_version < '3.10'",
+    "uwsgi>=2.0.28; python_full_version >= '3.10'",
+]
+
 [dependency-groups]
 dev = [
     "ruff",
@@ -49,7 +73,8 @@ tests = [
     "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
     "boto3; python_full_version >= '3.10'",
     "pylibmc",
-    "pymongo",
+    "pymongo==4.10.1; python_full_version < '3.9'",
+    "pymongo>=4.11; python_full_version >= '3.9'",
     "pytest",
     "pytest-xprocess",
     "redis",

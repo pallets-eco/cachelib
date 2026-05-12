@@ -258,6 +258,33 @@ name = "cachelib"
 version = "0.15.0.dev0"
 source = { editable = "." }
 
+[package.optional-dependencies]
+dynamodb = [
+    { name = "boto3", version = "1.37.38", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "boto3", version = "1.40.65", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "boto3", version = "1.43.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+memcached = [
+    { name = "pylibmc" },
+]
+mongodb = [
+    { name = "pymongo", version = "4.10.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "pymongo", version = "4.17.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+]
+redis = [
+    { name = "redis", version = "6.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "redis", version = "7.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "redis", version = "7.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+uwsgi = [
+    { name = "uwsgi", version = "2.0.25", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "uwsgi", version = "2.0.31", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+valkey = [
+    { name = "valkey", version = "6.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "valkey", version = "6.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "ruff" },
@@ -322,6 +349,19 @@ typing = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "boto3", marker = "python_full_version == '3.9.*' and extra == 'dynamodb'", specifier = "==1.40.65" },
+    { name = "boto3", marker = "python_full_version < '3.9' and extra == 'dynamodb'", specifier = "==1.37.38" },
+    { name = "boto3", marker = "python_full_version >= '3.10' and extra == 'dynamodb'", specifier = ">=1.43.6" },
+    { name = "pylibmc", marker = "extra == 'memcached'", specifier = ">=1.6.3" },
+    { name = "pymongo", marker = "python_full_version >= '3.9' and extra == 'mongodb'", specifier = ">=4.11" },
+    { name = "pymongo", marker = "python_full_version < '3.9' and extra == 'mongodb'", specifier = "==4.10.1" },
+    { name = "redis", marker = "extra == 'redis'", specifier = ">=6.0.0" },
+    { name = "uwsgi", marker = "python_full_version >= '3.10' and extra == 'uwsgi'", specifier = ">=2.0.28" },
+    { name = "uwsgi", marker = "python_full_version < '3.10' and extra == 'uwsgi'", specifier = "==2.0.25" },
+    { name = "valkey", marker = "extra == 'valkey'", specifier = ">=6.1.0" },
+]
+provides-extras = ["dynamodb", "memcached", "mongodb", "redis", "valkey", "uwsgi"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -346,7 +386,8 @@ tests = [
     { name = "boto3", marker = "python_full_version == '3.9.*'", specifier = "==1.40.65" },
     { name = "boto3", marker = "python_full_version >= '3.10'" },
     { name = "pylibmc" },
-    { name = "pymongo" },
+    { name = "pymongo", marker = "python_full_version < '3.9'", specifier = "==4.10.1" },
+    { name = "pymongo", marker = "python_full_version >= '3.9'", specifier = ">=4.11" },
     { name = "pytest" },
     { name = "pytest-xprocess" },
     { name = "redis" },
