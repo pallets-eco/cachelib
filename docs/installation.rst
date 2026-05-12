@@ -26,17 +26,38 @@ However, some backends require additional dependencies to be installed.
 CacheLib will detect and use them if they are already installed but you will
 need to install them manually if you want to use the corresponding backends:
 
--   `redis-py <https://redis-py.readthedocs.io/>`_ for
-    :class:`.RedisCache`.
--   `pylibmc <https://sendapatch.se/projects/pylibmc/>`_ or
-    `python-memcached <https://github.com/linuxfoundation/python-memcached>`_
-    for :class:`.MemcachedCache`.
--   `boto3 <https://boto3.amazonaws.com/v1/documentation/api/latest/index.html>`_
-    for :class:`.DynamoDbCache`.
--   `pymongo <https://pymongo.readthedocs.io/>`_ for
-    :class:`.MongoDbCache`.
--   `valkey-py <https://valkey-py.readthedocs.io/en/latest/>`_ for
-    :class:`.ValkeyCache`.
+.. tabs::
+
+   .. group-tab:: Redis
+
+      Install `redis-py`_ required for :class:`.RedisCache`.
+
+   .. group-tab:: Memcached
+
+      Install `pylibmc`_ required for :class:`.MemcachedCache`.
+
+   .. group-tab:: DynamoDB
+
+      Install `boto3`_ required for :class:`.DynamoDbCache`.
+
+   .. group-tab:: MongoDB
+
+      Install `pymongo`_ required for :class:`.MongoDbCache`.
+
+   .. group-tab:: Valkey
+
+      Install `valkey-py`_ required for :class:`.ValkeyCache`.
+
+   .. group-tab:: uWSGI
+
+      Install `uWSGI`_ required for :class:`.UWSGICache`.
+
+.. _redis-py: https://redis.readthedocs.io/en/stable/
+.. _pylibmc: https://sendapatch.se/projects/pylibmc/
+.. _boto3: https://boto3.amazonaws.com/v1/documentation/api/latest/index.html
+.. _pymongo: https://pymongo.readthedocs.io/
+.. _valkey-py: https://valkey-py.readthedocs.io/en/latest/
+.. _uWSGI: https://uwsgi-docs.readthedocs.io/en/latest/
 
 
 Virtual Environments
