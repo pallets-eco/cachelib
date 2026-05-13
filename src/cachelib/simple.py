@@ -1,3 +1,4 @@
+import threading
 import typing as _t
 from time import time
 
@@ -100,3 +101,72 @@ class SimpleCache(BaseCache):
     def clear(self) -> bool:
         self._cache.clear()
         return not bool(self._cache)
+
+
+class ThreadedSimpleCache(SimpleCache):
+    """A thread-safe variant of :class:`SimpleCache`.
+
+    All single-key operations (``get``, ``set``, ``add``, ``delete``, ``has``,
+    ``inc``, ``dec``, ``clear``) are protected by a reentrant lock
+    (``threading.RLock``), making this backend safe to share between
+    threads. A reentrant lock is required because ``inc`` and ``dec`` call
+    ``get`` and ``set`` internally, which would otherwise deadlock.
+
+    The batch helpers inherited from :class:`BaseCache` (``get_many``,
+    ``set_many``, ``delete_many``, ``get_dict``) acquire the lock for each
+    underlying single-key call but are **not** atomic across the whole
+    batch. Use single-key operations if you need an all-or-nothing
+    guarantee across multiple keys.
+
+    The API is otherwise identical to :class:`SimpleCache`. Use this
+    backend whenever your application serves requests from multiple
+    threads concurrently.
+
+    :param threshold: the maximum number of items the cache stores before
+                      it starts deleting some.
+    :param default_timeout: the default timeout that is used if no timeout is
+                            specified on :meth:`~BaseCache.set`. A timeout of
+                            0 indicates that the cache never expires.
+    """
+
+    def __init__(
+        self,
+        threshold: int = 500,
+        default_timeout: int = 300,
+    ):
+        super().__init__(threshold=threshold, default_timeout=default_timeout)
+        self._lock = threading.RLock()
+
+    def get(self, key: str) -> _t.Any:
+        with self._lock:
+            return super().get(key)
+
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
+        with self._lock:
+            return super().set(key, value, timeout)
+
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+        with self._lock:
+            return super().add(key, value, timeout)
+
+    def delete(self, key: str) -> bool:
+        with self._lock:
+            return super().delete(key)
+
+    def has(self, key: str) -> bool:
+        with self._lock:
+            return super().has(key)
+
+    def clear(self) -> bool:
+        with self._lock:
+            return super().clear()
+
+    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+        with self._lock:
+            return super().inc(key, delta)
+
+    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+        with self._lock:
+            return super().dec(key, delta)
