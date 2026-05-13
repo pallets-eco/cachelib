@@ -7,7 +7,6 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import SimpleCache
-from cachelib import ThreadedSimpleCache
 
 
 class SillySerializer:
@@ -30,7 +29,7 @@ class CustomCache(SimpleCache):
         super().__init__(*args, **kwargs)
 
 
-@pytest.fixture(params=[SimpleCache, CustomCache])
+@pytest.fixture(autouse=True, params=[SimpleCache, CustomCache])
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
         return request.param(*args, **kwargs)
@@ -38,15 +37,6 @@ def cache_factory(request):
     request.cls.cache_factory = _factory
 
 
-@pytest.fixture(params=[ThreadedSimpleCache])
-def threaded_cache_factory(request):
-    def _factory(self, *args, **kwargs):
-        return request.param(*args, **kwargs)
-
-    request.cls.cache_factory = _factory
-
-
-@pytest.mark.usefixtures("cache_factory")
 class TestSimpleCache(CommonTests, HasTests, ClearTests):
     def test_threshold(self):
         threshold = len(self.sample_pairs) // 2
@@ -89,11 +79,6 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests):
         cache = self.cache_factory()
         assert cache.delete("does_not_exist") is False
 
-
-@pytest.mark.usefixtures("threaded_cache_factory")
-class TestThreadedSimpleCache(CommonTests, HasTests, ClearTests):
-    """Run the full common test suite against ThreadedSimpleCache."""
-
     def test_concurrent_set_no_data_corruption(self):
         """Multiple threads writing distinct keys must all succeed."""
         cache = self.cache_factory()
@@ -116,14 +101,7 @@ class TestThreadedSimpleCache(CommonTests, HasTests, ClearTests):
         assert not errors, f"Exceptions raised during concurrent set: {errors}"
 
     def test_concurrent_inc_is_consistent(self):
-        """Concurrent increments on a single key must not lose updates.
-
-        A small sleep is injected into ``serializer.dumps`` to widen the
-        read-modify-write window inside ``inc``. Without the cache's lock,
-        threads would interleave between ``get`` and ``set`` and lose
-        updates, making this test reliably fail on a non-thread-safe
-        backend.
-        """
+        """Concurrent increments on a single key must not lose updates."""
         cache = self.cache_factory()
 
         class _SlowSerializer:
@@ -204,9 +182,3 @@ class TestThreadedSimpleCache(CommonTests, HasTests, ClearTests):
             t.join()
 
         assert not errors, f"Exceptions during concurrent get/set: {errors}"
-
-    def test_is_subclass_of_simple_cache(self):
-        """ThreadedSimpleCache must be a drop-in subclass of SimpleCache."""
-        cache = self.cache_factory()
-        assert isinstance(cache, ThreadedSimpleCache)
-        assert isinstance(cache, SimpleCache)

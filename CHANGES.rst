@@ -3,8 +3,7 @@ Version 0.15.0
 
 Unreleased
 
-- Add ``ThreadedSimpleCache``, a thread-safe variant of ``SimpleCache`` backed
-  by a reentrant ``threading.RLock``. :issue:`446`
+- Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
 
 Version 0.14.0
 --------------
