@@ -26,7 +26,7 @@ Chat = "https://discord.gg/pallets"
 dynamodb = [
     "boto3==1.37.38; python_full_version < '3.9'",
     "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
-    "boto3>=1.43.6; python_full_version >= '3.10'",
+    "boto3>=1.43.4; python_full_version >= '3.10'",
 ]
 memcached = [
     "pylibmc>=1.6.3",
@@ -71,7 +71,7 @@ pre-commit = [
 tests = [
     "boto3==1.37.38; python_full_version < '3.9'",
     "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
-    "boto3>=1.43.6; python_full_version >= '3.10'",
+    "boto3>=1.43.4; python_full_version >= '3.10'",
     "pylibmc>=1.6.3",
     "pymongo==4.10.1; python_full_version < '3.9'",
     "pymongo>=4.11; python_full_version >= '3.9'",
@@ -236,4 +236,4 @@ labels = ["update"]
 dependency_groups = []
 no_default_groups = true
 skip_install = true
-commands = [["uv", "lock", {replace = "posargs", default = ["-U"], extend = true}]]
+commands = [["uv", "lock", "--exclude-newer", "1 week", {replace = "posargs", default = ["-U"], extend = true}]]
