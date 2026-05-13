@@ -8,8 +8,8 @@ from cachelib.serializers import SimpleSerializer
 
 class SimpleCache(BaseCache):
     """Simple memory cache for single process environments. All operations
-    are protected by a :class:`threading.RLock`, making this cache safe
-    to use in multi-threaded applications.
+    are protected by a :class:`threading.RLock`, making a cache instance safe
+    to use from multiple threads within the same process.
 
     :param threshold: the maximum number of items the cache stores before
                       it starts deleting some.

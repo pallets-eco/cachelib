@@ -80,25 +80,41 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests):
         assert cache.delete("does_not_exist") is False
 
     def test_concurrent_set_no_data_corruption(self):
-        """Multiple threads writing distinct keys must all succeed."""
+        """Concurrent writes of distinct keys must preserve every value."""
         cache = self.cache_factory()
         errors = []
+        result_lock = threading.Lock()
+        num_threads = 10
+        writes_per_thread = 50
+        barrier = threading.Barrier(num_threads)
+        expected = {
+            f"thread-{thread_id}-key-{i}": thread_id * 1000 + i
+            for thread_id in range(num_threads)
+            for i in range(writes_per_thread)
+        }
 
         def writer(thread_id: int) -> None:
-            for i in range(50):
+            barrier.wait()
+
+            for i in range(writes_per_thread):
                 key = f"thread-{thread_id}-key-{i}"
                 try:
-                    cache.set(key, thread_id * 1000 + i)
+                    cache.set(key, expected[key])
                 except Exception as exc:
-                    errors.append(exc)
+                    with result_lock:
+                        errors.append(exc)
 
-        threads = [threading.Thread(target=writer, args=(t,)) for t in range(10)]
+        threads = [
+            threading.Thread(target=writer, args=(t,)) for t in range(num_threads)
+        ]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
 
         assert not errors, f"Exceptions raised during concurrent set: {errors}"
+        assert len(cache._cache) == len(expected)
+        assert cache.get_dict(*expected.keys()) == expected
 
     def test_concurrent_inc_is_consistent(self):
         """Concurrent increments on a single key must not lose updates."""
@@ -154,31 +170,75 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests):
         winners = [r for r in results if r is True]
         assert len(winners) == 1, f"Expected exactly 1 winner, got {len(winners)}"
 
-    def test_concurrent_get_set_no_exception(self):
-        """Simultaneous reads and writes must not raise exceptions."""
+    def test_concurrent_get_set_preserves_valid_shared_values(self):
+        """Concurrent readers must only observe complete values."""
         cache = self.cache_factory()
-        cache.set("shared", "initial")
+
+        class _SlowSerializer:
+            def __init__(self, inner):
+                self._inner = inner
+
+            def dumps(self, value):
+                sleep(0.0001)
+                return self._inner.dumps(value)
+
+            def loads(self, bvalue):
+                sleep(0.0001)
+                return self._inner.loads(bvalue)
+
+        cache.serializer = _SlowSerializer(type(cache).serializer)
+
+        initial_value = ("initial", -1)
+        cache.set("shared", initial_value)
         errors = []
+        observed_values = []
+        result_lock = threading.Lock()
+        num_readers = 5
+        num_writers = 5
+        writes_per_writer = 100
+        barrier = threading.Barrier(num_readers + num_writers)
+        written_values = {
+            (thread_id, i)
+            for thread_id in range(num_writers)
+            for i in range(writes_per_writer)
+        }
+        expected_values = {initial_value} | written_values
 
         def reader() -> None:
-            for _ in range(100):
-                try:
-                    cache.get("shared")
-                except Exception as exc:
-                    errors.append(exc)
+            barrier.wait()
 
-        def writer() -> None:
-            for i in range(100):
+            for _ in range(writes_per_writer):
                 try:
-                    cache.set("shared", i)
+                    value = cache.get("shared")
+                    with result_lock:
+                        observed_values.append(value)
                 except Exception as exc:
-                    errors.append(exc)
+                    with result_lock:
+                        errors.append(exc)
 
-        threads = [threading.Thread(target=reader) for _ in range(5)]
-        threads += [threading.Thread(target=writer) for _ in range(5)]
+        def writer(thread_id: int) -> None:
+            barrier.wait()
+
+            for i in range(writes_per_writer):
+                try:
+                    cache.set("shared", (thread_id, i))
+                except Exception as exc:
+                    with result_lock:
+                        errors.append(exc)
+
+        threads = [threading.Thread(target=reader) for _ in range(num_readers)]
+        threads += [
+            threading.Thread(target=writer, args=(thread_id,))
+            for thread_id in range(num_writers)
+        ]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
 
         assert not errors, f"Exceptions during concurrent get/set: {errors}"
+        assert observed_values
+        assert set(observed_values) <= expected_values
+        assert len(cache._cache) == 1
+        assert cache.has("shared") is True
+        assert cache.get("shared") in written_values
