@@ -1,3 +1,4 @@
+import threading
 import typing as _t
 from time import time
 
@@ -6,10 +7,9 @@ from cachelib.serializers import SimpleSerializer
 
 
 class SimpleCache(BaseCache):
-    """Simple memory cache for single process environments.  This class exists
-    mainly for the development server and is not 100% thread safe.  It tries
-    to use as many atomic operations as possible and no locks for simplicity
-    but it could happen under heavy load that keys are added multiple times.
+    """Simple memory cache for single process environments. All operations
+    are protected by a :class:`threading.RLock`, making a cache instance safe
+    to use from multiple threads within the same process.
 
     :param threshold: the maximum number of items the cache stores before
                       it starts deleting some.
@@ -28,6 +28,7 @@ class SimpleCache(BaseCache):
         BaseCache.__init__(self, default_timeout)
         self._cache: _t.Dict[str, _t.Any] = {}
         self._threshold = threshold or 500  # threshold = 0
+        self._lock = threading.RLock()
 
     def _over_threshold(self) -> bool:
         return len(self._cache) > self._threshold
@@ -61,42 +62,56 @@ class SimpleCache(BaseCache):
         return timeout
 
     def get(self, key: str) -> _t.Any:
-        try:
-            expires, value = self._cache[key]
-            if expires == 0 or expires > time():
-                return self.serializer.loads(value)
-        except KeyError:
-            return None
+        with self._lock:
+            try:
+                expires, value = self._cache[key]
+                if expires == 0 or expires > time():
+                    return self.serializer.loads(value)
+            except KeyError:
+                return None
 
     def set(
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
     ) -> _t.Optional[bool]:
-        expires = self._normalize_timeout(timeout)
-        self._prune()
-        self._cache[key] = (expires, self.serializer.dumps(value))
-        return True
+        with self._lock:
+            expires = self._normalize_timeout(timeout)
+            self._prune()
+            self._cache[key] = (expires, self.serializer.dumps(value))
+            return True
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
-        expires = self._normalize_timeout(timeout)
-        self._prune()
-        item = (expires, self.serializer.dumps(value))
-        # key exists and is not expired, do not add
-        if self.has(key):
-            return False
-        # key does not exist or is expired, add it
-        self._cache[key] = item
-        return True
+        with self._lock:
+            expires = self._normalize_timeout(timeout)
+            self._prune()
+            item = (expires, self.serializer.dumps(value))
+            # key exists and is not expired, do not add
+            if self.has(key):
+                return False
+            # key does not exist or is expired, add it
+            self._cache[key] = item
+            return True
 
     def delete(self, key: str) -> bool:
-        return self._cache.pop(key, None) is not None
+        with self._lock:
+            return self._cache.pop(key, None) is not None
 
     def has(self, key: str) -> bool:
-        try:
-            expires, value = self._cache[key]
-            return bool(expires == 0 or expires > time())
-        except KeyError:
-            return False
+        with self._lock:
+            try:
+                expires, value = self._cache[key]
+                return bool(expires == 0 or expires > time())
+            except KeyError:
+                return False
 
     def clear(self) -> bool:
-        self._cache.clear()
-        return not bool(self._cache)
+        with self._lock:
+            self._cache.clear()
+            return not bool(self._cache)
+
+    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+        with self._lock:
+            return super().inc(key, delta)
+
+    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+        with self._lock:
+            return super().dec(key, delta)
