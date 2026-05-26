@@ -211,4 +211,4 @@ labels = ["update"]
 dependency_groups = []
 no_default_groups = true
 skip_install = true
-commands = [["uv", "lock", {replace = "posargs", default = ["-U"], extend = true}]]
+commands = [["uv", "lock", "--exclude-newer", "1 week", {replace = "posargs", default = ["-U"], extend = true}]]
