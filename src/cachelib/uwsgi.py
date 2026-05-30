@@ -19,13 +19,11 @@ class UWSGICache(BaseCache):
         means uWSGI will cache in the local instance. If the cache is in the
         same instance as the werkzeug app, you only have to provide the name of
         the cache.
-    :param secret_key: If given, cache entries are signed with this key and
-                       verified on read to detect tampering with stored values.
-
-        .. warning::
-            Without a secret key, anyone with write access to the uWSGI cache
-            can trick your program into executing arbitrary code by crafting
-            malicious cache values.
+    :param secret_key: If given, cache entries are signed with this key so that
+                       tampering with stored values is detected on read.
+                       Without it, anyone with write access to the uWSGI cache
+                       could craft malicious cache values that execute arbitrary
+                       code when loaded.
 
         .. versionadded:: 0.15.0
     """
@@ -38,7 +36,7 @@ class UWSGICache(BaseCache):
         cache: str = "",
         *,
         secret_key: _t.Optional[
-            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+            "_t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]"
         ] = None,
     ):
         BaseCache.__init__(self, default_timeout, secret_key=secret_key)

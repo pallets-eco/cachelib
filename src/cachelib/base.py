@@ -14,8 +14,10 @@ class BaseCache:
 
     :param secret_key: If given, cache entries are signed with this key using
                        ``itsdangerous`` and verified when read back, protecting
-                       against tampering with the serialized data. Not all cache
-                       backends support signing.
+                       against tampering with the serialized data. Without it,
+                       anyone with write access to the backing store could craft
+                       malicious cache values that execute arbitrary code when
+                       loaded. Not all cache backends support signing.
 
         .. versionadded:: 0.15.0
 
@@ -28,7 +30,7 @@ class BaseCache:
         default_timeout: int = 300,
         *,
         secret_key: _t.Optional[
-            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+            "_t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]"
         ] = None,
     ):
         self.default_timeout = default_timeout

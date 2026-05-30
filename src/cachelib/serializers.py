@@ -30,15 +30,19 @@ class BaseSerializer:
     default to pickle.load and pickle.dump. This is currently
     used only by FileSystemCache which dumps/loads to/from a file stream.
 
-    :param secret_key: when provided, cache entries are signed with this key
-        using ``itsdangerous`` and verified on load. Tampered or unsigned
-        entries are rejected.
+    :param secret_key: If given, cache entries are signed with this key using
+        ``itsdangerous`` and verified on load. Without it, anyone with write
+        access to the backing store could craft malicious cache values that
+        execute arbitrary code when loaded. Tampered or unsigned entries are
+        rejected.
+
+        .. versionadded:: 0.15.0
     """
 
     def __init__(
         self,
         secret_key: _t.Optional[
-            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+            "_t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]"
         ] = None,
     ) -> None:
         if secret_key is not None:
@@ -97,8 +101,6 @@ class BaseSerializer:
 
     def loads(self, bvalue: bytes) -> _t.Any:
         if self._signer is not None:
-            if bvalue is None:
-                return None
             try:
                 return self._signer.loads(bvalue)
             except (itsdangerous.BadSignature, pickle.UnpicklingError):

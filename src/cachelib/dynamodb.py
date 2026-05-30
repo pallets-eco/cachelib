@@ -34,8 +34,11 @@ class DynamoDbCache(BaseCache):
                                   this as the TTL field, then DynamoDB will
                                   automatically delete expired entries.
     :param key_prefix: A prefix that should be added to all keys.
-    :param secret_key: If given, cache entries are signed with this key and
-                       verified on read to detect tampering with stored values.
+    :param secret_key: If given, cache entries are signed with this key so that
+                       tampering with stored values is detected on read.
+                       Without it, anyone with write access to the table could
+                       craft malicious cache values that execute arbitrary code
+                       when loaded.
 
         .. versionadded:: 0.15.0
 
@@ -52,7 +55,7 @@ class DynamoDbCache(BaseCache):
         key_prefix: _t.Optional[str] = None,
         *,
         secret_key: _t.Optional[
-            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+            "_t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]"
         ] = None,
         **kwargs: _t.Any,
     ):

@@ -45,12 +45,9 @@ class FileSystemCache(BaseCache):
                         setting  `_default_hash_method`
     :param secret_key: If given, cache entries are signed with this key so that
                        tampering with files in the cache directory is detected
-                       on read.
-
-        .. warning::
-            Without a secret key, anyone with write access to the cache
-            directory can trick your program into executing arbitrary code by
-            crafting malicious cache files.
+                       on read. Without it, anyone with write access to the
+                       cache directory could craft malicious cache files that
+                       execute arbitrary code when loaded.
 
         .. versionadded:: 0.15.0
     """
@@ -73,7 +70,7 @@ class FileSystemCache(BaseCache):
         hash_method: _t.Any = None,
         *,
         secret_key: _t.Optional[
-            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+            "_t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]"
         ] = None,
     ):
         BaseCache.__init__(self, default_timeout, secret_key=secret_key)

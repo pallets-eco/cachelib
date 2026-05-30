@@ -16,8 +16,11 @@ class BaseRedisCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
-    :param secret_key: If given, cache entries are signed with this key and
-                       verified on read to detect tampering with stored values.
+    :param secret_key: If given, cache entries are signed with this key so that
+                       tampering with stored values is detected on read.
+                       Without it, anyone with write access to the backing
+                       store could craft malicious cache values that execute
+                       arbitrary code when loaded.
 
         .. versionadded:: 0.15.0
     """
@@ -33,7 +36,7 @@ class BaseRedisCache(BaseCache):
         key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
         *,
         secret_key: _t.Optional[
-            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+            "_t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]"
         ] = None,
     ):
         BaseCache.__init__(self, default_timeout, secret_key=secret_key)
