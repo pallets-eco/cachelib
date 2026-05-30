@@ -42,8 +42,8 @@ class BaseSerializer:
         ] = None,
     ) -> None:
         if secret_key is not None:
-            self._signer: _t.Any = itsdangerous.Serializer(
-                secret_key, serializer=_Base85Pickler
+            self._signer: _t.Optional[itsdangerous.Serializer[bytes]] = (
+                itsdangerous.Serializer(secret_key, serializer=_Base85Pickler)
             )
         else:
             self._signer = None
