@@ -1,24 +1,7 @@
-import base64
-import io
-import pickle
 import typing as _t
+from collections import abc as cabc
 
-import itsdangerous
-
-
-class _Base85Pickler:
-    """
-    Pickles Base85 safe. To allow multiple reads from the same file, encoded output must
-    not contain any newlines. Base85 has less overhead than Base64.
-    """
-
-    @staticmethod
-    def dumps(obj: _t.Any) -> bytes:
-        return base64.b85encode(pickle.dumps(obj))
-
-    @staticmethod
-    def loads(data: _t.AnyStr) -> bytes:
-        return pickle.loads(base64.b85decode(data))
+from cachelib.serializers import BaseSerializer
 
 
 class BaseCache:
@@ -29,57 +12,35 @@ class BaseCache:
                             no timeout is specified on :meth:`set`. A timeout
                             of 0 indicates that the cache never expires.
 
-    :param secret_key: Key to sign cache entries with.
+    :param secret_key: If given, cache entries are signed with this key using
+                       ``itsdangerous`` and verified when read back, protecting
+                       against tampering with the serialized data. Not all cache
+                       backends support signing.
 
-        .. versionadded:: 0.4.0
+        .. versionadded:: 0.15.0
 
     """
 
+    serializer: BaseSerializer = BaseSerializer()
+
     def __init__(
         self,
-        default_timeout=300,
+        default_timeout: int = 300,
         *,
-        secret_key: _t.Optional[_t.Union[_t.AnyStr, _t.Collection[_t.AnyStr]]] = None
+        secret_key: _t.Optional[
+            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+        ] = None,
     ):
         self.default_timeout = default_timeout
         if secret_key is not None:
-            self.__signed_serializer = itsdangerous.Serializer(
-                secret_key, serializer=_Base85Pickler
-            )
-        else:
-            self.__signed_serializer = None
+            self.serializer = type(self.serializer)(secret_key=secret_key)
 
-    def _normalize_timeout(self, timeout):
+    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
         if timeout is None:
             timeout = self.default_timeout
         return timeout
 
-    def _dumps(self, to_serialize: _t.Any) -> bytes:
-        buf = io.BytesIO()
-        self._dump(to_serialize, buf)
-        return buf.getvalue()
-
-    def _dump(self, to_serialize: _t.Any, file: _t.IO[bytes]) -> None:
-        if self.__signed_serializer:
-            self.__signed_serializer.dump(to_serialize, file)
-            file.write(b"\n")
-        else:
-            return pickle.dump(to_serialize, file)
-
-    def _loads(self, serialized: bytes) -> _t.Any:
-        buf = io.BytesIO(serialized)
-        return self._unpack(buf)
-
-    def _load(self, file: _t.IO[bytes]) -> _t.Any:
-        if self.__signed_serializer:
-            try:
-                read = file.readline()[:-1]
-                return self.__signed_serializer.loads(read)
-            except (itsdangerous.BadSignature, pickle.UnpicklingError):
-                return None
-        return pickle.load(file)
-
-    def get(self, key):
+    def get(self, key: str) -> _t.Any:
         """Look up key in the cache and return the value for it.
 
         :param key: the key to be looked up.
@@ -87,7 +48,7 @@ class BaseCache:
         """
         return None
 
-    def delete(self, key):
+    def delete(self, key: str) -> bool:
         """Delete `key` from the cache.
 
         :param key: the key to delete.
@@ -96,7 +57,7 @@ class BaseCache:
         """
         return True
 
-    def get_many(self, *keys):
+    def get_many(self, *keys: str) -> _t.List[_t.Any]:
         """Returns a list of values for the given keys.
         For each key an item in the list is created::
 
@@ -109,7 +70,7 @@ class BaseCache:
         """
         return [self.get(k) for k in keys]
 
-    def get_dict(self, *keys):
+    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
         """Like :meth:`get_many` but return a dict::
 
             d = cache.get_dict("foo", "bar")
@@ -119,9 +80,11 @@ class BaseCache:
         :param keys: The function accepts multiple keys as positional
                      arguments.
         """
-        return dict(zip(keys, self.get_many(*keys)))
+        return dict(zip(keys, self.get_many(*keys)))  # noqa: B905
 
-    def set(self, key, value, timeout=None):
+    def set(
+        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
+    ) -> _t.Optional[bool]:
         """Add a new key/value to the cache (overwrites value, if key already
         exists in the cache).
 
@@ -137,7 +100,7 @@ class BaseCache:
         """
         return True
 
-    def add(self, key, value, timeout=None):
+    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
         """Works like :meth:`set` but does not overwrite the values of already
         existing keys.
 
@@ -152,37 +115,41 @@ class BaseCache:
         """
         return True
 
-    def set_many(self, mapping, timeout=None):
+    def set_many(
+        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
+    ) -> _t.List[_t.Any]:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
         :param timeout: the cache timeout for the key in seconds (if not
                         specified, it uses the default timeout). A timeout of
                         0 indicates that the cache never expires.
-        :returns: Whether all given keys have been set.
+        :returns: A list containing all keys successfully set
         :rtype: boolean
         """
-        rv = True
+        set_keys = []
         for key, value in mapping.items():
-            if not self.set(key, value, timeout):
-                rv = False
-        return rv
+            if self.set(key, value, timeout):
+                set_keys.append(key)
+        return set_keys
 
-    def delete_many(self, *keys):
+    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         """Deletes multiple keys at once.
 
         :param keys: The function accepts multiple keys as positional
                      arguments.
-        :returns: Whether all given keys have been deleted.
+        :returns: A list containing all successfully deleted keys
         :rtype: boolean
         """
-        return all(self.delete(key) for key in keys)
+        deleted_keys = []
+        for key in keys:
+            if self.delete(key):
+                deleted_keys.append(key)
+        return deleted_keys
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         """Checks if a key exists in the cache without returning it. This is a
         cheap operation that bypasses loading the actual data on the backend.
-
-        This method is optional and may not be implemented on all caches.
 
         :param key: the key to check
         """
@@ -193,7 +160,7 @@ class BaseCache:
             "explicitly if you don't care about performance."
         )
 
-    def clear(self):
+    def clear(self) -> bool:
         """Clears the cache.  Keep in mind that not all caches support
         completely clearing the cache.
 
@@ -202,7 +169,7 @@ class BaseCache:
         """
         return True
 
-    def inc(self, key, delta=1):
+    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
         """Increments the value of a key by `delta`.  If the key does
         not yet exist it is initialized with `delta`.
 
@@ -215,7 +182,7 @@ class BaseCache:
         value = (self.get(key) or 0) + delta
         return value if self.set(key, value) else None
 
-    def dec(self, key, delta=1):
+    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
         """Decrements the value of a key by `delta`.  If the key does
         not yet exist it is initialized with `-delta`.
 
@@ -230,12 +197,11 @@ class BaseCache:
 
 
 class NullCache(BaseCache):
-
     """A cache that doesn't cache.  This can be useful for unit testing.
 
     :param default_timeout: a dummy parameter that is ignored but exists
                             for API compatibility with other caches.
     """
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         return False

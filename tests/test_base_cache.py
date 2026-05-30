@@ -44,12 +44,12 @@ class TestBaseCache:
         cache = self.cache_factory()
         keys = ["bacon", "spam", "eggs"]
         mapping = dict.fromkeys(keys, None)
-        assert cache.set_many(mapping)
+        assert cache.set_many(mapping) == keys
 
     def test_delete_many(self):
         cache = self.cache_factory()
         keys = ["bacon", "spam", "eggs"]
-        assert cache.delete_many(*keys)
+        assert cache.delete_many(*keys) == keys
 
     def test_has(self):
         cache = self.cache_factory()
@@ -67,3 +67,16 @@ class TestBaseCache:
     def test_dec(self):
         cache = self.cache_factory()
         assert cache.dec("truffle", delta=10) == -10
+
+    @pytest.mark.parametrize(
+        "default_timeout,input_timeout,expected",
+        [
+            (42, None, 42),  # None falls back to default
+            (300, 0, 0),  # explicit zero stays zero (permanent)
+            (300, 60, 60),  # explicit value is returned as-is
+            (0, None, 0),  # default_timeout=0 means permanently cached by default
+        ],
+    )
+    def test_normalize_timeout(self, default_timeout, input_timeout, expected):
+        cache = BaseCache(default_timeout=default_timeout)
+        assert cache._normalize_timeout(input_timeout) == expected

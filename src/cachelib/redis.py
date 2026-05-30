@@ -1,10 +1,11 @@
-import pickle
 import typing as _t
+from collections import abc as cabc
 
-from cachelib.base import BaseCache
+from cachelib.redis_base import BaseRedisCache
+from cachelib.serializers import RedisSerializer
 
 
-class RedisCache(BaseCache):
+class RedisCache(BaseRedisCache):
     """Uses the Redis key-value store as a cache backend.
 
     The first argument can be either a string denoting address of the Redis
@@ -22,149 +23,47 @@ class RedisCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
-    :param secret_key: Key to sign cache entries with.
+    :param secret_key: If given, cache entries are signed with this key so that
+                       tampering with values stored in Redis is detected on read.
 
         .. warning::
-            Without a secret key or in case the secret key is not secret anymore,
-            anyone with write access to the redis instance can trick your program
-            into executing arbitrary code.
+            Without a secret key, anyone with write access to the Redis instance
+            can trick your program into executing arbitrary code by crafting
+            malicious cache values.
 
-        .. versionadded:: 0.4.0
+        .. versionadded:: 0.15.0
 
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
+    serializer = RedisSerializer()
+
     def __init__(
         self,
-        host="localhost",
-        port=6379,
-        password=None,
-        db=0,
-        default_timeout=300,
-        key_prefix=None,
+        host: _t.Any = "localhost",
+        port: int = 6379,
+        password: _t.Optional[str] = None,
+        db: int = 0,
+        default_timeout: int = 300,
+        key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
         *,
-        secret_key: _t.Optional[_t.Union[_t.AnyStr, _t.Collection[_t.AnyStr]]] = None,
-        **kwargs,
+        secret_key: _t.Optional[
+            _t.Union[str, bytes, cabc.Iterable[str], cabc.Iterable[bytes]]
+        ] = None,
+        **kwargs: _t.Any,
     ):
-        BaseCache.__init__(self, default_timeout, secret_key=secret_key)
         if host is None:
             raise ValueError("RedisCache host parameter may not be None")
         if isinstance(host, str):
             try:
                 import redis
-            except ImportError:
-                raise RuntimeError("no redis module found")
+            except ImportError as err:
+                raise RuntimeError("no redis module found") from err
             if kwargs.get("decode_responses", None):
                 raise ValueError("decode_responses is not supported by RedisCache.")
-            self._client = redis.Redis(
+            client = redis.Redis(
                 host=host, port=port, password=password, db=db, **kwargs
             )
         else:
-            self._client = host
-        self.key_prefix = key_prefix or ""
-        self._has_secret_key = secret_key is not None
-
-    def _normalize_timeout(self, timeout):
-        timeout = BaseCache._normalize_timeout(self, timeout)
-        if timeout == 0:
-            timeout = -1
-        return timeout
-
-    def dump_object(self, value):
-        """Dumps an object into a string for redis.  By default it serializes
-        integers as regular string and pickle dumps everything else.
-        """
-        if self._has_secret_key:
-            return self._dumps(value)
-        t = type(value)
-        if isinstance(t, int):
-            return str(value).encode("ascii")
-        return b"!" + pickle.dumps(value)
-
-    def load_object(self, value):
-        """The reversal of :meth:`dump_object`.  This might be called with
-        None.
-        """
-        if self._has_secret_key:
-            return self._loads(value)
-        if value is None:
-            return None
-        if value.startswith(b"!"):
-            try:
-                return pickle.loads(value[1:])
-            except pickle.PickleError:
-                return None
-        try:
-            return int(value)
-        except ValueError:
-            # before 0.8 we did not have serialization.  Still support that.
-            return value
-
-    def get(self, key):
-        return self.load_object(self._client.get(self.key_prefix + key))
-
-    def get_many(self, *keys):
-        if self.key_prefix:
-            keys = [self.key_prefix + key for key in keys]
-        return [self.load_object(x) for x in self._client.mget(keys)]
-
-    def set(self, key, value, timeout=None):
-        timeout = self._normalize_timeout(timeout)
-        dump = self.dump_object(value)
-        if timeout == -1:
-            result = self._client.set(name=self.key_prefix + key, value=dump)
-        else:
-            result = self._client.setex(
-                name=self.key_prefix + key, value=dump, time=timeout
-            )
-        return result
-
-    def add(self, key, value, timeout=None):
-        timeout = self._normalize_timeout(timeout)
-        dump = self.dump_object(value)
-        return self._client.setnx(
-            name=self.key_prefix + key, value=dump
-        ) and self._client.expire(name=self.key_prefix + key, time=timeout)
-
-    def set_many(self, mapping, timeout=None):
-        timeout = self._normalize_timeout(timeout)
-        # Use transaction=False to batch without calling redis MULTI
-        # which is not supported by twemproxy
-        pipe = self._client.pipeline(transaction=False)
-
-        for key, value in mapping.items():
-            dump = self.dump_object(value)
-            if timeout == -1:
-                pipe.set(name=self.key_prefix + key, value=dump)
-            else:
-                pipe.setex(name=self.key_prefix + key, value=dump, time=timeout)
-        return pipe.execute()
-
-    def delete(self, key):
-        return self._client.delete(self.key_prefix + key)
-
-    def delete_many(self, *keys):
-        if not keys:
-            return
-        if self.key_prefix:
-            keys = [self.key_prefix + key for key in keys]
-        return self._client.delete(*keys)
-
-    def has(self, key):
-        return self._client.exists(self.key_prefix + key)
-
-    def clear(self):
-        status = False
-        if self.key_prefix:
-            keys = self._client.keys(self.key_prefix + "*")
-            if keys:
-                status = self._client.delete(*keys)
-        else:
-            status = self._client.flushdb()
-        return status
-
-    def inc(self, key, delta=1):
-        return self._client.incr(name=self.key_prefix + key, amount=delta)
-
-    def dec(self, key, delta=1):
-        return self._client.decr(name=self.key_prefix + key, amount=delta)
+            client = host
+        super().__init__(client, default_timeout, key_prefix, secret_key=secret_key)

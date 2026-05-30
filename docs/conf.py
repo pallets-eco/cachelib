@@ -10,19 +10,29 @@ release, version = get_version("cachelib")
 
 # General --------------------------------------------------------------
 
+default_role = "code"
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.log_cabinet",
-    "pallets_sphinx_themes",
-    "sphinx_issues",
     "sphinx_tabs.tabs",
+    "pallets_sphinx_themes",
 ]
+autodoc_member_order = "bysource"
 autodoc_typehints = "description"
+autodoc_preserve_defaults = True
+extlinks = {
+    "issue": ("https://github.com/pallets-eco/cachelib/issues/%s", "#%s"),
+    "pr": ("https://github.com/pallets-eco/cachelib/pull/%s", "#%s"),
+    "ghsa": (
+        "https://github.com/pallets-eco/cachelib/security/advisories/GHSA-%s",
+        "GHSA-%s",
+    ),
+}
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
 }
-issues_github_path = "pallets/cachelib"
 
 # HTML -----------------------------------------------------------------
 
@@ -32,9 +42,8 @@ html_context = {
     "project_links": [
         ProjectLink("Donate", "https://palletsprojects.com/donate"),
         ProjectLink("PyPI Releases", "https://pypi.org/project/cachelib/"),
-        ProjectLink("Source Code", "https://github.com/pallets/cachelib/"),
-        ProjectLink("Issue Tracker", "https://github.com/pallets/cachelib/issues/"),
-        ProjectLink("Twitter", "https://twitter.com/PalletsTeam"),
+        ProjectLink("Source Code", "https://github.com/pallets-eco/cachelib/"),
+        ProjectLink("Issue Tracker", "https://github.com/pallets-eco/cachelib/issues/"),
         ProjectLink("Chat", "https://discord.gg/pallets"),
     ]
 }

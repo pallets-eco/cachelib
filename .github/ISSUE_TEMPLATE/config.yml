@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Questions
-    url: https://stackoverflow.com/search?tab=relevance&q=cachelib
-    about: Search for and ask questions about your code on Stack Overflow.
-  - name: Questions and discussions
+  - name: Questions on Discord
     url: https://discord.gg/pallets
-    about: Discuss questions about your code on our Discord chat.
+    about: Ask questions about your own code on our Discord chat.

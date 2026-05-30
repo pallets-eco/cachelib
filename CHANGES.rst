@@ -1,13 +1,154 @@
-Version 0.4.0
--------------
+Version 0.15.0
+--------------
 
 Unreleased
 
--   Add ``secret_key`` argument to ``FileSystemCache``, ``RedisCache``, and
-    ``UWSGICache``. The serialized data is signed with this key.
-    Without this key, anyone with write access to the cache location (Redis, file
-    system, or UWSGI cache) can trick cachelib into remote code execution.
-    :issue:`1`
+- Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
+- Add a ``secret_key`` argument to ``FileSystemCache``, ``RedisCache``,
+  ``ValkeyCache`` and ``UWSGICache``. When set, serialized cache entries are
+  signed with this key using ``itsdangerous`` and verified on read. Without it,
+  anyone with write access to the cache location can trick cachelib into
+  executing arbitrary code via crafted cache values. :issue:`1`
+
+Version 0.14.0
+--------------
+
+Released 2026-05-09
+
+- Improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
+- Replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
+- Fix ``FileSystemCache`` permission errors on Network Attached Storage (NAS) when trying
+  to perform operations on files that are open in other processes :pr:`424`
+- Fix ``delete_many()`` in ``RedisCache`` and ``MemcachedCache`` incorrectly reporting
+  failed deletions due to comparing normalized keys against non-normalized keys :pr:`443`
+- Fix serializer returning an unbound variable error instead of ``None`` when a
+  ``pickle`` error is raised during serialization :pr:`448`
+- Fix ``add()`` in ``SimpleCache`` treating expired keys as still valid, preventing them
+  from being overwritten until explicitly deleted :pr:`449`
+- Add valkey backend :pr:`441`
+
+
+Version 0.13.0
+--------------
+
+Released 2024-04-13
+
+-   default ``hashlib.md5`` may not be available in FIPS builds. We
+    now do not access it at import time on ``FileSystemCache``so developers
+    have time to change the default.
+    ``hashlib.md5`` will be lazy loaded when a new default is not provided
+
+
+Version 0.12.0
+--------------
+
+Released 2024-02-11
+
+- ``RedisCache`` now supports callables as keys
+- Added ``MongoDB`` as a cache backend
+
+
+Version 0.11.0
+--------------
+
+Released 2024-02-10
+
+- Drop python 3.7 support
+- Add python 3.11 support
+
+
+Version 0.10.2
+--------------
+
+Released 2023-01-31
+
+- Fix broken release
+
+
+Version 0.10.1
+--------------
+
+Released 2023-01-22
+
+- Fix logging pollution due to ``DynamoDB`` logging handler
+
+
+Version 0.10.0
+--------------
+
+Released 2023-01-22
+
+- Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
+- Added ``DynamoDb`` as a cache backend :pr:`209`
+
+Version 0.9.0
+-------------
+
+Released 2022-06-26
+
+- Add separate internal read/write clients to ``RedisCache`` to improve compatibility with flask-caching. :pr:`159`
+- Fix bug where cache entries would expire immediately when ``RedisCache.add``
+  was called without timeout. :pr:`157`
+- Improve ``FileSystemCache.set`` compatibility with Windows systems. :pr:`158`
+
+
+Version 0.8.0
+-------------
+
+Released 2022-06-13
+
+- Remove deprecated ``RedisCache.load_object`` and ``RedisCache.dump_object``. :pr:`147`
+
+
+Version 0.7.0
+-------------
+
+Released 2022-05-14
+
+- ``FileSystemCache`` now stores universal expiration timestamps using python's ``struct`` module. :pr:`126`
+- Drop support for Python 3.6. :pr:`134`
+
+
+Version 0.6.0
+-------------
+
+Released  2022-01-18
+
+- A custom ``hash_method`` may now be provided to ``FileSystemCache`` for
+  hashing keys. :pr:`107`
+
+- Fix ``PermissionError`` issue with ``FileSystemCache`` on Windows. :pr:`111`
+
+
+Version 0.5.0
+-------------
+
+Released 2021-12-31
+
+-   Cache types now have configurable serializers. :pr:`63`
+
+
+Version 0.4.1
+-------------
+
+Released 2021-10-04
+
+-   Fix break in ``RedisCache`` when a host object was passed
+    in ``RedisCache.host`` instead of a string. :pr:`82`
+
+
+Version 0.4.0
+-------------
+
+Released 2021-10-03
+
+-   All cache types now implement ``BaseCache`` interface both
+    in behavior and method return types. Thus, code written
+    for one cache type should work with any other cache type. :pr:`71`
+-   Add type information for static typing tools. :pr:`48`
+-   ``FileNotFound`` exceptions will not be logged anymore
+    in ``FileSystemCache`` methods in order to avoid polluting
+    application log files. :pr:`69`
 
 
 Version 0.3.0
@@ -21,7 +162,7 @@ Released 2021-08-12
     lost. :pr:`52`
 -   ``FileSystemCache`` logs system-related exceptions. :pr:`51`
 -   Removal of expired entries in ``FileSystemCache`` is only triggered
-    if the number of entries is over the ``threshhold`` when calling
+    if the number of entries is over the ``threshold`` when calling
     ``set``. ``get`` ``has`` still return ``None`` and ``False``
     respectively for expired entries, but will not remove the files. All
     removals happen at pruning time or explicitly with ``clear`` and

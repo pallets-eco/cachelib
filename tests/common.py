@@ -6,10 +6,22 @@ from conftest import under_uwsgi
 
 from cachelib import MemcachedCache
 from cachelib import SimpleCache
+from cachelib.serializers import BaseSerializer
 
 
 class CommonTests(TestData):
     """A base set of tests to be run for all cache types"""
+
+    def _skip_if_no_signing(self, cache):
+        """Skip signing tests for caches that do not support signing, either
+        because signing is not meaningful for the backend (in-process or
+        client-pickled stores) or because a custom serializer is used that does
+        not derive from ``BaseSerializer``.
+        """
+        if isinstance(cache, (MemcachedCache, SimpleCache)):
+            pytest.skip("Simple and MemcachedCache do not support signing.")
+        if not isinstance(cache.serializer, BaseSerializer):
+            pytest.skip("Custom serializer does not support signing.")
 
     def test_set_get(self):
         cache = self.cache_factory()
@@ -19,7 +31,8 @@ class CommonTests(TestData):
 
     def test_set_get_many(self):
         cache = self.cache_factory()
-        assert cache.set_many(self.sample_pairs)
+        result = cache.set_many(self.sample_pairs)
+        assert result == list(self.sample_pairs.keys())
         values = cache.get_many(*self.sample_pairs)
         assert values == list(self.sample_pairs.values())
 
@@ -39,8 +52,15 @@ class CommonTests(TestData):
     def test_delete_many(self):
         cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
-        assert cache.delete_many(*self.sample_pairs)
+        result = cache.delete_many(*self.sample_pairs)
+        assert result == list(self.sample_pairs.keys())
         assert not any(cache.get_many(*self.sample_pairs))
+
+    def test_delete_many_ignore_errors(self):
+        cache = self.cache_factory()
+        cache.set("bacon", "spam")
+        cache.delete_many("eggs", "bacon")
+        assert cache.get("bacon") is None
 
     def test_add(self):
         cache = self.cache_factory()
@@ -66,7 +86,7 @@ class CommonTests(TestData):
         if under_uwsgi():
             pytest.skip(
                 "uwsgi uses a separate sweeper thread to clean"
-                " expired chache entries, thus the testing"
+                " expired cache entries, thus the testing"
                 " of such feature must be handled differently"
                 " from other cache types."
             )
@@ -80,8 +100,7 @@ class CommonTests(TestData):
             assert not cache.get(f"{k}-t1")
 
     def test_signed_set_get(self):
-        if isinstance(self.cache_factory(), (MemcachedCache, SimpleCache)):
-            pytest.skip("Simple and MemcachedCache do not support signing.")
+        self._skip_if_no_signing(self.cache_factory())
         cache = self.cache_factory(secret_key="not very secret")
 
         for k, v in self.sample_pairs.items():
@@ -90,8 +109,7 @@ class CommonTests(TestData):
 
     def test_signed_does_not_get_unsigned(self):
         unsigned_cache = self.cache_factory()
-        if isinstance(unsigned_cache, (MemcachedCache, SimpleCache)):
-            pytest.skip("Simple and MemcachedCache do not support signing.")
+        self._skip_if_no_signing(unsigned_cache)
 
         signed_cache = self.cache_factory(secret_key="not very secret")
 
@@ -100,8 +118,7 @@ class CommonTests(TestData):
             assert signed_cache.get(k) is None
 
     def test_signed_does_not_get_wrong_key(self):
-        if isinstance(self.cache_factory(), (MemcachedCache, SimpleCache)):
-            pytest.skip("Simple and MemcachedCache do not support signing.")
+        self._skip_if_no_signing(self.cache_factory())
 
         signed_cache1 = self.cache_factory(secret_key="not very secret")
         signed_cache2 = self.cache_factory(secret_key="another not secret value")

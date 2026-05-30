@@ -1,4 +1,8 @@
+import hashlib
+import os
 from time import sleep
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import pytest
 from clear import ClearTests
@@ -8,10 +12,58 @@ from has import HasTests
 from cachelib import FileSystemCache
 
 
-@pytest.fixture(autouse=True)
+class SillySerializer:
+    """A pointless serializer only for testing"""
+
+    def dump(self, value, fs):
+        fs.write(f"{repr(value)}{os.linesep}".encode())
+
+    def load(self, fs):
+        try:
+            loaded = eval(fs.readline().decode())
+        # When all file content has been read eval will
+        # turn the EOFError into SyntaxError which is not
+        # handled by cachelib
+        except SyntaxError as e:
+            raise EOFError from e
+        return loaded
+
+
+class CustomSerializerCache(FileSystemCache):
+    """Our custom cache client with non-default serializer"""
+
+    # overwrite serializer
+    serializer = SillySerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class CustomHashingMethodCache(FileSystemCache):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, hash_method=hashlib.sha256, **kwargs)
+
+
+class CustomDefaultHashingMethodCache(FileSystemCache):
+    _default_hash_method = hashlib.sha256
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@pytest.fixture(
+    autouse=True,
+    params=[
+        FileSystemCache,
+        CustomSerializerCache,
+        CustomHashingMethodCache,
+        CustomDefaultHashingMethodCache,
+    ],
+)
 def cache_factory(request, tmpdir):
     def _factory(self, *args, **kwargs):
-        return FileSystemCache(tmpdir, *args, **kwargs)
+        client = request.param(tmpdir, *args, **kwargs)
+        return client
 
     request.cls.cache_factory = _factory
 
@@ -75,3 +127,94 @@ class TestFileSystemCache(CommonTests, ClearTests, HasTests):
             assert cache.set(k, v)
             assert cache.has(f"{k}-t10")
             assert not cache.has(f"{k}-t1")
+
+    def test_run_safely_succeeds_on_first_try(self):
+        """_run_safely returns the function's result when no error is raised."""
+        cache = self.cache_factory()
+        result = cache._run_safely(lambda: 42)
+        assert result == 42
+
+    def test_run_safely_retries_on_permission_error(self):
+        """
+        _run_safely retries when PermissionError is raised
+        (e.g. Windows NTFS race).
+        """
+        cache = self.cache_factory()
+        flaky = Mock(
+            side_effect=[PermissionError("locked"), PermissionError("locked"), "ok"]
+        )
+
+        with patch("cachelib.file.sleep") as mock_sleep:
+            result = cache._run_safely(flaky)
+
+        assert result == "ok"
+        assert flaky.call_count == 3
+        assert mock_sleep.call_count == 2
+
+    def test_run_safely_exhausts_retries_and_returns_none(self):
+        """
+        _run_safely returns None when PermissionError persists
+        beyond max_sleep_time.
+        """
+        cache = self.cache_factory()
+
+        def always_fails():
+            raise PermissionError("locked")
+
+        with patch("cachelib.file.sleep"):
+            result = cache._run_safely(always_fails)
+
+        assert result is None
+
+    def test_run_safely_does_not_retry_other_errors(self):
+        """_run_safely does not catch non-PermissionError exceptions."""
+        cache = self.cache_factory()
+
+        def raises_file_not_found():
+            raise FileNotFoundError("missing")
+
+        with pytest.raises(FileNotFoundError):
+            cache._run_safely(raises_file_not_found)
+
+    def test_run_safely_exponential_backoff(self):
+        """_run_safely doubles the wait_step on each retry."""
+        cache = self.cache_factory()
+        flaky = Mock(
+            side_effect=[
+                PermissionError("locked"),
+                PermissionError("locked"),
+                PermissionError("locked"),
+                "ok",
+            ]
+        )
+
+        with patch("cachelib.file.sleep") as mock_sleep:
+            cache._run_safely(flaky)
+
+        sleep_calls = [c.args[0] for c in mock_sleep.call_args_list]
+        # Each wait should double the previous
+        assert sleep_calls[1] == sleep_calls[0] * 2
+        assert sleep_calls[2] == sleep_calls[1] * 2
+
+    def test_mgmt_element_set_not_counted(self, tmpdir):
+        """set with mgmt_element=True should not affect _file_count."""
+        cache = FileSystemCache(tmpdir)
+        before = cache._file_count
+        cache.set("__internal_key", 42, mgmt_element=True)
+        assert cache._file_count == before
+
+    def test_mgmt_element_delete_not_counted(self, tmpdir):
+        """delete with mgmt_element=True should not affect _file_count."""
+        cache = FileSystemCache(tmpdir)
+        cache.set("__internal_key", 42, mgmt_element=True)
+        before = cache._file_count
+        cache.delete("__internal_key", mgmt_element=True)
+        assert cache._file_count == before
+
+    def test_has_on_expired_key_returns_false(self, tmpdir):
+        from time import sleep
+
+        cache = FileSystemCache(tmpdir)
+        cache.set("expiring", "value", timeout=1)
+        sleep(2)
+        assert cache.has("expiring") is False

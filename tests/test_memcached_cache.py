@@ -1,6 +1,7 @@
 import pytest
 from clear import ClearTests
 from common import CommonTests
+from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
 
 from cachelib import MemcachedCache
@@ -9,6 +10,7 @@ from cachelib import MemcachedCache
 @pytest.fixture(autouse=True)
 def cache_factory(request):
     def _factory(self, *args, **kwargs):
+        kwargs.setdefault("servers", ["127.0.0.1:11212"])
         mc = MemcachedCache(*args, **kwargs)
         mc._client.flush_all()
         return mc
@@ -17,5 +19,5 @@ def cache_factory(request):
 
 
 @pytest.mark.usefixtures("memcached_server")
-class TestMemcachedCache(CommonTests, ClearTests, HasTests):
+class TestMemcachedCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
     pass
