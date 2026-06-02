@@ -1,3 +1,4 @@
+import json
 import logging
 import pickle
 import typing as _t
@@ -11,10 +12,8 @@ class BaseSerializer:
     used only by FileSystemCache which dumps/loads to/from a file stream.
     """
 
-    def _warn(self, e: pickle.PickleError) -> None:
-        logging.warning(
-            f"An exception has been raised during a pickling operation: {e}"
-        )
+    def _warn(self, e: Exception) -> None:
+        logging.warning(f"An exception has been raised during an operation: {e}")
 
     def dump(
         self, value: int, f: _t.IO[bytes], protocol: int = pickle.HIGHEST_PROTOCOL
@@ -119,9 +118,58 @@ class ValkeySerializer(BaseRedisSerializer):
 class DynamoDbSerializer(RedisSerializer):
     """Default serializer for DynamoDbCache."""
 
-    def loads(self, value: _t.Any) -> _t.Any:
-        """The reversal of :meth:`dump_object`. This might be called with
-        None.
-        """
-        value = value.value
-        return super().loads(value)
+    pass
+
+
+class MongoDbSerializer(BaseSerializer):
+    """Default serializer for MongoDbCache."""
+
+    pass
+
+
+class JSONSerializer(BaseSerializer):
+    """Generic JSON serializer for caches.
+
+    Use this serializer if you want to serialize to JSON instead of pickle.
+    Note that JSON does not support serialization of Python bytes objects.
+    If you need to cache bytes, use the default pickle-based serializer.
+    This serializer is not used by default.
+    """
+
+    def dump(
+        self, value: _t.Any, f: _t.IO[bytes], *args: _t.Any, **kwargs: _t.Any
+    ) -> None:
+        try:
+            f.write(json.dumps(value, *args, **kwargs).encode())
+        except (TypeError, ValueError) as e:
+            self._warn(e)
+
+    def load(self, f: _t.IO[bytes], *args: _t.Any, **kwargs: _t.Any) -> _t.Any:
+        try:
+            data = json.loads(f.read(), *args, **kwargs)
+        except (TypeError, ValueError) as e:
+            self._warn(e)
+            return None
+        else:
+            return data
+
+    def dumps(
+        self, value: _t.Any, *args: _t.Any, **kwargs: _t.Any
+    ) -> _t.Optional[bytes]:
+        try:
+            serialized = json.dumps(value, *args, **kwargs).encode()
+        except (TypeError, ValueError) as e:
+            self._warn(e)
+            return None
+        return serialized
+
+    def loads(
+        self, bvalue: _t.Union[str, bytes, bytearray], *args: _t.Any, **kwargs: _t.Any
+    ) -> _t.Any:
+        try:
+            data = json.loads(bvalue, *args, **kwargs)
+        except (TypeError, ValueError) as e:
+            self._warn(e)
+            return None
+        else:
+            return data

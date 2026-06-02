@@ -2,6 +2,7 @@ import datetime
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import DynamoDbSerializer
 
 CREATED_AT_FIELD = "created_at"
@@ -33,10 +34,12 @@ class DynamoDbCache(BaseCache):
                                   this as the TTL field, then DynamoDB will
                                   automatically delete expired entries.
     :param key_prefix: A prefix that should be added to all keys.
-
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dumps and loads methods.
     """
 
-    serializer = DynamoDbSerializer()
+    serializer: BaseSerializer = DynamoDbSerializer()
 
     def __init__(
         self,
@@ -45,6 +48,7 @@ class DynamoDbCache(BaseCache):
         key_field: _t.Optional[str] = "cache_key",
         expiration_time_field: _t.Optional[str] = "expiration_time",
         key_prefix: _t.Optional[str] = None,
+        serializer: _t.Optional[BaseSerializer] = None,
         **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
@@ -60,6 +64,8 @@ class DynamoDbCache(BaseCache):
         self.key_prefix = key_prefix or ""
         self._dynamo = boto3.resource("dynamodb", **kwargs)
         self._attr = boto3.dynamodb.conditions.Attr
+        if serializer is not None:
+            self.serializer = serializer
 
         try:
             self._table = self._dynamo.Table(table_name)
@@ -134,7 +140,7 @@ class DynamoDbCache(BaseCache):
         cache_item = self._get_item(self.key_prefix + key)
         if cache_item:
             response = cache_item[RESPONSE_FIELD]
-            value = self.serializer.loads(response)
+            value = self.serializer.loads(response.value)
             return value
         return None
 

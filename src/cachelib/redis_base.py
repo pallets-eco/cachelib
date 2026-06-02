@@ -2,6 +2,7 @@ import typing as _t
 
 from cachelib.base import BaseCache
 from cachelib.serializers import BaseRedisSerializer
+from cachelib.serializers import BaseSerializer
 
 
 class BaseRedisCache(BaseCache):
@@ -15,21 +16,27 @@ class BaseRedisCache(BaseCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dumps and loads methods.
     """
 
     _read_client: _t.Any = None
     _write_client: _t.Any = None
-    serializer = BaseRedisSerializer()
+    serializer: BaseSerializer = BaseRedisSerializer()
 
     def __init__(
         self,
         client: _t.Any,
         default_timeout: int = 300,
         key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
+        serializer: _t.Optional[BaseSerializer] = None,
     ):
         BaseCache.__init__(self, default_timeout)
         self._read_client = self._write_client = client
         self.key_prefix = key_prefix or ""
+        if serializer is not None:
+            self.serializer = serializer
 
     def _get_prefix(self) -> str:
         return (

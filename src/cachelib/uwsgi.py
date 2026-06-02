@@ -2,6 +2,7 @@ import platform
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import UWSGISerializer
 
 
@@ -18,14 +19,18 @@ class UWSGICache(BaseCache):
         means uWSGI will cache in the local instance. If the cache is in the
         same instance as the werkzeug app, you only have to provide the name of
         the cache.
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dumps and loads methods.
     """
 
-    serializer = UWSGISerializer()
+    serializer: BaseSerializer = UWSGISerializer()
 
     def __init__(
         self,
         default_timeout: int = 300,
         cache: str = "",
+        serializer: _t.Optional[BaseSerializer] = None,
     ):
         BaseCache.__init__(self, default_timeout)
 
@@ -44,6 +49,8 @@ class UWSGICache(BaseCache):
             ) from err
 
         self.cache = cache
+        if serializer is not None:
+            self.serializer = serializer
 
     def get(self, key: str) -> _t.Any:
         rv = self._uwsgi.cache_get(key, self.cache)

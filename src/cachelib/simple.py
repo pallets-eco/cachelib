@@ -3,6 +3,7 @@ import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import SimpleSerializer
 
 
@@ -16,19 +17,25 @@ class SimpleCache(BaseCache):
     :param default_timeout: the default timeout that is used if no timeout is
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dumps and loads methods.
     """
 
-    serializer = SimpleSerializer()
+    serializer: BaseSerializer = SimpleSerializer()
 
     def __init__(
         self,
         threshold: int = 500,
         default_timeout: int = 300,
+        serializer: _t.Optional[BaseSerializer] = None,
     ):
         BaseCache.__init__(self, default_timeout)
         self._cache: _t.Dict[str, _t.Any] = {}
         self._threshold = threshold or 500  # threshold = 0
         self._lock = threading.RLock()
+        if serializer is not None:
+            self.serializer = serializer
 
     def _over_threshold(self) -> bool:
         return len(self._cache) > self._threshold
