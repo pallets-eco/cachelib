@@ -1,7 +1,8 @@
 Version 0.15.0
 --------------
 
-Unreleased
+- Add support for optional dependencies in pyproject.toml to allow users to
+  install the dependencies for specific cache backends as needed. :pr:`459`
 
 - Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
 
