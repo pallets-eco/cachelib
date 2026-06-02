@@ -56,13 +56,13 @@ class UWSGICache(BaseCache):
 
     def set(
         self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
-    ) -> _t.Optional[bool]:
+    ) -> _t.Optional[_t.Literal[True]]:
         result = self._uwsgi.cache_update(
             key,
             self.serializer.dumps(value),
             self._normalize_timeout(timeout),
             self.cache,
-        )  # type: bool
+        )  # type: _t.Optional[_t.Literal[True]]
         return result
 
     def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:

@@ -29,6 +29,8 @@ class MemcachedCache(BaseCache):
     the keys in the same format as passed.  Furthermore all get methods
     silently ignore key errors to not cause problems when untrusted user data
     is passed to the get methods which is often the case in web applications.
+    This cache doesn't have a serializer since the underlying memcached client
+    libraries handle serialization internally."
 
     :param servers: a list or tuple of server addresses or alternatively
                     a :class:`memcache.Client` or a compatible client.
