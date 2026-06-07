@@ -1,6 +1,7 @@
 import typing as _t
 
 from cachelib.redis_base import BaseRedisCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import ValkeySerializer
 
 
@@ -22,6 +23,9 @@ class ValkeyCache(BaseRedisCache):
                             specified on :meth:`~BaseCache.set`. A timeout of
                             0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dumps and loads methods.
 
     Any additional keyword arguments will be passed to ``valkey.Valkey``.
     """
@@ -36,6 +40,7 @@ class ValkeyCache(BaseRedisCache):
         db: int = 0,
         default_timeout: int = 300,
         key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
+        serializer: _t.Optional[BaseSerializer] = None,
         **kwargs: _t.Any,
     ):
         if host is None:
@@ -52,7 +57,7 @@ class ValkeyCache(BaseRedisCache):
             )
         else:
             client = host
-        super().__init__(client, default_timeout, key_prefix)
+        super().__init__(client, default_timeout, key_prefix, serializer)
 
     def set_many(
         self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None

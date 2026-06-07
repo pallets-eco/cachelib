@@ -13,6 +13,7 @@ from time import sleep
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import FileSystemSerializer
 
 
@@ -42,6 +43,9 @@ class FileSystemCache(BaseCache):
                         generate the filename for cached results.
                         Default is lazy loaded and can be overridden by
                         setting  `_default_hash_method`
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dump and load methods.
     """
 
     #: used for temporary files by the FileSystemCache
@@ -51,7 +55,7 @@ class FileSystemCache(BaseCache):
     #: default file name hashing method
     _default_hash_method = staticmethod(_lazy_md5)
 
-    serializer = FileSystemSerializer()
+    serializer: BaseSerializer = FileSystemSerializer()
 
     def __init__(
         self,
@@ -60,6 +64,7 @@ class FileSystemCache(BaseCache):
         default_timeout: int = 300,
         mode: _t.Optional[int] = None,
         hash_method: _t.Any = None,
+        serializer: _t.Optional[BaseSerializer] = None,
     ):
         BaseCache.__init__(self, default_timeout)
         self._path = cache_dir
@@ -75,6 +80,9 @@ class FileSystemCache(BaseCache):
         self._mode = mode
         if self._mode is None:
             self._mode = self._get_compatible_platform_mode()
+
+        if serializer is not None:
+            self.serializer = serializer
 
         try:
             os.makedirs(self._path)

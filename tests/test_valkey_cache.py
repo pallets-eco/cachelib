@@ -3,11 +3,13 @@ from clear import ClearTests
 from common import CommonTests
 from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
+from serializer import SerializerTests
 
 from cachelib import ValkeyCache
+from cachelib.serializers import BaseSerializer
 
 
-class SillySerializer:
+class SillySerializer(BaseSerializer):
     """A pointless serializer only for testing"""
 
     def dumps(self, value):
@@ -44,7 +46,9 @@ def my_callable_key() -> str:
 
 
 @pytest.mark.usefixtures("valkey_server")
-class TestValkeyCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
+class TestValkeyCache(
+    CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests, SerializerTests
+):
     def test_callable_key(self):
         cache = self.cache_factory()
         assert cache.set(my_callable_key, "sausages")

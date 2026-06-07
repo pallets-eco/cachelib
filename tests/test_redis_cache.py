@@ -3,6 +3,7 @@ from clear import ClearTests
 from common import CommonTests
 from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
+from serializer import SerializerTests
 
 from cachelib import RedisCache
 
@@ -44,7 +45,9 @@ def my_callable_key() -> str:
 
 
 @pytest.mark.usefixtures("redis_server")
-class TestRedisCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
+class TestRedisCache(
+    CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests, SerializerTests
+):
     def test_callable_key(self):
         cache = self.cache_factory()
         assert cache.set(my_callable_key, "sausages")

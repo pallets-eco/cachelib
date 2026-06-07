@@ -2,6 +2,7 @@ import datetime
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.serializers import BaseSerializer
 from cachelib.serializers import MongoDbSerializer
 
 
@@ -18,10 +19,12 @@ class MongoDbCache(BaseCache):
     :param default_timeout: Set the timeout in seconds after which cache entries
                             expire
     :param key_prefix: A prefix that should be added to all keys.
-
+    :param serializer: An optional serializer to use instead of the default
+                       BaseSerializer. The serializer must implement the
+                       dumps and loads methods.
     """
 
-    serializer = MongoDbSerializer()
+    serializer: BaseSerializer = MongoDbSerializer()
 
     def __init__(
         self,
@@ -30,6 +33,7 @@ class MongoDbCache(BaseCache):
         collection: _t.Optional[str] = "cache-collection",
         default_timeout: int = 300,
         key_prefix: _t.Optional[str] = None,
+        serializer: _t.Optional[BaseSerializer] = None,
         **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
@@ -47,8 +51,11 @@ class MongoDbCache(BaseCache):
         }
         if "id" not in all_keys:
             self.client.create_index("id", unique=True)
+
         self.key_prefix = key_prefix or ""
         self.collection = collection
+        if serializer is not None:
+            self.serializer = serializer
 
     def _utcnow(self) -> _t.Any:
         """Return a tz-aware UTC datetime representing the current time"""

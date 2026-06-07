@@ -4,6 +4,8 @@ Version 0.15.0
 Unreleased
 
 - Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
+- Allow passing a custom ``serializer`` on cache creation and add ``JSONSerializer``. :pr:`462`
+
 
 Version 0.14.0
 --------------

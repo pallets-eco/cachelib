@@ -5,11 +5,13 @@ import pytest
 from clear import ClearTests
 from common import CommonTests
 from has import HasTests
+from serializer import SerializerTests
 
 from cachelib import SimpleCache
+from cachelib.serializers import BaseSerializer
 
 
-class SillySerializer:
+class SillySerializer(BaseSerializer):
     """A pointless serializer only for testing"""
 
     def dumps(self, value):
@@ -37,7 +39,7 @@ def cache_factory(request):
     request.cls.cache_factory = _factory
 
 
-class TestSimpleCache(CommonTests, HasTests, ClearTests):
+class TestSimpleCache(CommonTests, HasTests, ClearTests, SerializerTests):
     def test_threshold(self):
         threshold = len(self.sample_pairs) // 2
         cache = self.cache_factory(threshold=threshold)

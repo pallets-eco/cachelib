@@ -2,6 +2,7 @@ import pytest
 from clear import ClearTests
 from common import CommonTests
 from has import HasTests
+from serializer import SerializerTests
 
 from cachelib.mongodb import MongoDbCache
 
@@ -26,5 +27,5 @@ def cache_factory(request):
         request.cls.cache_factory = _factory
 
 
-class TestMongoDbCache(CommonTests, ClearTests, HasTests):
+class TestMongoDbCache(CommonTests, ClearTests, HasTests, SerializerTests):
     pass

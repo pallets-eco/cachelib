@@ -3,6 +3,7 @@ from clear import ClearTests
 from common import CommonTests
 from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
+from serializer import SerializerTests
 
 from cachelib import DynamoDbCache
 
@@ -30,5 +31,7 @@ def cache_factory(request):
         request.cls.cache_factory = _factory
 
 
-class TestDynamoDbCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
+class TestDynamoDbCache(
+    CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests, SerializerTests
+):
     pass
