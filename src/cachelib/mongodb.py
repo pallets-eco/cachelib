@@ -1,5 +1,4 @@
 import datetime
-import logging
 import typing as _t
 
 from cachelib.base import BaseCache
@@ -40,11 +39,11 @@ class MongoDbCache(BaseCache):
         super().__init__(default_timeout)
         try:
             import pymongo
-        except ImportError:
-            logging.warning("no pymongo module found")
+        except ImportError as err:
+            raise RuntimeError("no pymongo module found") from err
 
         if client is None or isinstance(client, str):
-            client = pymongo.MongoClient(host=client)
+            client = pymongo.MongoClient(host=client, **kwargs)
         self.client = client[db][collection]
         index_info = self.client.index_information()
         all_keys = {
