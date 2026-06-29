@@ -18,6 +18,7 @@ def cache_factory(request):
     request.cls.cache_factory = _factory
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("memcached_server")
 class TestMemcachedCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
     pass

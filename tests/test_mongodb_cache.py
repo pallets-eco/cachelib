@@ -34,5 +34,6 @@ def cache_factory(request):
     client.close()
 
 
+@pytest.mark.network
 class TestMongoDbCache(CommonTests, ClearTests, HasTests):
     pass
