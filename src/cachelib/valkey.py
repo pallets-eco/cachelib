@@ -63,9 +63,10 @@ class ValkeyCache(BaseRedisCache):
 
         for key, value in mapping.items():
             dump = self.serializer.dumps(value)
-            if timeout == -1:
-                pipe.set(name=f"{self._get_prefix()}{key}", value=dump)
-            else:
-                pipe.setex(name=f"{self._get_prefix()}{key}", value=dump, time=timeout)
+            pipe.set(
+                name=f"{self._get_prefix()}{key}",
+                value=dump,
+                ex=timeout if timeout != -1 else None,
+            )
         results = pipe.execute()
         return [k for k, was_set in zip(mapping.keys(), results) if was_set]
