@@ -43,6 +43,7 @@ def my_callable_key() -> str:
     return "bacon"
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("valkey_server")
 class TestValkeyCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
     def test_callable_key(self):
