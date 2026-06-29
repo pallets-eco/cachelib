@@ -49,5 +49,6 @@ class TestValkeyCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTes
         cache = self.cache_factory()
         assert cache.set(my_callable_key, "sausages")
         assert cache.get(my_callable_key) == "sausages"
-        assert cache.set(lambda: "spam", "sausages")
-        assert cache.get(lambda: "spam") == "sausages"
+        spam_key = lambda: "spam"  # noqa: E731
+        assert cache.set(spam_key, "sausages")
+        assert cache.get(spam_key) == "sausages"

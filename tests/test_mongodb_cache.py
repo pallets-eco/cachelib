@@ -1,3 +1,4 @@
+import pymongo
 import pytest
 from clear import ClearTests
 from common import CommonTests
@@ -8,7 +9,10 @@ from cachelib.mongodb import MongoDbCache
 
 @pytest.fixture(autouse=True, params=[MongoDbCache])
 def cache_factory(request):
+    client = pymongo.MongoClient()
+
     def _factory(self, *args, **kwargs):
+        kwargs["client"] = client
         kwargs["db"] = "test-db"
         kwargs["collection"] = "test-collection"
         kwargs["key_prefix"] = "prefix"
@@ -24,6 +28,10 @@ def cache_factory(request):
 
     if request.cls:
         request.cls.cache_factory = _factory
+
+    yield
+
+    client.close()
 
 
 class TestMongoDbCache(CommonTests, ClearTests, HasTests):
