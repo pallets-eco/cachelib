@@ -4,6 +4,8 @@ Version 0.15.0
 Unreleased
 
 - Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
+- Drop support for Python 3.8, 3.9 and 3.10. :issue:`477`
+
 
 Version 0.14.0
 --------------

@@ -13,7 +13,7 @@ classifiers = [
     "Programming Language :: Python",
     "Typing :: Typed",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 
 [project.urls]
 Donate = "https://palletsprojects.com/donate"
@@ -42,24 +42,22 @@ gha-update = [
 ]
 pre-commit = [
     "pre-commit",
-    "pre-commit-uv ; python_full_version >= '3.9'",
+    "pre-commit-uv",
 ]
 tests = [
-    "boto3==1.37.38; python_full_version < '3.9'",
-    "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
-    "boto3; python_full_version >= '3.10'",
+    "boto3",
     "pylibmc",
     "pymongo",
     "pytest",
     "pytest-xprocess",
     "redis",
     "valkey",
-    "uwsgi==2.0.25; python_full_version < '3.10'",
-    "uwsgi; python_full_version >= '3.10'",
+    "uwsgi",
 ]
 typing = [
     "mypy",
     "pyright",
+    "boto3-stubs[dynamodb]",
 ]
 
 [build-system]
@@ -85,10 +83,7 @@ addopts = "--strict-markers"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
-    "default::pytest.PytestUnraisableExceptionWarning",
-    "default::DeprecationWarning:cachelib.uwsgi",
-    "default::DeprecationWarning:cachelib.redis",
-    "default::DeprecationWarning:botocore",
+    "default::pytest.PytestUnraisableExceptionWarning", # pylibmc C ext on py3.13+
 ]
 markers = [
     "network: mark a test which requires net access (deselect with '-m \"not network\"')",
@@ -109,14 +104,14 @@ exclude_also = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 files = ["src"]
 show_error_codes = true
 pretty = true
 strict = true
 
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.11"
 include = ["src"]
 typeCheckingMode = "standard"
 
@@ -142,7 +137,7 @@ order-by-type = false
 
 [tool.tox]
 env_list = [
-    "py3.14", "py3.13", "py3.12", "py3.11", "py3.10", "py3.9", "py3.8",
+    "py3.14", "py3.13", "py3.12", "py3.11",
     "style",
     "typing",
     "docs",

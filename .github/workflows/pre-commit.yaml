@@ -18,11 +18,11 @@ jobs:
         with:
           enable-cache: true
           prune-cache: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         id: setup-python
         with:
           python-version-file: pyproject.toml
-      - uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ hashFiles('pyproject.toml', '.pre-commit-config.yaml') }}

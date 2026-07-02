@@ -32,10 +32,10 @@ class ValkeyCache(BaseRedisCache):
         self,
         host: _t.Any = "localhost",
         port: int = 6379,
-        password: _t.Optional[str] = None,
+        password: str | None = None,
         db: int = 0,
         default_timeout: int = 300,
-        key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
+        key_prefix: str | _t.Callable[[], str] | None = None,
         **kwargs: _t.Any,
     ):
         if host is None:
@@ -55,17 +55,20 @@ class ValkeyCache(BaseRedisCache):
         super().__init__(client, default_timeout, key_prefix)
 
     def set_many(
-        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+        self, mapping: dict[str, _t.Any], timeout: int | None = None
+    ) -> list[_t.Any]:
         timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling MULTI
         pipe = self._write_client.pipeline(transaction=False)
 
         for key, value in mapping.items():
             dump = self.serializer.dumps(value)
-            if timeout == -1:
-                pipe.set(name=f"{self._get_prefix()}{key}", value=dump)
-            else:
-                pipe.setex(name=f"{self._get_prefix()}{key}", value=dump, time=timeout)
+            pipe.set(
+                name=f"{self._get_prefix()}{key}",
+                value=dump,
+                ex=timeout if timeout != -1 else None,
+            )
         results = pipe.execute()
-        return [k for k, was_set in zip(mapping.keys(), results) if was_set]
+        return [
+            k for k, was_set in zip(mapping.keys(), results, strict=True) if was_set
+        ]

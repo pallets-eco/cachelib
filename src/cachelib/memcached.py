@@ -48,7 +48,7 @@ class MemcachedCache(BaseCache):
         self,
         servers: _t.Any = None,
         default_timeout: int = 300,
-        key_prefix: _t.Optional[str] = None,
+        key_prefix: str | None = None,
     ):
         BaseCache.__init__(self, default_timeout)
         if servers is None or isinstance(servers, (list, tuple)):
@@ -69,7 +69,7 @@ class MemcachedCache(BaseCache):
             key = self.key_prefix + key
         return key
 
-    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+    def _normalize_timeout(self, timeout: int | None) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout > 0:
             timeout = int(time()) + timeout
@@ -83,14 +83,15 @@ class MemcachedCache(BaseCache):
         if _test_memcached_key(key):
             return self._client.get(key)
 
-    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
+    def get_dict(self, *keys: str) -> dict[str, _t.Any]:
         key_mapping = {}
         for key in keys:
             encoded_key = self._normalize_key(key)
             if _test_memcached_key(key):
                 key_mapping[encoded_key] = key
         _keys = list(key_mapping)
-        d = rv = self._client.get_multi(_keys)  # type: _t.Dict[str, _t.Any]
+        d: dict[str, _t.Any] = self._client.get_multi(_keys)
+        rv = d
         if self.key_prefix:
             rv = {}
             for key, value in d.items():
@@ -101,33 +102,31 @@ class MemcachedCache(BaseCache):
                     rv[key] = None
         return rv
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
         return bool(self._client.add(key, value, timeout))
 
-    def set(
-        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
-    ) -> _t.Optional[bool]:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
         return bool(self._client.set(key, value, timeout))
 
-    def get_many(self, *keys: str) -> _t.List[_t.Any]:
+    def get_many(self, *keys: str) -> list[_t.Any]:
         d = self.get_dict(*keys)
         return [d[key] for key in keys]
 
     def set_many(
-        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+        self, mapping: dict[str, _t.Any], timeout: int | None = None
+    ) -> list[_t.Any]:
         new_mapping = {}
         for key, value in mapping.items():
             key = self._normalize_key(key)
             new_mapping[key] = value
 
         timeout = self._normalize_timeout(timeout)
-        failed_keys = self._client.set_multi(new_mapping, timeout)  # type: _t.List[_t.Any]
-        k_normkey = zip(mapping.keys(), new_mapping.keys())  # noqa: B905
+        failed_keys: list[_t.Any] = self._client.set_multi(new_mapping, timeout)
+        k_normkey = zip(mapping.keys(), new_mapping.keys(), strict=True)
         return [k for k, nkey in k_normkey if nkey not in failed_keys]
 
     def delete(self, key: str) -> bool:
@@ -136,7 +135,7 @@ class MemcachedCache(BaseCache):
             return bool(self._client.delete(key))
         return False
 
-    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
+    def delete_many(self, *keys: str) -> list[_t.Any]:
         new_keys = []
         normalized_keys = []
         for key in keys:
@@ -156,12 +155,12 @@ class MemcachedCache(BaseCache):
     def clear(self) -> bool:
         return bool(self._client.flush_all())
 
-    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def inc(self, key: str, delta: int = 1) -> int | None:
         key = self._normalize_key(key)
         value = (self._client.get(key) or 0) + delta
         return value if self.set(key, value) else None
 
-    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def dec(self, key: str, delta: int = 1) -> int | None:
         key = self._normalize_key(key)
         value = (self._client.get(key) or 0) - delta
         return value if self.set(key, value) else None

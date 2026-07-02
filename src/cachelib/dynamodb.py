@@ -7,6 +7,10 @@ from cachelib.serializers import DynamoDbSerializer
 CREATED_AT_FIELD = "created_at"
 RESPONSE_FIELD = "response"
 
+if _t.TYPE_CHECKING:
+    from mypy_boto3_dynamodb.type_defs import GetItemInputTableGetItemTypeDef
+    from mypy_boto3_dynamodb.type_defs import PutItemInputTablePutItemTypeDef
+
 
 class DynamoDbCache(BaseCache):
     """
@@ -40,17 +44,18 @@ class DynamoDbCache(BaseCache):
 
     def __init__(
         self,
-        table_name: _t.Optional[str] = "python-cache",
+        table_name: str = "python-cache",
         default_timeout: int = 300,
-        key_field: _t.Optional[str] = "cache_key",
-        expiration_time_field: _t.Optional[str] = "expiration_time",
-        key_prefix: _t.Optional[str] = None,
+        key_field: str = "cache_key",
+        expiration_time_field: str = "expiration_time",
+        key_prefix: str | None = None,
         **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
 
         try:
-            import boto3  # type: ignore
+            import boto3
+            from boto3.dynamodb.conditions import Attr
         except ImportError as err:
             raise RuntimeError("no boto3 module found") from err
 
@@ -59,7 +64,7 @@ class DynamoDbCache(BaseCache):
         self._expiration_time_field = expiration_time_field
         self.key_prefix = key_prefix or ""
         self._dynamo = boto3.resource("dynamodb", **kwargs)
-        self._attr = boto3.dynamodb.conditions.Attr
+        self._attr = Attr
 
         try:
             self._table = self._dynamo.Table(table_name)
@@ -88,13 +93,11 @@ class DynamoDbCache(BaseCache):
             self._table = self._dynamo.Table(table_name)
             self._table.load()
 
-    def _utcnow(self) -> _t.Any:
+    def _utcnow(self) -> datetime.datetime:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.now(datetime.timezone.utc)
+        return datetime.datetime.now(datetime.UTC)
 
-    def _get_item(
-        self, key: str, attributes: _t.Optional[_t.List[_t.Any]] = None
-    ) -> _t.Any:
+    def _get_item(self, key: str, attributes: list[_t.Any] | None = None) -> _t.Any:
         """
         Get an item from the cache table, optionally limiting the returned
         attributes.
@@ -108,18 +111,21 @@ class DynamoDbCache(BaseCache):
         :return: The table item for key if it exists and is not expired, else
                  None
         """
-        kwargs = {}
+        kwargs: GetItemInputTableGetItemTypeDef = {"Key": {self._key_field: key}}
         if attributes:
             if self._expiration_time_field not in attributes:
                 attributes = list(attributes) + [self._expiration_time_field]
-            kwargs = dict(ProjectionExpression=",".join(attributes))
+            kwargs["ProjectionExpression"] = ",".join(attributes)
 
-        response = self._table.get_item(Key={self._key_field: key}, **kwargs)
+        response = self._table.get_item(**kwargs)
         cache_item = response.get("Item")
 
         if cache_item:
             now = int(self._utcnow().timestamp())
-            if cache_item.get(self._expiration_time_field, now + 100) > now:
+            if (
+                _t.cast(int, cache_item.get(self._expiration_time_field, now + 100))
+                > now
+            ):
                 return cache_item
 
         return None
@@ -159,8 +165,8 @@ class DynamoDbCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: _t.Optional[int] = None,
-        overwrite: _t.Optional[bool] = True,
+        timeout: int | None = None,
+        overwrite: bool | None = True,
     ) -> _t.Any:
         """
         Store a cache item, with the option to not overwrite existing items
@@ -177,19 +183,9 @@ class DynamoDbCache(BaseCache):
         timeout = self._normalize_timeout(timeout)
         now = self._utcnow()
 
-        kwargs = {}
-        if not overwrite:
-            # Cause the put to fail if a non-expired item with this key
-            # already exists
-
-            cond = self._attr(self._key_field).not_exists() | self._attr(
-                self._expiration_time_field
-            ).lte(int(now.timestamp()))
-            kwargs = dict(ConditionExpression=cond)
-
         try:
             dump = self.serializer.dumps(value)
-            item = {
+            item: dict[str, str | bytes | None | int] = {
                 self._key_field: key,
                 CREATED_AT_FIELD: now.isoformat(),
                 RESPONSE_FIELD: dump,
@@ -197,15 +193,26 @@ class DynamoDbCache(BaseCache):
             if timeout > 0:
                 expiration_time = now + datetime.timedelta(seconds=timeout)
                 item[self._expiration_time_field] = int(expiration_time.timestamp())
-            self._table.put_item(Item=item, **kwargs)
+
+            kwargs: PutItemInputTablePutItemTypeDef = {"Item": item}
+            if not overwrite:
+                # Cause the put to fail if a non-expired item with this key
+                # already exists
+
+                cond = self._attr(self._key_field).not_exists() | self._attr(
+                    self._expiration_time_field
+                ).lte(int(now.timestamp()))
+                kwargs["ConditionExpression"] = cond
+
+            self._table.put_item(**kwargs)
             return True
         except Exception:
             return False
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
         return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=True)
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
         return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=False)
 
     def has(self, key: str) -> bool:
