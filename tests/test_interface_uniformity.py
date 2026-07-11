@@ -19,6 +19,7 @@ def create_cache_list(request, tmpdir):
     request.cls.cache_list = [FileSystemCache(tmpdir), mc, rc, SimpleCache()]
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("redis_server", "memcached_server")
 class TestInterfaceUniformity:
     def test_types_have_all_base_methods(self):

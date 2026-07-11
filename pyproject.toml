@@ -106,6 +106,7 @@ exclude = [
 default-groups = ["dev", "pre-commit", "tests", "typing"]
 
 [tool.pytest.ini_options]
+addopts = "--strict-markers"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
@@ -113,6 +114,9 @@ filterwarnings = [
     "default::DeprecationWarning:cachelib.uwsgi",
     "default::DeprecationWarning:cachelib.redis",
     "default::DeprecationWarning:botocore",
+]
+markers = [
+    "network: mark a test which requires net access (deselect with '-m \"not network\"')",
 ]
 
 [tool.coverage.run]

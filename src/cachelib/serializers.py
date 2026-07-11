@@ -125,3 +125,9 @@ class DynamoDbSerializer(RedisSerializer):
         """
         value = value.value
         return super().loads(value)
+
+
+class MongoDbSerializer(BaseSerializer):
+    """Default serializer for MongoDbCache."""
+
+    pass
