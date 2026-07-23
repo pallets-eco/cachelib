@@ -12,11 +12,7 @@ def cache_factory(request):
     def _factory(self, *args, **kwargs):
         kwargs.setdefault("servers", ["127.0.0.1:11212"])
         mc = MemcachedCache(*args, **kwargs)
-        if mc.pylibmc_used:
-            with mc._client.reserve(block=mc.blocking) as client:
-                client.flush_all()
-        else:
-            mc._client.flush_all()
+        mc.clear()
         return mc
 
     request.cls.cache_factory = _factory
