@@ -44,6 +44,16 @@ class MemcachedCache(BaseCache):
                        applications.  Keep in mind that
                        :meth:`~BaseCache.clear` will also clear keys with a
                        different prefix.
+    :param pool_size: the size of the connection pool.  This is only used if
+                      the memcached client library supports connection pooling.
+
+                      .. versionadded:: 0.15.0
+    :param pool_blocking: if the connection pool is exhausted, should the
+                          client block until a connection is available or raise
+                          an exception.  This is only used if the memcached
+                          client library supports connection pooling.
+
+                          .. versionadded:: 0.15.0
     """
 
     def __init__(
