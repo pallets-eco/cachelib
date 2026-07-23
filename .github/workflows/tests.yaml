@@ -24,11 +24,62 @@ jobs:
           - {python: '3.10'}
           - {python: '3.9'}
           - {python: '3.8'}
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:3.3.0
+        ports:
+          - 8000:8000
+        # health checks
+        options: >-
+          --health-cmd "bash -c 'echo > /dev/tcp/localhost/8000'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      memcached:
+        image: memcached:1.6.41
+        ports:
+          - 11212:11211
+        # health checks
+        options: >-
+          --health-cmd "timeout 5 bash -c 'echo > /dev/tcp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:8.3.1
+        ports:
+          - 27017:27017
+        # health checks
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:8.6.3
+        ports:
+          - 6360:6379
+        # health checks
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      valkey:
+        image: valkey/valkey:9.0.4
+        ports:
+          - 6370:6379
+        # health checks
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           prune-cache: false
@@ -38,19 +89,15 @@ jobs:
       - name: install external dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libmemcached-dev memcached redis-server
-      - uses: rrainn/dynamodb-action@36eaff1005b37a22258716d4280f9e0377b834aa # v4.0.0
-      - uses: wbari/start-mongoDB@eb9a4b97a1a252bbaebb98f5fc088ca1f972905a # v0.2
-        with:
-          mongoDBVersion: 'latest'
+          sudo apt-get install libmemcached-dev
       - run: uv run --locked --no-default-groups --group dev tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
   typing:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           prune-cache: false
@@ -62,7 +109,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libmemcached-dev
       - name: cache mypy
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
         with:
           path: ./.mypy_cache
           key: mypy|${{ hashFiles('pyproject.toml') }}

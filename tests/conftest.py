@@ -40,6 +40,10 @@ def redis_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
+    if os.environ.get("CI", "false") == "true":
+        yield
+        return
+
     class Starter(ProcessStarter):
         pattern = "[Rr]eady to accept connections"
         args = ["redis-server", "--port 6360"]
@@ -62,6 +66,10 @@ def memcached_server(xprocess):
         modname=package_name, reason=f"could not find python package {package_name}"
     )
 
+    if os.environ.get("CI", "false") == "true":
+        yield
+        return
+
     class Starter(ProcessStarter):
         pattern = "server listening"
         args = ["memcached", "-vv", "-p", "11212"]
@@ -69,6 +77,32 @@ def memcached_server(xprocess):
         def startup_check(self):
             out = subprocess.run(["memcached", "-p", "11212"], stderr=subprocess.PIPE)
             return b"Address already" in out.stderr
+
+    xprocess.ensure(package_name, Starter)
+    yield
+    xprocess.getinfo(package_name).terminate()
+
+
+@pytest.fixture(scope="class")
+def valkey_server(xprocess):
+    package_name = "valkey"
+    pytest.importorskip(
+        modname=package_name, reason=f"could not find python package {package_name}"
+    )
+
+    if os.environ.get("CI", "false") == "true":
+        yield
+        return
+
+    class Starter(ProcessStarter):
+        pattern = "[Rr]eady to accept connections"
+        args = ["valkey-server", "--port 6370"]
+
+        def startup_check(self):
+            out = subprocess.run(
+                ["valkey-cli", "-p", "6370", "ping"], stdout=subprocess.PIPE
+            )
+            return out.stdout == b"PONG\n"
 
     xprocess.ensure(package_name, Starter)
     yield

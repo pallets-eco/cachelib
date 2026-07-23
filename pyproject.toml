@@ -1,6 +1,6 @@
 [project]
 name = "cachelib"
-version = "0.14.0.dev"
+version = "0.15.0.dev"
 description = "A collection of cache libraries in the same API interface."
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -45,14 +45,17 @@ pre-commit = [
     "pre-commit-uv ; python_full_version >= '3.9'",
 ]
 tests = [
-    "boto3",
+    "boto3==1.37.38; python_full_version < '3.9'",
+    "boto3==1.40.65; python_full_version >= '3.9' and python_full_version < '3.10'",
+    "boto3; python_full_version >= '3.10'",
     "pylibmc",
     "pymongo",
     "pytest",
     "pytest-xprocess",
     "redis",
-    "uwsgi==2.0.25; python_version < '3.9'",
-    "uwsgi>=2.0.26; python_version >= '3.9'",
+    "valkey",
+    "uwsgi==2.0.25; python_full_version < '3.10'",
+    "uwsgi; python_full_version >= '3.10'",
 ]
 typing = [
     "mypy",
@@ -78,6 +81,7 @@ exclude = [
 default-groups = ["dev", "pre-commit", "tests", "typing"]
 
 [tool.pytest.ini_options]
+addopts = "--strict-markers"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
@@ -85,6 +89,9 @@ filterwarnings = [
     "default::DeprecationWarning:cachelib.uwsgi",
     "default::DeprecationWarning:cachelib.redis",
     "default::DeprecationWarning:botocore",
+]
+markers = [
+    "network: mark a test which requires net access (deselect with '-m \"not network\"')",
 ]
 
 [tool.coverage.run]
@@ -128,9 +135,6 @@ select = [
     "UP",  # pyupgrade
     "W",  # pycodestyle warning
 ]
-ignore = [
-    "UP038",  # keep isinstance tuple
-]
 
 [tool.ruff.lint.isort]
 force-single-line = true
@@ -152,6 +156,7 @@ wheel_build_env = ".pkg"
 constrain_package_deps = true
 use_frozen_constraints = true
 dependency_groups = ["tests"]
+pass_env = ["CI"]
 set_env = { TMPDIR = "{env_tmp_dir}" }
 commands = [
     [
@@ -210,4 +215,4 @@ labels = ["update"]
 dependency_groups = []
 no_default_groups = true
 skip_install = true
-commands = [["uv", "lock", {replace = "posargs", default = ["-U"], extend = true}]]
+commands = [["uv", "lock", "--exclude-newer", "1 week", {replace = "posargs", default = ["-U"], extend = true}]]

@@ -29,6 +29,8 @@ class MemcachedCache(BaseCache):
     the keys in the same format as passed.  Furthermore all get methods
     silently ignore key errors to not cause problems when untrusted user data
     is passed to the get methods which is often the case in web applications.
+    This cache doesn't have a serializer since the underlying memcached client
+    libraries handle serialization internally."
 
     :param servers: a list or tuple of server addresses or alternatively
                     a :class:`memcache.Client` or a compatible client.
@@ -166,15 +168,17 @@ class MemcachedCache(BaseCache):
 
     def delete_many(self, *keys: str) -> _t.List[_t.Any]:
         new_keys = []
+        normalized_keys = []
         for key in keys:
-            key = self._normalize_key(key)
-            if _test_memcached_key(key):
+            normalized = self._normalize_key(key)
+            if _test_memcached_key(normalized):
                 new_keys.append(key)
+                normalized_keys.append(normalized)
         if self.pylibmc_used:
             with self._client.reserve(block=self.blocking) as mc:
-                mc.delete_multi(new_keys)
+                mc.delete_multi(normalized_keys)
         else:
-            self._client.delete_multi(new_keys)
+            self._client.delete_multi(normalized_keys)
         return [k for k in new_keys if not self.has(k)]
 
     def has(self, key: str) -> bool:

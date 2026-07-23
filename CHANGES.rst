@@ -1,10 +1,27 @@
-Version 0.14.0
+Version 0.15.0
 --------------
 
 Unreleased
 
-- improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
-- replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
+- Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
+
+Version 0.14.0
+--------------
+
+Released 2026-05-09
+
+- Improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
+- Replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
+- Fix ``FileSystemCache`` permission errors on Network Attached Storage (NAS) when trying
+  to perform operations on files that are open in other processes :pr:`424`
+- Fix ``delete_many()`` in ``RedisCache`` and ``MemcachedCache`` incorrectly reporting
+  failed deletions due to comparing normalized keys against non-normalized keys :pr:`443`
+- Fix serializer returning an unbound variable error instead of ``None`` when a
+  ``pickle`` error is raised during serialization :pr:`448`
+- Fix ``add()`` in ``SimpleCache`` treating expired keys as still valid, preventing them
+  from being overwritten until explicitly deleted :pr:`449`
+- Add valkey backend :pr:`441`
+
 
 Version 0.13.0
 --------------

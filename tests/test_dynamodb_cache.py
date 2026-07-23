@@ -1,6 +1,7 @@
 import pytest
 from clear import ClearTests
 from common import CommonTests
+from delete_many_with_prefix import DeleteManyWithPrefixTests
 from has import HasTests
 
 from cachelib import DynamoDbCache
@@ -29,5 +30,6 @@ def cache_factory(request):
         request.cls.cache_factory = _factory
 
 
-class TestDynamoDbCache(CommonTests, ClearTests, HasTests):
+@pytest.mark.network
+class TestDynamoDbCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
     pass
