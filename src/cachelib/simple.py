@@ -26,7 +26,7 @@ class SimpleCache(BaseCache):
         default_timeout: int = 300,
     ):
         BaseCache.__init__(self, default_timeout)
-        self._cache: _t.Dict[str, _t.Any] = {}
+        self._cache: dict[str, _t.Any] = {}
         self._threshold = threshold or 500  # threshold = 0
         self._lock = threading.RLock()
 
@@ -55,7 +55,7 @@ class SimpleCache(BaseCache):
         if self._over_threshold():
             self._remove_older()
 
-    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+    def _normalize_timeout(self, timeout: int | None) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout > 0:
             timeout = int(time()) + timeout
@@ -70,16 +70,14 @@ class SimpleCache(BaseCache):
             except KeyError:
                 return None
 
-    def set(
-        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
-    ) -> _t.Optional[bool]:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
         with self._lock:
             expires = self._normalize_timeout(timeout)
             self._prune()
             self._cache[key] = (expires, self.serializer.dumps(value))
             return True
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
         with self._lock:
             expires = self._normalize_timeout(timeout)
             self._prune()
@@ -108,10 +106,10 @@ class SimpleCache(BaseCache):
             self._cache.clear()
             return not bool(self._cache)
 
-    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def inc(self, key: str, delta: int = 1) -> int | None:
         with self._lock:
             return super().inc(key, delta)
 
-    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def dec(self, key: str, delta: int = 1) -> int | None:
         with self._lock:
             return super().dec(key, delta)
