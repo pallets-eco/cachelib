@@ -58,7 +58,7 @@ class FileSystemCache(BaseCache):
         cache_dir: str,
         threshold: int = 500,
         default_timeout: int = 300,
-        mode: _t.Optional[int] = None,
+        mode: int | None = None,
         hash_method: _t.Any = None,
     ):
         BaseCache.__init__(self, default_timeout)
@@ -97,9 +97,7 @@ class FileSystemCache(BaseCache):
     def _file_count(self) -> int:
         return self.get(self._fs_count_file) or 0
 
-    def _update_count(
-        self, delta: _t.Optional[int] = None, value: _t.Optional[int] = None
-    ) -> None:
+    def _update_count(self, delta: int | None = None, value: int | None = None) -> None:
         # If we have no threshold, don't count files
         if self._threshold == 0:
             return
@@ -109,7 +107,7 @@ class FileSystemCache(BaseCache):
             new_count = value or 0
         self.set(self._fs_count_file, new_count, mgmt_element=True)
 
-    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+    def _normalize_timeout(self, timeout: int | None) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout != 0:
             timeout = int(time()) + timeout
@@ -207,7 +205,7 @@ class FileSystemCache(BaseCache):
         self._update_count(value=0)
         return True
 
-    def _get_filename(self, key: str) -> str:
+    def _get_filename(self, key: str | _t.Any) -> str:
         if isinstance(key, str):
             bkey = key.encode("utf-8")  # XXX unicode review
             bkey_hash = self._hash_method(bkey).hexdigest()
@@ -232,7 +230,7 @@ class FileSystemCache(BaseCache):
             )
         return None
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
         filename = self._get_filename(key)
         if not os.path.exists(filename):
             return self.set(key, value, timeout)
@@ -242,7 +240,7 @@ class FileSystemCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: _t.Optional[int] = None,
+        timeout: int | None = None,
         mgmt_element: bool = False,
     ) -> bool:
         # Management elements have no timeout

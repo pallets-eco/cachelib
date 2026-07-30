@@ -25,7 +25,7 @@ class BaseRedisCache(BaseCache):
         self,
         client: _t.Any,
         default_timeout: int = 300,
-        key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
+        key_prefix: str | _t.Callable[[], str] | None = None,
     ):
         BaseCache.__init__(self, default_timeout)
         self._read_client = self._write_client = client
@@ -36,7 +36,7 @@ class BaseRedisCache(BaseCache):
             self.key_prefix if isinstance(self.key_prefix, str) else self.key_prefix()
         )
 
-    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+    def _normalize_timeout(self, timeout: int | None) -> int:
         """Normalize timeout by setting it to default of 300 if
         not defined (None) or -1 if explicitly set to zero.
 
@@ -52,27 +52,24 @@ class BaseRedisCache(BaseCache):
             self._read_client.get(f"{self._get_prefix()}{key}")
         )
 
-    def get_many(self, *keys: str) -> _t.List[_t.Any]:
+    def get_many(self, *keys: str) -> list[_t.Any]:
         if self.key_prefix:
             prefixed_keys = [f"{self._get_prefix()}{key}" for key in keys]
         else:
             prefixed_keys = list(keys)
         return [self.serializer.loads(x) for x in self._read_client.mget(prefixed_keys)]
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
-        if timeout == -1:
-            result = self._write_client.set(
-                name=f"{self._get_prefix()}{key}", value=dump
-            )
-        else:
-            result = self._write_client.setex(
-                name=f"{self._get_prefix()}{key}", value=dump, time=timeout
-            )
+        result = self._write_client.set(
+            name=f"{self._get_prefix()}{key}",
+            value=dump,
+            ex=timeout if timeout != -1 else None,
+        )
         return result
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
         created = self._write_client.setnx(
@@ -84,8 +81,8 @@ class BaseRedisCache(BaseCache):
         return created
 
     def set_many(
-        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+        self, mapping: dict[str, _t.Any], timeout: int | None = None
+    ) -> list[_t.Any]:
         timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling redis MULTI
         # which is not supported by twemproxy
@@ -93,17 +90,20 @@ class BaseRedisCache(BaseCache):
 
         for key, value in mapping.items():
             dump = self.serializer.dumps(value)
-            if timeout == -1:
-                pipe.set(name=f"{self._get_prefix()}{key}", value=dump)
-            else:
-                pipe.setex(name=f"{self._get_prefix()}{key}", value=dump, time=timeout)
+            pipe.set(
+                name=f"{self._get_prefix()}{key}",
+                value=dump,
+                ex=timeout if timeout != -1 else None,
+            )
         results = pipe.execute()
-        return [k for k, was_set in zip(mapping.keys(), results) if was_set]
+        return [
+            k for k, was_set in zip(mapping.keys(), results, strict=True) if was_set
+        ]
 
     def delete(self, key: str) -> bool:
         return bool(self._write_client.delete(f"{self._get_prefix()}{key}"))
 
-    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
+    def delete_many(self, *keys: str) -> list[_t.Any]:
         if not keys:
             return []
         if self.key_prefix:

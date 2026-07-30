@@ -1,5 +1,7 @@
 import re
 import typing as _t
+from contextlib import nullcontext
+from functools import partial
 from time import time
 
 from cachelib.base import BaseCache
@@ -29,6 +31,8 @@ class MemcachedCache(BaseCache):
     the keys in the same format as passed.  Furthermore all get methods
     silently ignore key errors to not cause problems when untrusted user data
     is passed to the get methods which is often the case in web applications.
+    This cache doesn't have a serializer since the underlying memcached client
+    libraries handle serialization internally."
 
     :param servers: a list or tuple of server addresses or alternatively
                     a :class:`memcache.Client` or a compatible client.
@@ -40,25 +44,43 @@ class MemcachedCache(BaseCache):
                        applications.  Keep in mind that
                        :meth:`~BaseCache.clear` will also clear keys with a
                        different prefix.
+    :param pool_size: the size of the connection pool.  This is only used if
+                      the memcached client library supports connection pooling.
+
+                      .. versionadded:: 0.15.0
+    :param pool_blocking: if the connection pool is exhausted, should the
+                          client block until a connection is available or raise
+                          an exception.  This is only used if the memcached
+                          client library supports connection pooling.
+
+                          .. versionadded:: 0.15.0
     """
 
     def __init__(
         self,
         servers: _t.Any = None,
         default_timeout: int = 300,
-        key_prefix: _t.Optional[str] = None,
+        key_prefix: str | None = None,
+        pool_size: int = 1,
+        pool_blocking: bool = True,
     ):
         BaseCache.__init__(self, default_timeout)
+
         if servers is None or isinstance(servers, (list, tuple)):
             if servers is None:
                 servers = ["127.0.0.1:11211"]
-            self._client = self.import_preferred_memcache_lib(servers)
-            if self._client is None:
+            client, client_context = self.import_preferred_memcache_lib(
+                servers, pool_size, pool_blocking
+            )
+            if client is None or client_context is None:
                 raise RuntimeError("no memcache module found")
+            self._client = client
+            self._client_context = client_context
         else:
             # NOTE: servers is actually an already initialized memcache
             # client.
             self._client = servers
+            self._client_context = partial(nullcontext, self._client)
 
         self.key_prefix = key_prefix
 
@@ -67,7 +89,7 @@ class MemcachedCache(BaseCache):
             key = self.key_prefix + key
         return key
 
-    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+    def _normalize_timeout(self, timeout: int | None) -> int:
         timeout = BaseCache._normalize_timeout(self, timeout)
         if timeout > 0:
             timeout = int(time()) + timeout
@@ -79,16 +101,19 @@ class MemcachedCache(BaseCache):
         # checks for so long keys can occur because it's tested from user
         # submitted data etc we fail silently for getting.
         if _test_memcached_key(key):
-            return self._client.get(key)
+            with self._client_context() as client:
+                return client.get(key)
 
-    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
+    def get_dict(self, *keys: str) -> dict[str, _t.Any]:
         key_mapping = {}
         for key in keys:
             encoded_key = self._normalize_key(key)
             if _test_memcached_key(key):
                 key_mapping[encoded_key] = key
         _keys = list(key_mapping)
-        d = rv = self._client.get_multi(_keys)  # type: _t.Dict[str, _t.Any]
+        with self._client_context() as client:
+            d: dict[str, _t.Any] = client.get_multi(_keys)
+            rv = d
         if self.key_prefix:
             rv = {}
             for key, value in d.items():
@@ -99,42 +124,44 @@ class MemcachedCache(BaseCache):
                     rv[key] = None
         return rv
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
-        return bool(self._client.add(key, value, timeout))
+        with self._client_context() as client:
+            return bool(client.add(key, value, timeout))
 
-    def set(
-        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
-    ) -> _t.Optional[bool]:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
-        return bool(self._client.set(key, value, timeout))
+        with self._client_context() as client:
+            return bool(client.set(key, value, timeout))
 
-    def get_many(self, *keys: str) -> _t.List[_t.Any]:
+    def get_many(self, *keys: str) -> list[_t.Any]:
         d = self.get_dict(*keys)
         return [d[key] for key in keys]
 
     def set_many(
-        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+        self, mapping: dict[str, _t.Any], timeout: int | None = None
+    ) -> list[_t.Any]:
         new_mapping = {}
         for key, value in mapping.items():
             key = self._normalize_key(key)
             new_mapping[key] = value
 
         timeout = self._normalize_timeout(timeout)
-        failed_keys = self._client.set_multi(new_mapping, timeout)  # type: _t.List[_t.Any]
-        k_normkey = zip(mapping.keys(), new_mapping.keys())  # noqa: B905
+        with self._client_context() as client:
+            failed_keys: list[_t.Any] = client.set_multi(new_mapping, timeout)
+        k_normkey = zip(mapping.keys(), new_mapping.keys(), strict=True)
         return [k for k, nkey in k_normkey if nkey not in failed_keys]
 
     def delete(self, key: str) -> bool:
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return bool(self._client.delete(key))
+            with self._client_context() as client:
+                return bool(client.delete(key))
         return False
 
-    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
+    def delete_many(self, *keys: str) -> list[_t.Any]:
         new_keys = []
         normalized_keys = []
         for key in keys:
@@ -142,54 +169,69 @@ class MemcachedCache(BaseCache):
             if _test_memcached_key(normalized):
                 new_keys.append(key)
                 normalized_keys.append(normalized)
-        self._client.delete_multi(normalized_keys)
+        with self._client_context() as client:
+            client.delete_multi(normalized_keys)
         return [k for k in new_keys if not self.has(k)]
 
     def has(self, key: str) -> bool:
         key = self._normalize_key(key)
         if _test_memcached_key(key):
-            return bool(self._client.append(key, ""))
+            with self._client_context() as client:
+                return bool(client.append(key, ""))
         return False
 
     def clear(self) -> bool:
-        return bool(self._client.flush_all())
+        with self._client_context() as client:
+            return bool(client.flush_all())
 
-    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def inc(self, key: str, delta: int = 1) -> int | None:
         key = self._normalize_key(key)
-        value = (self._client.get(key) or 0) + delta
+        with self._client_context() as client:
+            value = (client.get(key) or 0) + delta
         return value if self.set(key, value) else None
 
-    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def dec(self, key: str, delta: int = 1) -> int | None:
         key = self._normalize_key(key)
-        value = (self._client.get(key) or 0) - delta
+        with self._client_context() as client:
+            value = (client.get(key) or 0) - delta
         return value if self.set(key, value) else None
 
-    def import_preferred_memcache_lib(self, servers: _t.Any) -> _t.Any:
+    def import_preferred_memcache_lib(
+        self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
+    ) -> tuple[_t.Any | None, _t.Callable[[], _t.ContextManager[_t.Any]] | None]:
         """Returns an initialized memcache client.  Used by the constructor."""
         try:
             import pylibmc  # type: ignore
         except ImportError:
             pass
         else:
-            return pylibmc.Client(servers)
+            pool = pylibmc.ClientPool(pylibmc.Client(servers), pool_size)
+            reserve = partial(pool.reserve, block=pool_blocking)
+            return pool, reserve
 
         try:
             from google.appengine.api import memcache  # type: ignore
         except ImportError:
             pass
         else:
-            return memcache.Client()
+            client = memcache.Client()
+            return client, partial(nullcontext, client)
 
         try:
             import memcache  # type: ignore
         except ImportError:
             pass
         else:
-            return memcache.Client(servers)
+            client = memcache.Client(servers)
+            return client, partial(nullcontext, client)
 
         try:
             import libmc  # type: ignore
         except ImportError:
             pass
         else:
-            return libmc.Client(servers)
+            pool = libmc.ClientPool(libmc.Client(servers), pool_size)
+            reserve = partial(pool.reserve, block=pool_blocking)
+            return pool, reserve
+
+        return None, None

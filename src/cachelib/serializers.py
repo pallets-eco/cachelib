@@ -40,7 +40,7 @@ class BaseSerializer:
 
     def dumps(
         self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL
-    ) -> _t.Optional[bytes]:
+    ) -> bytes | None:
         try:
             serialized = pickle.dumps(value, protocol)
         except (pickle.PickleError, pickle.PicklingError) as e:
@@ -65,7 +65,7 @@ class BaseRedisSerializer(BaseSerializer):
         """Dumps an object into a string for redis, using pickle by default."""
         return b"!" + pickle.dumps(value, protocol)
 
-    def loads(self, value: _t.Optional[bytes]) -> _t.Any:
+    def loads(self, value: bytes | None) -> _t.Any:
         """The reversal of :meth:`dump_object`. This might be called with
         None.
         """
@@ -107,13 +107,9 @@ class FileSystemSerializer(BaseSerializer):
 class RedisSerializer(BaseRedisSerializer):
     """Default serializer for RedisCache."""
 
-    pass
-
 
 class ValkeySerializer(BaseRedisSerializer):
     """Default serializer for ValkeyCache."""
-
-    pass
 
 
 class DynamoDbSerializer(RedisSerializer):
@@ -125,3 +121,7 @@ class DynamoDbSerializer(RedisSerializer):
         """
         value = value.value
         return super().loads(value)
+
+
+class MongoDbSerializer(BaseSerializer):
+    """Default serializer for MongoDbCache."""

@@ -13,7 +13,7 @@ class BaseCache:
     def __init__(self, default_timeout: int = 300):
         self.default_timeout = default_timeout
 
-    def _normalize_timeout(self, timeout: _t.Optional[int]) -> int:
+    def _normalize_timeout(self, timeout: int | None) -> int:
         if timeout is None:
             timeout = self.default_timeout
         return timeout
@@ -35,7 +35,7 @@ class BaseCache:
         """
         return True
 
-    def get_many(self, *keys: str) -> _t.List[_t.Any]:
+    def get_many(self, *keys: str) -> list[_t.Any]:
         """Returns a list of values for the given keys.
         For each key an item in the list is created::
 
@@ -48,7 +48,7 @@ class BaseCache:
         """
         return [self.get(k) for k in keys]
 
-    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
+    def get_dict(self, *keys: str) -> dict[str, _t.Any]:
         """Like :meth:`get_many` but return a dict::
 
             d = cache.get_dict("foo", "bar")
@@ -58,11 +58,9 @@ class BaseCache:
         :param keys: The function accepts multiple keys as positional
                      arguments.
         """
-        return dict(zip(keys, self.get_many(*keys)))  # noqa: B905
+        return dict(zip(keys, self.get_many(*keys), strict=True))
 
-    def set(
-        self, key: str, value: _t.Any, timeout: _t.Optional[int] = None
-    ) -> _t.Optional[bool]:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
         """Add a new key/value to the cache (overwrites value, if key already
         exists in the cache).
 
@@ -78,7 +76,7 @@ class BaseCache:
         """
         return True
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
         """Works like :meth:`set` but does not overwrite the values of already
         existing keys.
 
@@ -94,8 +92,8 @@ class BaseCache:
         return True
 
     def set_many(
-        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+        self, mapping: dict[str, _t.Any], timeout: int | None = None
+    ) -> list[_t.Any]:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
@@ -111,7 +109,7 @@ class BaseCache:
                 set_keys.append(key)
         return set_keys
 
-    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
+    def delete_many(self, *keys: str) -> list[_t.Any]:
         """Deletes multiple keys at once.
 
         :param keys: The function accepts multiple keys as positional
@@ -147,7 +145,7 @@ class BaseCache:
         """
         return True
 
-    def inc(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def inc(self, key: str, delta: int = 1) -> int | None:
         """Increments the value of a key by `delta`.  If the key does
         not yet exist it is initialized with `delta`.
 
@@ -160,7 +158,7 @@ class BaseCache:
         value = (self.get(key) or 0) + delta
         return value if self.set(key, value) else None
 
-    def dec(self, key: str, delta: int = 1) -> _t.Optional[int]:
+    def dec(self, key: str, delta: int = 1) -> int | None:
         """Decrements the value of a key by `delta`.  If the key does
         not yet exist it is initialized with `-delta`.
 

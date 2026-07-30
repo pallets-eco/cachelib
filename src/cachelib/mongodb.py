@@ -1,9 +1,8 @@
 import datetime
-import logging
 import typing as _t
 
 from cachelib.base import BaseCache
-from cachelib.serializers import BaseSerializer
+from cachelib.serializers import MongoDbSerializer
 
 
 class MongoDbCache(BaseCache):
@@ -22,25 +21,25 @@ class MongoDbCache(BaseCache):
 
     """
 
-    serializer = BaseSerializer()
+    serializer = MongoDbSerializer()
 
     def __init__(
         self,
         client: _t.Any = None,
-        db: _t.Optional[str] = "cache-db",
-        collection: _t.Optional[str] = "cache-collection",
+        db: str = "cache-db",
+        collection: str = "cache-collection",
         default_timeout: int = 300,
-        key_prefix: _t.Optional[str] = None,
+        key_prefix: str | None = None,
         **kwargs: _t.Any,
     ):
         super().__init__(default_timeout)
         try:
             import pymongo
-        except ImportError:
-            logging.warning("no pymongo module found")
+        except ImportError as err:
+            raise RuntimeError("no pymongo module found") from err
 
         if client is None or isinstance(client, str):
-            client = pymongo.MongoClient(host=client)
+            client = pymongo.MongoClient(host=client, **kwargs)
         self.client = client[db][collection]
         index_info = self.client.index_information()
         all_keys = {
@@ -51,9 +50,9 @@ class MongoDbCache(BaseCache):
         self.key_prefix = key_prefix or ""
         self.collection = collection
 
-    def _utcnow(self) -> _t.Any:
+    def _utcnow(self) -> datetime.datetime:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.now(datetime.timezone.utc)
+        return datetime.datetime.now(datetime.UTC)
 
     def _expire_records(self) -> _t.Any:
         res = self.client.delete_many({"expiration": {"$lte": self._utcnow()}})
@@ -89,8 +88,8 @@ class MongoDbCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: _t.Optional[int] = None,
-        overwrite: _t.Optional[bool] = True,
+        timeout: int | None = None,
+        overwrite: bool | None = True,
     ) -> _t.Any:
         """
         Store a cache item, with the option to not overwrite existing items
@@ -114,20 +113,23 @@ class MongoDbCache(BaseCache):
                 return False
 
         dump = self.serializer.dumps(value)
-        record = {"id": self.key_prefix + key, "val": dump}
+        record: dict[str, str | bytes | None | datetime.datetime] = {
+            "id": self.key_prefix + key,
+            "val": dump,
+        }
 
         if timeout > 0:
             record["expiration"] = now + datetime.timedelta(seconds=timeout)
         self.client.update_one({"id": self.key_prefix + key}, {"$set": record}, True)
         return True
 
-    def set(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=True)
 
     def set_many(
-        self, mapping: _t.Dict[str, _t.Any], timeout: _t.Optional[int] = None
-    ) -> _t.List[_t.Any]:
+        self, mapping: dict[str, _t.Any], timeout: int | None = None
+    ) -> list[_t.Any]:
         self._expire_records()
         from pymongo import UpdateOne
 
@@ -137,7 +139,10 @@ class MongoDbCache(BaseCache):
         for key, val in mapping.items():
             dump = self.serializer.dumps(val)
 
-            record = {"id": self.key_prefix + key, "val": dump}
+            record: dict[str, str | bytes | None | datetime.datetime] = {
+                "id": self.key_prefix + key,
+                "val": dump,
+            }
 
             if timeout > 0:
                 record["expiration"] = now + datetime.timedelta(seconds=timeout)
@@ -156,14 +161,14 @@ class MongoDbCache(BaseCache):
                 keys.append(item["id"])
         return keys
 
-    def get_many(self, *keys: str) -> _t.List[_t.Any]:
+    def get_many(self, *keys: str) -> list[_t.Any]:
         results = self.get_dict(*keys)
         values = []
         for key in keys:
             values.append(results.get(key, None))
         return values
 
-    def get_dict(self, *keys: str) -> _t.Dict[str, _t.Any]:
+    def get_dict(self, *keys: str) -> dict[str, _t.Any]:
         self._expire_records()
         query = self.client.find(
             {"id": {"$in": [self.key_prefix + key for key in keys]}}
@@ -174,7 +179,7 @@ class MongoDbCache(BaseCache):
             results[item["id"][len(self.key_prefix) :]] = value
         return results
 
-    def add(self, key: str, value: _t.Any, timeout: _t.Optional[int] = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=False)
 
@@ -183,7 +188,7 @@ class MongoDbCache(BaseCache):
         record = self.get(key)
         return record is not None
 
-    def delete_many(self, *keys: str) -> _t.List[_t.Any]:
+    def delete_many(self, *keys: str) -> list[_t.Any]:
         self._expire_records()
         res = list(keys)
         filter = {"id": {"$in": [self.key_prefix + key for key in keys]}}
