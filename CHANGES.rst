@@ -4,6 +4,8 @@ Version 0.15.0
 Unreleased
 
 - Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
+- Make ``pylibmc`` and ``libmc`` clients thread-safe by using ``ClientPool``. :pr:`287`
+
 
 Version 0.14.0
 --------------

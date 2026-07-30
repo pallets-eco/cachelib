@@ -13,7 +13,7 @@ from cachelib import SimpleCache
 @pytest.fixture(autouse=True)
 def create_cache_list(request, tmpdir):
     mc = MemcachedCache(servers=["127.0.0.1:11212"])
-    mc._client.flush_all()
+    mc.clear()
     rc = RedisCache(port=6360)
     rc._write_client.flushdb()
     request.cls.cache_list = [FileSystemCache(tmpdir), mc, rc, SimpleCache()]
