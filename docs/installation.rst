@@ -23,34 +23,58 @@ When you install CacheLib :class:`.SimpleCache` and :class:`.FileSystemCache`
 will work without any additional dependencies.
 However, some backends require additional dependencies to be installed.
 
-CacheLib will detect and use them if they are already installed but you will
-need to install them manually if you want to use the corresponding backends:
+CacheLib will detect and use them if they are already installed but if not,
+you can use pip extras to install them as needed:
 
 .. tabs::
 
    .. group-tab:: Redis
 
-      Install `redis-py`_ required for :class:`.RedisCache`.
+      Installs `redis-py`_ required for :class:`.RedisCache`.
+
+      .. code-block:: sh
+
+         $ pip install cachelib[redis]
 
    .. group-tab:: Memcached
 
-      Install `pylibmc`_ required for :class:`.MemcachedCache`.
+      Installs `pylibmc`_ required for :class:`.MemcachedCache`.
+
+      .. code-block:: sh
+
+         $ pip install cachelib[memcached]
 
    .. group-tab:: DynamoDB
 
-      Install `boto3`_ required for :class:`.DynamoDbCache`.
+      Installs `boto3`_ required for :class:`.DynamoDbCache`.
+
+      .. code-block:: sh
+
+         $ pip install cachelib[dynamodb]
 
    .. group-tab:: MongoDB
 
-      Install `pymongo`_ required for :class:`.MongoDbCache`.
+      Installs `pymongo`_ required for :class:`.MongoDbCache`.
+
+      .. code-block:: sh
+
+         $ pip install cachelib[mongodb]
 
    .. group-tab:: Valkey
 
-      Install `valkey-py`_ required for :class:`.ValkeyCache`.
+      Installs `valkey-py`_ required for :class:`.ValkeyCache`.
+
+      .. code-block:: sh
+
+         $ pip install cachelib[valkey]
 
    .. group-tab:: uWSGI
 
-      Install `uWSGI`_ required for :class:`.UWSGICache`.
+      Installs `uWSGI`_ required for :class:`.UWSGICache`.
+
+      .. code-block:: sh
+
+         $ pip install cachelib[uwsgi]
 
 .. _redis-py: https://redis.readthedocs.io/en/stable/
 .. _pylibmc: https://sendapatch.se/projects/pylibmc/

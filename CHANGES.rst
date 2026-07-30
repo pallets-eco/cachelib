@@ -6,6 +6,8 @@ Unreleased
 - Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
 - Make ``pylibmc`` and ``libmc`` clients thread-safe by using ``ClientPool``. :pr:`287`
 - Drop support for Python 3.8, 3.9 and 3.10. :issue:`477`
+- Add support for optional dependencies in pyproject.toml to allow users to
+  install the dependencies for specific cache backends as needed. :pr:`459`
 
 
 Version 0.14.0
