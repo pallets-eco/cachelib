@@ -32,10 +32,10 @@ class RedisCache(BaseRedisCache):
         self,
         host: _t.Any = "localhost",
         port: int = 6379,
-        password: _t.Optional[str] = None,
+        password: str | None = None,
         db: int = 0,
         default_timeout: int = 300,
-        key_prefix: _t.Optional[_t.Union[str, _t.Callable[[], str]]] = None,
+        key_prefix: str | _t.Callable[[], str] | None = None,
         **kwargs: _t.Any,
     ):
         if host is None:
