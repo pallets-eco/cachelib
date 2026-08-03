@@ -2,7 +2,9 @@ CacheLib
 ========
 
 A collection of cache libraries in the same API interface. Extracted
-from Werkzeug.
+from `Werkzeug`_.
+
+.. _Werkzeug: https://werkzeug.palletsprojects.com/
 
 
 User's Guide
@@ -25,19 +27,10 @@ If you are looking for information on a specific function, class or
 method, this part of the documentation is for you.
 
 .. toctree::
-    :maxdepth: 2
+    :glob:
+    :maxdepth: 1
 
-    base
-    simple
-    file
-    redis_base
-    redis
-    memcached
-    uwsgi
-    dynamodb
-    mongodb
-    valkey
-    serializers
+    api/*
 
 
 Additional Notes

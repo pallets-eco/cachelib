@@ -7,13 +7,13 @@ from cachelib.serializers import BaseRedisSerializer
 class BaseRedisCache(BaseCache):
     """Base class for Redis compatible cache backends.
 
-    Subclasses are responsible for constructing the client and passing it
+    Sub classes are responsible for constructing the client and passing it
     to this base via ``super().__init__``.
 
     :param client: a connected client instance compatible with the Redis API.
     :param default_timeout: the default timeout that is used if no timeout is
-                            specified on :meth:`~BaseCache.set`. A timeout of
-                            0 indicates that the cache never expires.
+        specified on :meth:`~.BaseCache.set`. A timeout of
+        0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
     """
 

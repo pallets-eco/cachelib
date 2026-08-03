@@ -12,7 +12,7 @@ Released 2026-07-31
 - Make ``SimpleCache`` thread-safe using a ``threading.RLock``. :issue:`446`
 - Make ``pylibmc`` and ``libmc`` clients thread-safe by using ``ClientPool``. :pr:`287`
 - Drop support for Python 3.8, 3.9 and 3.10. :issue:`477`
-- Add support for optional dependencies in pyproject.toml to allow users to
+- Add support for optional dependencies in ``pyproject.toml`` to allow users to
   install the dependencies for specific cache backends as needed. :pr:`459`
 
 
@@ -21,7 +21,7 @@ Version 0.14.0
 
 Released 2026-05-09
 
-- Improve typing and refresh project to use pyproject and pallets workflows :pr:`420`
+- Improve typing and refresh project to use ``pyproject`` and pallets workflows :pr:`420`
 - Replace deprecated ``datetime.utcnow()`` with ``datetime.now()`` :pr:`421`
 - Fix ``FileSystemCache`` permission errors on Network Attached Storage (NAS) when trying
   to perform operations on files that are open in other processes :pr:`424`
@@ -31,7 +31,7 @@ Released 2026-05-09
   ``pickle`` error is raised during serialization :pr:`448`
 - Fix ``add()`` in ``SimpleCache`` treating expired keys as still valid, preventing them
   from being overwritten until explicitly deleted :pr:`449`
-- Add valkey backend :pr:`441`
+- Add ``valkey`` backend :pr:`441`
 
 
 Version 0.13.0
@@ -39,10 +39,10 @@ Version 0.13.0
 
 Released 2024-04-13
 
--   default ``hashlib.md5`` may not be available in FIPS builds. We
-    now do not access it at import time on ``FileSystemCache``so developers
-    have time to change the default.
-    ``hashlib.md5`` will be lazy loaded when a new default is not provided
+- default :func:`~hashlib.md5` may not be available in FIPS builds. We
+  now do not access it at import time on ``FileSystemCache`` so developers
+  have time to change the default.
+  :func:`~hashlib.md5` will be lazy loaded when a new default is not provided
 
 
 Version 0.12.0
@@ -84,7 +84,7 @@ Version 0.10.0
 
 Released 2023-01-22
 
-- Improve error message when ``FileSystemCache`` methods are called with non-str keys. :pr:`170`
+- Improve error message when ``FileSystemCache`` methods are called with non-string keys. :pr:`170`
 - Added ``DynamoDb`` as a cache backend :pr:`209`
 
 Version 0.9.0

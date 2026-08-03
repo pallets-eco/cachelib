@@ -12,10 +12,10 @@ class SimpleCache(BaseCache):
     to use from multiple threads within the same process.
 
     :param threshold: the maximum number of items the cache stores before
-                      it starts deleting some.
+        it starts deleting some.
     :param default_timeout: the default timeout that is used if no timeout is
-                            specified on :meth:`~BaseCache.set`. A timeout of
-                            0 indicates that the cache never expires.
+        specified on :meth:`~.BaseCache.set`. A timeout of
+        0 indicates that the cache never expires.
     """
 
     serializer = SimpleSerializer()

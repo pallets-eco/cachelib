@@ -17,7 +17,7 @@ from cachelib.serializers import FileSystemSerializer
 
 
 def _lazy_md5(string: bytes = b"") -> _t.Any:
-    """Don't access ``hashlib.md5`` until runtime. FIPS builds may not include
+    """Don't access :func:`~hashlib.md5` until runtime. FIPS builds may not include
     md5, in which case the import and use as a default would fail before the
     developer can configure something else.
     """
@@ -26,22 +26,22 @@ def _lazy_md5(string: bytes = b"") -> _t.Any:
 
 class FileSystemCache(BaseCache):
     """A cache that stores the items on the file system.  This cache depends
-    on being the only user of the `cache_dir`.  Make absolutely sure that
+    on being the only user of the ``cache_dir``.  Make absolutely sure that
     nobody but this cache stores files there or otherwise the cache will
     randomly delete files therein.
 
     :param cache_dir: the directory where cache files are stored.
     :param threshold: the maximum number of items the cache stores before
-                      it starts deleting some. A threshold value of 0
-                      indicates no threshold.
+        it starts deleting some. A threshold value of 0
+        indicates no threshold.
     :param default_timeout: the default timeout that is used if no timeout is
-                            specified on :meth:`~BaseCache.set`. A timeout of
-                            0 indicates that the cache never expires.
+        specified on :meth:`~.BaseCache.set`. A timeout of
+        0 indicates that the cache never expires.
     :param mode: the file mode wanted for the cache files, default 0600
-    :param hash_method: Default hashlib.md5. The hash method used to
-                        generate the filename for cached results.
-                        Default is lazy loaded and can be overridden by
-                        setting  `_default_hash_method`
+    :param hash_method: Default :func:`~hashlib.md5`. The hash method used to
+        generate the filename for cached results.
+        Default is lazy loaded and can be overridden by
+        setting  ``_default_hash_method``
     """
 
     #: used for temporary files by the FileSystemCache

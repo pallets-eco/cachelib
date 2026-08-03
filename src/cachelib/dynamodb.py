@@ -14,11 +14,11 @@ if _t.TYPE_CHECKING:
 
 class DynamoDbCache(BaseCache):
     """
-    Implementation of cachelib.BaseCache that uses an AWS DynamoDb table
+    Implementation of :class:`~.BaseCache` that uses an AWS DynamoDb table
     as the backend.
 
-    Your server process will require dynamodb:GetItem and dynamodb:PutItem
-    IAM permissions on the cache table.
+    Your server process will require ``dynamodb:GetItem`` and
+    ``dynamodb:PutItem`` IAM permissions on the cache table.
 
     Limitations: DynamoDB table items are limited to 400 KB in size.  Since
     this class stores cached items in a table, the max size of a cache entry
@@ -27,15 +27,15 @@ class DynamoDbCache(BaseCache):
 
     :param table_name: The name of the DynamoDB table to use
     :param default_timeout: Set the timeout in seconds after which cache entries
-                            expire
+        expire
     :param key_field: The name of the hash_key attribute in the DynamoDb
-                      table. This must be a string attribute.
+        table. This must be a string attribute.
     :param expiration_time_field: The name of the table attribute to store the
-                                  expiration time in.  This will be an int
-                                  attribute. The timestamp will be stored as
-                                  seconds past the epoch.  If you configure
-                                  this as the TTL field, then DynamoDB will
-                                  automatically delete expired entries.
+        expiration time in.  This will be an int
+        attribute. The timestamp will be stored as
+        seconds past the epoch.  If you configure
+        this as the TTL field, then DynamoDB will
+        automatically delete expired entries.
     :param key_prefix: A prefix that should be added to all keys.
 
     """
@@ -105,11 +105,11 @@ class DynamoDbCache(BaseCache):
         :param key: The cache key of the item to fetch
 
         :param attributes: An optional list of attributes to fetch.  If not
-                           given, all attributes are fetched.  The
-                           expiration_time field will always be added to the
-                           list of fetched attributes.
+            given, all attributes are fetched. The
+            ``expiration_time`` field will always be added to the
+            list of fetched attributes.
         :return: The table item for key if it exists and is not expired, else
-                 None
+            ``None``.
         """
         kwargs: GetItemInputTableGetItemTypeDef = {"Key": {self._key_field: key}}
         if attributes:
@@ -174,10 +174,10 @@ class DynamoDbCache(BaseCache):
         :param key: Cache key to use
         :param value: a serializable object
         :param timeout: The timeout in seconds for the cached item, to override
-                        the default
+            the default
         :param overwrite: If true, overwrite any existing cache item with key.
-                          If false, the new value will only be stored if no
-                          non-expired cache item exists with key.
+            If false, the new value will only be stored if no
+            non-expired cache item exists with key.
         :return: True if the new item was stored.
         """
         timeout = self._normalize_timeout(timeout)
