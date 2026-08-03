@@ -13,8 +13,8 @@ class MemcachedCache(BaseCache):
     """A cache that uses memcached as backend.
 
     The first argument can either be an object that resembles the API of a
-    :class:`memcache.Client` or a tuple/list of server addresses. In the
-    event that a tuple/list is passed, Werkzeug tries to import the best
+    ``memcache.Client`` or a tuple/list of server addresses. In the
+    event that a tuple/list is passed, CacheLib tries to import the best
     available memcache library.
 
     This cache looks into the following packages/modules to find bindings for
@@ -25,9 +25,10 @@ class MemcachedCache(BaseCache):
         - ``memcached``
         - ``libmc``
 
-    Implementation notes:  This cache backend works around some limitations in
-    memcached to simplify the interface.  For example unicode keys are encoded
-    to utf-8 on the fly.  Methods such as :meth:`~BaseCache.get_dict` return
+    Implementation notes:
+    This cache backend works around some limitations in memcached to
+    simplify the interface. For example unicode keys are encoded to
+    UTF-8 on the fly. Methods such as :meth:`~.BaseCache.get_dict` return
     the keys in the same format as passed.  Furthermore all get methods
     silently ignore key errors to not cause problems when untrusted user data
     is passed to the get methods which is often the case in web applications.
@@ -35,25 +36,25 @@ class MemcachedCache(BaseCache):
     libraries handle serialization internally."
 
     :param servers: a list or tuple of server addresses or alternatively
-                    a :class:`memcache.Client` or a compatible client.
+        a ``memcache.Client`` or a compatible client.
     :param default_timeout: the default timeout that is used if no timeout is
-                            specified on :meth:`~BaseCache.set`. A timeout of
-                            0 indicates that the cache never expires.
+        specified on :meth:`~.BaseCache.set`. A timeout of
+        0 indicates that the cache never expires.
     :param key_prefix: a prefix that is added before all keys.  This makes it
-                       possible to use the same memcached server for different
-                       applications.  Keep in mind that
-                       :meth:`~BaseCache.clear` will also clear keys with a
-                       different prefix.
+        possible to use the same memcached server for different
+        applications.  Keep in mind that
+        :meth:`~.BaseCache.clear` will also clear keys with a
+        different prefix.
     :param pool_size: the size of the connection pool.  This is only used if
-                      the memcached client library supports connection pooling.
+        the memcached client library supports connection pooling.
 
-                      .. versionadded:: 0.15.0
+        .. versionadded:: 0.15.0
     :param pool_blocking: if the connection pool is exhausted, should the
-                          client block until a connection is available or raise
-                          an exception.  This is only used if the memcached
-                          client library supports connection pooling.
+        client block until a connection is available or raise
+        an exception.  This is only used if the memcached
+        client library supports connection pooling.
 
-                          .. versionadded:: 0.15.0
+        .. versionadded:: 0.15.0
     """
 
     def __init__(

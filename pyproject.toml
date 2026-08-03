@@ -49,10 +49,16 @@ dev = [
     "tox-uv",
 ]
 docs = [
-    "pallets-sphinx-themes",
     "sphinx",
+    # Theme
+    "pallets-sphinx-themes",
+    # Extensions
     "sphinxcontrib-log-cabinet",
     "sphinx-tabs",
+    "sphinx_copybutton",
+    # Check Spelling
+    "pyenchant",
+    "sphinxcontrib-spelling",
 ]
 docs-auto = [
     "sphinx-autobuild",
@@ -200,15 +206,53 @@ commands = [
     ["mypy"],
 ]
 
+[tool.tox.docs]
+docs_dir = "{tox_root}{/}docs"
+build_dir = "{[tool.tox.docs]docs_dir}{/}_build"
+sphinx_args = ["--show-traceback", "--fail-on-warning", "--keep-going", "--fresh-env"]
+
 [tool.tox.env.docs]
 description = "build docs"
 dependency_groups = ["docs"]
-commands = [["sphinx-build", "-E", "-W", "-b", "dirhtml", "docs", "docs/_build/dirhtml"]]
+commands = [[
+    "sphinx-build",
+    { replace = "ref", of = ["tool", "tox", "docs", "sphinx_args"], extend = true },
+    { replace = "posargs", default = [], extend = true },
+    "--builder", "dirhtml",
+    "{[tool.tox.docs]docs_dir}", "{[tool.tox.docs]build_dir}{/}dirhtml",
+]]
 
 [tool.tox.env.docs-auto]
 description = "continuously rebuild docs and start a local server"
 dependency_groups = ["docs", "docs-auto"]
-commands = [["sphinx-autobuild", "-W", "-b", "dirhtml", "--watch", "src", "docs", "docs/_build/dirhtml"]]
+package = "editable"
+commands = [[
+    "sphinx-autobuild",
+    { replace = "ref", of = ["tool", "tox", "docs", "sphinx_args"], extend = true },
+    { replace = "posargs", default = [], extend = true },
+    "--builder", "dirhtml", "--watch", "src",
+    "{[tool.tox.docs]docs_dir}", "{[tool.tox.docs]build_dir}{/}live",
+]]
+
+[tool.tox.env.docs-lint]
+description = "check docs spelling and links"
+dependency_groups = ["docs"]
+commands = [
+    [
+        "sphinx-build",
+        { replace = "ref", of = ["tool", "tox", "docs", "sphinx_args"], extend = true },
+        { replace = "posargs", default = [], extend = true },
+        "--builder", "spelling",
+        "{[tool.tox.docs]docs_dir}", "{[tool.tox.docs]build_dir}{/}spell",
+    ],
+    [
+        "sphinx-build",
+        { replace = "ref", of = ["tool", "tox", "docs", "sphinx_args"], extend = true },
+        { replace = "posargs", default = [], extend = true },
+        "--builder", "linkcheck",
+        "{[tool.tox.docs]docs_dir}", "{[tool.tox.docs]build_dir}{/}links",
+    ],
+]
 
 [tool.tox.env.update-actions]
 description = "update GitHub Actions pins"

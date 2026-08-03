@@ -16,7 +16,7 @@ class UWSGICache(BaseCache):
     :param cache: The name of the caching instance to connect to, for
         example: mycache@localhost:3031, defaults to an empty string, which
         means uWSGI will cache in the local instance. If the cache is in the
-        same instance as the werkzeug app, you only have to provide the name of
+        same instance as your app, you only have to provide the name of
         the cache.
     """
 

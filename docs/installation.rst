@@ -32,7 +32,7 @@ you can use pip extras to install them as needed:
 
       Installs `redis-py`_ required for :class:`.RedisCache`.
 
-      .. code-block:: sh
+      .. code-block:: console
 
          $ pip install cachelib[redis]
 
@@ -40,7 +40,7 @@ you can use pip extras to install them as needed:
 
       Installs `pylibmc`_ required for :class:`.MemcachedCache`.
 
-      .. code-block:: sh
+      .. code-block:: console
 
          $ pip install cachelib[memcached]
 
@@ -48,7 +48,7 @@ you can use pip extras to install them as needed:
 
       Installs `boto3`_ required for :class:`.DynamoDbCache`.
 
-      .. code-block:: sh
+      .. code-block:: console
 
          $ pip install cachelib[dynamodb]
 
@@ -56,7 +56,7 @@ you can use pip extras to install them as needed:
 
       Installs `pymongo`_ required for :class:`.MongoDbCache`.
 
-      .. code-block:: sh
+      .. code-block:: console
 
          $ pip install cachelib[mongodb]
 
@@ -64,7 +64,7 @@ you can use pip extras to install them as needed:
 
       Installs `valkey-py`_ required for :class:`.ValkeyCache`.
 
-      .. code-block:: sh
+      .. code-block:: console
 
          $ pip install cachelib[valkey]
 
@@ -72,7 +72,7 @@ you can use pip extras to install them as needed:
 
       Installs `uWSGI`_ required for :class:`.UWSGICache`.
 
-      .. code-block:: sh
+      .. code-block:: console
 
          $ pip install cachelib[uwsgi]
 
@@ -114,7 +114,7 @@ Create a project folder and a :file:`.venv` folder within:
 
    .. group-tab:: macOS/Linux
 
-      .. code-block:: text
+      .. code-block:: console
 
          $ mkdir myproject
          $ cd myproject
@@ -122,11 +122,11 @@ Create a project folder and a :file:`.venv` folder within:
 
    .. group-tab:: Windows
 
-      .. code-block:: text
+      .. code-block:: doscon
 
-         > mkdir myproject
-         > cd myproject
-         > py -3 -m venv .venv
+         C:\> mkdir myproject
+         C:\> cd myproject
+         C:\> py -3 -m venv .venv
 
 
 .. _install-activate-env:
@@ -140,15 +140,15 @@ Before you work on your project, activate the corresponding environment:
 
    .. group-tab:: macOS/Linux
 
-      .. code-block:: text
+      .. code-block:: console
 
          $ . .venv/bin/activate
 
    .. group-tab:: Windows
 
-      .. code-block:: text
+      .. code-block:: doscon
 
-         > .venv\Scripts\activate
+         C:\> .venv\Scripts\activate
 
 Your shell prompt will change to show the name of the activated
 environment.
@@ -160,7 +160,7 @@ Install CacheLib
 Within the activated environment, use the following command to install
 CacheLib:
 
-.. code-block:: sh
+.. code-block:: console
 
     $ pip install cachelib
 

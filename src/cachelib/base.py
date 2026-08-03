@@ -2,12 +2,12 @@ import typing as _t
 
 
 class BaseCache:
-    """Baseclass for the cache systems.  All the cache systems implement this
+    """Base class for the cache systems.  All the cache systems implement this
     API or a superset of it.
 
     :param default_timeout: the default timeout (in seconds) that is used if
-                            no timeout is specified on :meth:`set`. A timeout
-                            of 0 indicates that the cache never expires.
+        no timeout is specified on :meth:`set`. A timeout
+        of 0 indicates that the cache never expires.
     """
 
     def __init__(self, default_timeout: int = 300):
@@ -27,11 +27,10 @@ class BaseCache:
         return None
 
     def delete(self, key: str) -> bool:
-        """Delete `key` from the cache.
+        """Delete ``key`` from the cache.
 
         :param key: the key to delete.
         :returns: Whether the key existed and has been deleted.
-        :rtype: boolean
         """
         return True
 
@@ -44,7 +43,7 @@ class BaseCache:
         Has the same error handling as :meth:`get`.
 
         :param keys: The function accepts multiple keys as positional
-                     arguments.
+            arguments.
         """
         return [self.get(k) for k in keys]
 
@@ -56,7 +55,7 @@ class BaseCache:
             bar = d["bar"]
 
         :param keys: The function accepts multiple keys as positional
-                     arguments.
+            arguments.
         """
         return dict(zip(keys, self.get_many(*keys), strict=True))
 
@@ -67,12 +66,11 @@ class BaseCache:
         :param key: the key to set
         :param value: the value for the key
         :param timeout: the cache timeout for the key in seconds (if not
-                        specified, it uses the default timeout). A timeout of
-                        0 indicates that the cache never expires.
+            specified, it uses the default timeout). A timeout of
+            0 indicates that the cache never expires.
         :returns: ``True`` if key has been updated, ``False`` for backend
-                  errors. Pickling errors, however, will raise a subclass of
-                  ``pickle.PickleError``.
-        :rtype: boolean
+            errors. Pickling errors, however, will raise a subclass of
+            ``pickle.PickleError``.
         """
         return True
 
@@ -83,11 +81,10 @@ class BaseCache:
         :param key: the key to set
         :param value: the value for the key
         :param timeout: the cache timeout for the key in seconds (if not
-                        specified, it uses the default timeout). A timeout of
-                        0 indicates that the cache never expires.
+            specified, it uses the default timeout). A timeout of
+            0 indicates that the cache never expires.
         :returns: Same as :meth:`set`, but also ``False`` for already
-                  existing keys.
-        :rtype: boolean
+            existing keys.
         """
         return True
 
@@ -98,10 +95,9 @@ class BaseCache:
 
         :param mapping: a mapping with the keys/values to set.
         :param timeout: the cache timeout for the key in seconds (if not
-                        specified, it uses the default timeout). A timeout of
-                        0 indicates that the cache never expires.
+            specified, it uses the default timeout). A timeout of
+            0 indicates that the cache never expires.
         :returns: A list containing all keys successfully set
-        :rtype: boolean
         """
         set_keys = []
         for key, value in mapping.items():
@@ -115,7 +111,6 @@ class BaseCache:
         :param keys: The function accepts multiple keys as positional
                      arguments.
         :returns: A list containing all successfully deleted keys
-        :rtype: boolean
         """
         deleted_keys = []
         for key in keys:
@@ -141,13 +136,12 @@ class BaseCache:
         completely clearing the cache.
 
         :returns: Whether the cache has been cleared.
-        :rtype: boolean
         """
         return True
 
     def inc(self, key: str, delta: int = 1) -> int | None:
-        """Increments the value of a key by `delta`.  If the key does
-        not yet exist it is initialized with `delta`.
+        """Increments the value of a key by ``delta``.  If the key does
+        not yet exist it is initialized with ``delta``.
 
         For supporting caches this is an atomic operation.
 
@@ -159,14 +153,14 @@ class BaseCache:
         return value if self.set(key, value) else None
 
     def dec(self, key: str, delta: int = 1) -> int | None:
-        """Decrements the value of a key by `delta`.  If the key does
-        not yet exist it is initialized with `-delta`.
+        """Decrements the value of a key by ``delta``.  If the key does
+        not yet exist it is initialized with ``-delta``.
 
         For supporting caches this is an atomic operation.
 
         :param key: the key to increment.
         :param delta: the delta to subtract.
-        :returns: The new value or `None` for backend errors.
+        :returns: The new value or ``None`` for backend errors.
         """
         value = (self.get(key) or 0) - delta
         return value if self.set(key, value) else None

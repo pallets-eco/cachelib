@@ -66,7 +66,7 @@ class BaseRedisSerializer(BaseSerializer):
         return b"!" + pickle.dumps(value, protocol)
 
     def loads(self, value: bytes | None) -> _t.Any:
-        """The reversal of :meth:`dump_object`. This might be called with
+        """The reversal of :meth:`dumps`. This might be called with
         None.
         """
         if value is None:
@@ -104,6 +104,10 @@ class FileSystemSerializer(BaseSerializer):
     """Default serializer for FileSystemCache."""
 
 
+class MongoDbSerializer(BaseSerializer):
+    """Default serializer for MongoDbCache."""
+
+
 class RedisSerializer(BaseRedisSerializer):
     """Default serializer for RedisCache."""
 
@@ -112,16 +116,12 @@ class ValkeySerializer(BaseRedisSerializer):
     """Default serializer for ValkeyCache."""
 
 
-class DynamoDbSerializer(RedisSerializer):
+class DynamoDbSerializer(BaseRedisSerializer):
     """Default serializer for DynamoDbCache."""
 
     def loads(self, value: _t.Any) -> _t.Any:
-        """The reversal of :meth:`dump_object`. This might be called with
+        """The reversal of :meth:`BaseRedisSerializer.dumps`. This might be called with
         None.
         """
         value = value.value
         return super().loads(value)
-
-
-class MongoDbSerializer(BaseSerializer):
-    """Default serializer for MongoDbCache."""

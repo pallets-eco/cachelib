@@ -7,16 +7,16 @@ from cachelib.serializers import MongoDbSerializer
 
 class MongoDbCache(BaseCache):
     """
-    Implementation of cachelib.BaseCache that uses mongodb collection
-    as the backend.
+    Implementation of :class:`~.BaseCache` that uses mongodb
+    collection as the backend.
 
-    Limitations: maximum MongoDB document size is 16mb
+    Limitations: maximum ``MongoDB`` document size is 16 MB
 
     :param client: mongodb client or connection string
     :param db: mongodb database name
     :param collection: mongodb collection name
     :param default_timeout: Set the timeout in seconds after which cache entries
-                            expire
+        expire
     :param key_prefix: A prefix that should be added to all keys.
 
     """
@@ -63,7 +63,7 @@ class MongoDbCache(BaseCache):
         Get a cache item
 
         :param key: The cache key of the item to fetch
-        :return: cache value if not expired, else None
+        :return: cache value if not expired, else ``None``
         """
         self._expire_records()
         record = self.client.find_one({"id": self.key_prefix + key})
@@ -97,10 +97,10 @@ class MongoDbCache(BaseCache):
         :param key: Cache key to use
         :param value: a serializable object
         :param timeout: The timeout in seconds for the cached item, to override
-                        the default
+            the default
         :param overwrite: If true, overwrite any existing cache item with key.
-                          If false, the new value will only be stored if no
-                          non-expired cache item exists with key.
+            If false, the new value will only be stored if no
+            non-expired cache item exists with key.
         :return: True if the new item was stored.
         """
         timeout = self._normalize_timeout(timeout)

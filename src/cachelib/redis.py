@@ -14,13 +14,13 @@ class RedisCache(BaseRedisCache):
     the fly.
 
     :param host: address of the Redis server or an object which API is
-                 compatible with the official Python Redis client (redis-py).
+        compatible with the official Python Redis client (``redis-py``).
     :param port: port number on which Redis server listens for connections.
     :param password: password authentication for the Redis server.
     :param db: db (zero-based numeric index) on Redis Server to connect.
     :param default_timeout: the default timeout that is used if no timeout is
-                            specified on :meth:`~BaseCache.set`. A timeout of
-                            0 indicates that the cache never expires.
+        specified on :meth:`~.BaseCache.set`. A timeout of
+        0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
 
     Any additional keyword arguments will be passed to ``redis.Redis``.

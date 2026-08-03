@@ -14,13 +14,13 @@ class ValkeyCache(BaseRedisCache):
     the fly.
 
     :param host: address of the Valkey server or an object which API is
-                 compatible with the official Python Valkey client (valkey-py).
+        compatible with the official Python Valkey client (``valkey-py``).
     :param port: port number on which Valkey server listens for connections.
     :param password: password authentication for the Valkey server.
     :param db: db (zero-based numeric index) on Valkey Server to connect.
     :param default_timeout: the default timeout that is used if no timeout is
-                            specified on :meth:`~BaseCache.set`. A timeout of
-                            0 indicates that the cache never expires.
+        specified on :meth:`~.BaseCache.set`. A timeout of
+        0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
 
     Any additional keyword arguments will be passed to ``valkey.Valkey``.

@@ -13,24 +13,24 @@ looks like this:
 
 .. code-block:: python
 
-    from cachelib import SimpleCache
+   from cachelib import SimpleCache
 
-    # Create a cache instance
-    cache = SimpleCache()
+   # Create a cache instance
+   cache = SimpleCache()
 
-    # Set a value in the cache
-    cache.set('my_key', 'my_value')
+   # Set a value in the cache
+   cache.set('my_key', 'my_value')
 
-    # Retrieve the value from the cache
-    value = cache.get('my_key')
-    print(value)  # Output: my_value
+   # Retrieve the value from the cache
+   value = cache.get('my_key')
+   print(value)  # Output: my_value
 
-    # Delete the value from the cache
-    cache.delete('my_key')
+   # Delete the value from the cache
+   cache.delete('my_key')
 
-    # Try to retrieve the deleted value
-    value = cache.get('my_key')
-    print(value)  # Output: None
+   # Try to retrieve the deleted value
+   value = cache.get('my_key')
+   print(value)  # Output: None
 
 The code above does the following:
 
@@ -57,6 +57,6 @@ The output shows the retrieved value and ``None`` for the deleted key.
 
 .. code-block:: console
 
-    $ python quickstart.py
-    my_value
-    None
+   $ python quickstart.py
+   my_value
+   None

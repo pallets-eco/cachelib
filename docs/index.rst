@@ -2,7 +2,9 @@ CacheLib
 ========
 
 A collection of cache libraries in the same API interface. Extracted
-from Werkzeug.
+from `Werkzeug`_.
+
+.. _Werkzeug: https://werkzeug.palletsprojects.com/
 
 
 User's Guide
