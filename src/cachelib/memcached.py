@@ -231,7 +231,7 @@ class MemcachedCache(BaseCache):
         except ImportError:
             pass
         else:
-            pool = libmc.ClientPool(libmc.Client(servers), pool_size)
+            pool = libmc.ClientPool(servers, pool_size)
             reserve = partial(pool.reserve, block=pool_blocking)
             return pool, reserve
 
