@@ -1,9 +1,16 @@
 Version 0.16.0
 ---------------
 
-Unreleased
+unreleased
+
+
+Version 0.15.1
+---------------
+
+Released 2026-08-07
 
 - Add ``JSONSerializer`` serializer and use the same base class for DynamoDB serialization. :pr:`489`
+- Fix ``MemcachedCache`` ``libmc`` client not being created correctly :pr:`490`
 
 
 Version 0.15.0
