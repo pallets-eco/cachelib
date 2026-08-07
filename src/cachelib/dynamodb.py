@@ -140,7 +140,7 @@ class DynamoDbCache(BaseCache):
         cache_item = self._get_item(self.key_prefix + key)
         if cache_item:
             response = cache_item[RESPONSE_FIELD]
-            value = self.serializer.loads(response)
+            value = self.serializer.loads(response.value)
             return value
         return None
 

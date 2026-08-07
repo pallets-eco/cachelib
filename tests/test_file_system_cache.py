@@ -8,11 +8,13 @@ import pytest
 from clear import ClearTests
 from common import CommonTests
 from has import HasTests
+from serializer import SerializerTests
 
 from cachelib import FileSystemCache
+from cachelib.serializers import BaseSerializer
 
 
-class SillySerializer:
+class SillySerializer(BaseSerializer):
     """A pointless serializer only for testing"""
 
     def dump(self, value, fs):
@@ -68,7 +70,7 @@ def cache_factory(request, tmpdir):
     request.cls.cache_factory = _factory
 
 
-class TestFileSystemCache(CommonTests, ClearTests, HasTests):
+class TestFileSystemCache(CommonTests, ClearTests, HasTests, SerializerTests):
     # override parent sample since these must implement buffer interface
     sample_pairs = {
         "bacon": "eggs",

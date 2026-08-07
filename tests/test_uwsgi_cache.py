@@ -4,9 +4,10 @@ from common import CommonTests
 from has import HasTests
 
 from cachelib import UWSGICache
+from cachelib.serializers import BaseSerializer
 
 
-class SillySerializer:
+class SillySerializer(BaseSerializer):
     """A pointless serializer only for testing"""
 
     def dumps(self, value):
