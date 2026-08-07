@@ -1,5 +1,6 @@
 import re
 import typing as _t
+from contextlib import contextmanager
 from contextlib import nullcontext
 from functools import partial
 from time import time
@@ -231,8 +232,19 @@ class MemcachedCache(BaseCache):
         except ImportError:
             pass
         else:
-            pool = libmc.ClientPool(servers, pool_size)
-            reserve = partial(pool.reserve, block=pool_blocking)
-            return pool, reserve
+            # libmc.ClientPool doesn't take pool_size as a positional arg,
+            # and its .client() always blocks/auto-grows, no non-blocking mode.
+            pool = libmc.ClientPool(servers)
+            pool.config(libmc.MC_INITIAL_CLIENTS, pool_size)
+            pool.config(libmc.MC_MAX_CLIENTS, pool_size)
+
+            @contextmanager
+            def get_client() -> _t.Generator[_t.Any, None, None]:
+                # flush_all is disabled by default in libmc; enable per connection.
+                with pool.client() as client:
+                    client.toggle_flush_all_feature(True)
+                    yield client
+
+            return pool, get_client
 
         return None, None
