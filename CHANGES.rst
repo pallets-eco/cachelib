@@ -4,6 +4,14 @@ Version 0.16.0
 unreleased
 
 
+Version 0.15.2
+---------------
+
+Released 2026-08-07
+
+- Fix ``libmc`` in ``MemcachedCache`` no reserve nor blocking. :pr:`493`
+
+
 Version 0.15.1
 ---------------
 
