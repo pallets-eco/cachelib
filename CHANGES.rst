@@ -3,6 +3,8 @@ Version 0.16.0
 
 Unreleased
 
+- Add ``JSONSerializer`` serializer and use the same base class for DynamoDB serialization. :pr:`489`
+
 
 Version 0.15.0
 --------------
