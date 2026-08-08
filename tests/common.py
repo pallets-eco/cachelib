@@ -67,6 +67,20 @@ class CommonTests(TestData):
             assert cache.get(f"{n}-key-dec") == -n
             assert cache.dec(f"{n}-key-inc", 5) == n - 5
 
+    def test_inc_dec_after_set(self):
+        cache = self.cache_factory()
+        assert cache.set("count", 10)
+        assert cache.inc("count", 5) == 15
+        assert cache.dec("count", 3) == 12
+        assert cache.get("count") == 12
+
+    def test_bool_roundtrip(self):
+        cache = self.cache_factory()
+        assert cache.set("true-key", True)
+        assert cache.get("true-key") is True
+        assert cache.set("false-key", False)
+        assert cache.get("false-key") is False
+
     def test_expiration(self):
         if under_uwsgi():
             pytest.skip(

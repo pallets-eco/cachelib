@@ -25,6 +25,19 @@ def cache_factory(request, key_prefix):
 @pytest.mark.network
 @pytest.mark.usefixtures("memcached_server")
 class TestMemcachedCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
+    def test_bool_roundtrip(self):
+        # memcached client libs flag bool as int on the wire,
+        # so bools round-trip as 1/0 instead of True/False
+        cache = self.cache_factory()
+        assert cache.set("true-key", True)
+        value = cache.get("true-key")
+        assert value == 1
+        assert type(value) is int
+        assert cache.set("false-key", False)
+        value = cache.get("false-key")
+        assert value == 0
+        assert type(value) is int
+
     def test_pool_enforces_capacity_and_blocking_waits_for_release(self):
         cache = self.cache_factory(pool_size=2, pool_blocking=True)
 
