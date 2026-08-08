@@ -1,7 +1,11 @@
-Version 0.16.0
+Version 0.15.4
 ---------------
 
 unreleased
+
+- Fix dumps in ``RedisCache`` to not use pickle for integers,
+  so they remain compatible with the native ``INCRBY``/ ``DECRBY``
+  operations used by :meth:`inc`/:meth:`dec`. :pr:`496`
 
 
 Version 0.15.3

@@ -61,7 +61,14 @@ class BaseRedisSerializer(BaseSerializer):
     """Base serializer for Redis compatible caches."""
 
     def dumps(self, value: _t.Any, protocol: int = pickle.HIGHEST_PROTOCOL) -> bytes:
-        """Dumps an object into a string for redis, using pickle by default."""
+        """Dumps an object into a string for redis. Integers are stored as
+        plain ASCII so they remain compatible with the native
+        ``INCRBY``/``DECRBY`` operations used by :meth:`inc`/:meth:`dec`;
+        everything else is pickled.
+        """
+        # check type instead of isinstance since bool is an int subclass
+        if type(value) is int:
+            return str(value).encode("ascii")
         return b"!" + pickle.dumps(value, protocol)
 
     def loads(self, value: bytes | None) -> _t.Any:
