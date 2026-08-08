@@ -1,9 +1,9 @@
 Version 0.15.3
 ---------------
 
-unreleased
+Released 2026-08-08
 
-- Fix ``MemcachedCache`` ``inc`` and ``dec`` methods double normalizing keys. :pr:`494`
+- Fix ``MemcachedCache`` ``inc`` and ``dec`` methods double normalizing keys. :pr:`495`
 
 
 Version 0.15.2
