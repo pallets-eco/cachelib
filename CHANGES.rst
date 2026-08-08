@@ -5,7 +5,7 @@ Released 2026-08-08
 
 - Fix dumps in ``RedisCache`` to not use pickle for integers,
   so they remain compatible with the native ``INCRBY``/ ``DECRBY``
-  operations used by :meth:`inc`/:meth:`dec`. :pr:`496`
+  operations used by :meth:`inc`/:meth:`dec`. :pr:`497`
 
 
 Version 0.15.3
