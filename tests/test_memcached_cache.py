@@ -11,9 +11,10 @@ from cachelib import MemcachedCache
 
 
 @pytest.fixture(autouse=True)
-def cache_factory(request):
+def cache_factory(request, key_prefix):
     def _factory(self, *args, **kwargs):
         kwargs.setdefault("servers", ["127.0.0.1:11212"])
+        kwargs.setdefault("key_prefix", key_prefix)
         mc = MemcachedCache(*args, **kwargs)
         mc.clear()
         return mc

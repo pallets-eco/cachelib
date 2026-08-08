@@ -9,7 +9,7 @@ from cachelib import DynamoDbCache
 
 
 @pytest.fixture(autouse=True, params=[DynamoDbCache])
-def cache_factory(request):
+def cache_factory(request, key_prefix):
     import warnings
 
     warnings.filterwarnings(
@@ -23,6 +23,7 @@ def cache_factory(request):
         os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "RANDOM")
         kwargs["endpoint_url"] = "http://localhost:8000"
         kwargs["region_name"] = "us-west-2"
+        kwargs.setdefault("key_prefix", key_prefix)
         rc = request.param(*args, **kwargs)
         rc.clear()
         return rc

@@ -32,8 +32,9 @@ class CustomCache(ValkeyCache):
 
 
 @pytest.fixture(autouse=True, params=[ValkeyCache, CustomCache])
-def cache_factory(request):
+def cache_factory(request, key_prefix):
     def _factory(self, *args, **kwargs):
+        kwargs.setdefault("key_prefix", key_prefix)
         rc = request.param(*args, port=6370, **kwargs)
         rc._write_client.flushdb()
         return rc

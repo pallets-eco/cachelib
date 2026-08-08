@@ -9,14 +9,14 @@ from cachelib.mongodb import MongoDbCache
 
 
 @pytest.fixture(autouse=True, params=[MongoDbCache])
-def cache_factory(request):
+def cache_factory(request, key_prefix):
     client = pymongo.MongoClient()
 
     def _factory(self, *args, **kwargs):
         kwargs["client"] = client
         kwargs["db"] = "test-db"
         kwargs["collection"] = "test-collection"
-        kwargs["key_prefix"] = "prefix"
+        kwargs.setdefault("key_prefix", key_prefix)
 
         rc = request.param(*args, **kwargs)
         index_info = rc.client.index_information()

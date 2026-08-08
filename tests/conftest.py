@@ -109,6 +109,16 @@ def valkey_server(xprocess):
     xprocess.getinfo(package_name).terminate()
 
 
+@pytest.fixture(
+    params=[None, "test-key-prefix:"], ids=["no_key_prefix", "with_key_prefix"]
+)
+def key_prefix(request):
+    """Runs dependent tests once without a key_prefix and once with one set,
+    so backends that support key_prefix are exercised in both configurations.
+    """
+    return request.param
+
+
 class TestData:
     """This class centralizes all data samples used in tests"""
 

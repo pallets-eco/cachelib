@@ -187,15 +187,15 @@ class MemcachedCache(BaseCache):
             return bool(client.flush_all())
 
     def inc(self, key: str, delta: int = 1) -> int | None:
-        key = self._normalize_key(key)
+        normalized_key = self._normalize_key(key)
         with self._client_context() as client:
-            value = (client.get(key) or 0) + delta
+            value = (client.get(normalized_key) or 0) + delta
         return value if self.set(key, value) else None
 
     def dec(self, key: str, delta: int = 1) -> int | None:
-        key = self._normalize_key(key)
+        normalized_key = self._normalize_key(key)
         with self._client_context() as client:
-            value = (client.get(key) or 0) - delta
+            value = (client.get(normalized_key) or 0) - delta
         return value if self.set(key, value) else None
 
     def import_preferred_memcache_lib(
