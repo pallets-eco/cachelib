@@ -21,4 +21,4 @@ __all__ = [
     "MongoDbCache",
     "ValkeyCache",
 ]
-__version__ = "0.15.4.dev"
+__version__ = "0.15.4"

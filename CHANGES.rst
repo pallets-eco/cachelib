@@ -1,7 +1,7 @@
 Version 0.15.4
 ---------------
 
-unreleased
+Released 2026-08-08
 
 - Fix dumps in ``RedisCache`` to not use pickle for integers,
   so they remain compatible with the native ``INCRBY``/ ``DECRBY``
