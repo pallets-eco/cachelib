@@ -40,6 +40,10 @@ class MongoDbCache(BaseCache):
 
         if client is None or isinstance(client, str):
             client = pymongo.MongoClient(host=client, **kwargs)
+        try:
+            client.admin.command("ping")
+        except pymongo.errors.PyMongoError as err:
+            raise RuntimeError(f"could not connect to MongoDB server: {err}") from err
         self.client = client[db][collection]
         index_info = self.client.index_information()
         all_keys = {
