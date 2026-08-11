@@ -4,7 +4,7 @@ Version 0.16.0
 unreleased
 
 - Change ``FileSystemCache`` default hash method to ``hashlib.sha256``
-  because ``hashlib.md5`` is not available in FIPS builds. :pr:`500`
+  because ``hashlib.md5`` is not available in FIPS builds. :issue:`500`
 
 
 Version 0.15.4
