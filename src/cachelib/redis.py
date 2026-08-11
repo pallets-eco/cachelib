@@ -52,4 +52,8 @@ class RedisCache(BaseRedisCache):
             )
         else:
             client = host
+        try:
+            client.ping()
+        except Exception as err:
+            raise RuntimeError(f"could not connect to Redis server: {err}") from err
         super().__init__(client, default_timeout, key_prefix)

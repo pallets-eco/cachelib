@@ -207,7 +207,14 @@ class MemcachedCache(BaseCache):
         except ImportError:
             pass
         else:
-            pool = pylibmc.ClientPool(pylibmc.Client(servers), pool_size)
+            client = pylibmc.Client(servers)
+            try:
+                client.get_stats()
+            except pylibmc.Error as err:
+                raise RuntimeError(
+                    f"could not connect to memcached server(s): {err}"
+                ) from err
+            pool = pylibmc.ClientPool(client, pool_size)
             reserve = partial(pool.reserve, block=pool_blocking)
             return pool, reserve
 

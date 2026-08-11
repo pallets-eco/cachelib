@@ -56,6 +56,8 @@ class DynamoDbCache(BaseCache):
         try:
             import boto3
             from boto3.dynamodb.conditions import Attr
+            from botocore.exceptions import BotoCoreError
+            from botocore.exceptions import ClientError
         except ImportError as err:
             raise RuntimeError("no boto3 module found") from err
 
@@ -69,8 +71,13 @@ class DynamoDbCache(BaseCache):
         try:
             self._table = self._dynamo.Table(table_name)
             self._table.load()
-            # catch this exception (triggered if the table doesn't exist)
-        except Exception:
+        except BotoCoreError as err:
+            raise RuntimeError(f"could not connect to DynamoDB: {err}") from err
+        except ClientError as err:
+            # only create the table if it's missing; anything else
+            # (bad credentials, denied access) is a real error
+            if err.response.get("Error", {}).get("Code") != "ResourceNotFoundException":
+                raise RuntimeError(f"could not connect to DynamoDB: {err}") from err
             table = self._dynamo.create_table(
                 AttributeDefinitions=[
                     {"AttributeName": key_field, "AttributeType": "S"}

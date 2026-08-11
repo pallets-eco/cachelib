@@ -52,6 +52,10 @@ class ValkeyCache(BaseRedisCache):
             )
         else:
             client = host
+        try:
+            client.ping()
+        except Exception as err:
+            raise RuntimeError(f"could not connect to Valkey server: {err}") from err
         super().__init__(client, default_timeout, key_prefix)
 
     def set_many(
