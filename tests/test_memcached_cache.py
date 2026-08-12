@@ -10,36 +10,54 @@ from has import HasTests
 from cachelib import MemcachedCache
 
 
+def skip_unless_pooled(cache):
+    # only pylibmc's ClientPool has reserve()/queue.Empty semantics;
+    # python-memcached and libmc have no capped reservation pool
+    if not hasattr(cache._client, "reserve"):
+        pytest.skip("memcached client library does not support connection pooling")
+
+
 @pytest.fixture(autouse=True)
 def cache_factory(request, key_prefix):
+    caches = []
+
     def _factory(self, *args, **kwargs):
         kwargs.setdefault("servers", ["127.0.0.1:11212"])
         kwargs.setdefault("key_prefix", key_prefix)
         mc = MemcachedCache(*args, **kwargs)
         mc.clear()
+        caches.append(mc)
         return mc
 
     request.cls.cache_factory = _factory
+    yield
+    for mc in caches:
+        # close python-memcached sockets to avoid ResourceWarning noise
+        disconnect = getattr(mc._client, "disconnect_all", None)
+        if disconnect is not None:
+            disconnect()
 
 
 @pytest.mark.network
 @pytest.mark.usefixtures("memcached_server")
 class TestMemcachedCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefixTests):
     def test_bool_roundtrip(self):
-        # memcached client libs flag bool as int on the wire,
-        # so bools round-trip as 1/0 instead of True/False
+        # pylibmc/libmc flag bool as int on the wire so bools round-trip
+        # as 1/0; python-memcached pickles them, preserving bool. Either
+        # way the value must compare equal to 1/0 and be int-like.
         cache = self.cache_factory()
         assert cache.set("true-key", True)
         value = cache.get("true-key")
         assert value == 1
-        assert type(value) is int
+        assert isinstance(value, int)
         assert cache.set("false-key", False)
         value = cache.get("false-key")
         assert value == 0
-        assert type(value) is int
+        assert isinstance(value, int)
 
     def test_pool_enforces_capacity_and_blocking_waits_for_release(self):
         cache = self.cache_factory(pool_size=2, pool_blocking=True)
+        skip_unless_pooled(cache)
 
         acquired = [threading.Event(), threading.Event()]
         release = threading.Event()
@@ -93,6 +111,7 @@ class TestMemcachedCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefix
 
     def test_non_blocking_pool_raises_when_exhausted(self):
         cache = self.cache_factory(pool_size=1, pool_blocking=False)
+        skip_unless_pooled(cache)
 
         holder_acquired = threading.Event()
         released = threading.Event()
