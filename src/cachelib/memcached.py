@@ -184,7 +184,9 @@ class MemcachedCache(BaseCache):
 
     def clear(self) -> bool:
         with self._client_context() as client:
-            return bool(client.flush_all())
+            # python-memcached's flush_all returns None on success
+            result = client.flush_all()
+            return True if result is None else bool(result)
 
     def inc(self, key: str, delta: int = 1) -> int | None:
         normalized_key = self._normalize_key(key)
