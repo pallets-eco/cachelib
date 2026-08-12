@@ -6,6 +6,8 @@ unreleased
 - Change ``FileSystemCache`` default hash method to ``hashlib.sha256``
   because ``hashlib.md5`` is not available in FIPs builds. :issue:`500`
 - Ping backends servers on init to ensure they are reachable. :pr:`503`
+- Fix ``Memcached`` with ``python-memcached`` client returned None
+  instead of True when ``flush_all`` was successful. :pr:`504`
 
 
 Version 0.15.4
