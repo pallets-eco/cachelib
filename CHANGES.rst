@@ -8,6 +8,8 @@ unreleased
 - Ping backends servers on init to ensure they are reachable. :pr:`503`
 - Fix ``Memcached`` with ``python-memcached`` client returned None
   instead of True when ``flush_all`` was successful. :pr:`504`
+- Add ``ignore_delete_many_errors`` parameter to all cache backends to allow
+  users to control whether ``delete_many()`` raises a ``RuntimeError`` if any key fails to delete. :pr:`505`
 
 
 Version 0.15.4

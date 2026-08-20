@@ -18,6 +18,11 @@ class UWSGICache(BaseCache):
         means uWSGI will cache in the local instance. If the cache is in the
         same instance as your app, you only have to provide the name of
         the cache.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
     """
 
     serializer = UWSGISerializer()
@@ -26,8 +31,11 @@ class UWSGICache(BaseCache):
         self,
         default_timeout: int = 300,
         cache: str = "",
+        ignore_delete_many_errors: bool = True,
     ):
-        BaseCache.__init__(self, default_timeout)
+        BaseCache.__init__(
+            self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
+        )
 
         if platform.python_implementation() == "PyPy":
             raise RuntimeError(

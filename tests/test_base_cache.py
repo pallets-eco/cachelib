@@ -51,6 +51,23 @@ class TestBaseCache:
         keys = ["bacon", "spam", "eggs"]
         assert cache.delete_many(*keys) == keys
 
+    def test_delete_many_raise_errors(self):
+        class FailingDeleteCache(BaseCache):
+            """Simulates a backend where deletes fail and keys remain"""
+
+            def delete(self, key):
+                return False
+
+            def has(self, key):
+                return True
+
+        cache = FailingDeleteCache(ignore_delete_many_errors=False)
+        with pytest.raises(RuntimeError, match="Failed to delete keys"):
+            cache.delete_many("bacon", "spam")
+
+        cache = FailingDeleteCache(ignore_delete_many_errors=True)
+        assert cache.delete_many("bacon", "spam") == []
+
     def test_has(self):
         cache = self.cache_factory()
         with pytest.raises(NotImplementedError):

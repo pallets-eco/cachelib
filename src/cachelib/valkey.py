@@ -22,6 +22,11 @@ class ValkeyCache(BaseRedisCache):
         specified on :meth:`~.BaseCache.set`. A timeout of
         0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
 
     Any additional keyword arguments will be passed to ``valkey.Valkey``.
     """
@@ -36,6 +41,7 @@ class ValkeyCache(BaseRedisCache):
         db: int = 0,
         default_timeout: int = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
+        ignore_delete_many_errors: bool = True,
         **kwargs: _t.Any,
     ):
         if host is None:
@@ -56,7 +62,7 @@ class ValkeyCache(BaseRedisCache):
             client.ping()
         except Exception as err:
             raise RuntimeError(f"could not connect to Valkey server: {err}") from err
-        super().__init__(client, default_timeout, key_prefix)
+        super().__init__(client, default_timeout, key_prefix, ignore_delete_many_errors)
 
     def set_many(
         self, mapping: dict[str, _t.Any], timeout: int | None = None

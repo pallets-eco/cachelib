@@ -18,7 +18,11 @@ class MongoDbCache(BaseCache):
     :param default_timeout: Set the timeout in seconds after which cache entries
         expire
     :param key_prefix: A prefix that should be added to all keys.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
 
+        .. versionadded:: 0.16.0
     """
 
     serializer = MongoDbSerializer()
@@ -30,9 +34,12 @@ class MongoDbCache(BaseCache):
         collection: str = "cache-collection",
         default_timeout: int = 300,
         key_prefix: str | None = None,
+        ignore_delete_many_errors: bool = True,
         **kwargs: _t.Any,
     ):
-        super().__init__(default_timeout)
+        super().__init__(
+            default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
+        )
         try:
             import pymongo
         except ImportError as err:
@@ -203,7 +210,8 @@ class MongoDbCache(BaseCache):
                 item["id"][len(self.key_prefix) :] for item in self.client.find(filter)
             ]
             res = [item for item in keys if item not in existing_keys]
-
+            if not self.ignore_delete_many_errors and existing_keys:
+                raise RuntimeError(f"Failed to delete keys: {existing_keys}")
         return res
 
     def clear(self) -> bool:

@@ -16,6 +16,11 @@ class SimpleCache(BaseCache):
     :param default_timeout: the default timeout that is used if no timeout is
         specified on :meth:`~.BaseCache.set`. A timeout of
         0 indicates that the cache never expires.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
     """
 
     serializer = SimpleSerializer()
@@ -24,8 +29,11 @@ class SimpleCache(BaseCache):
         self,
         threshold: int = 500,
         default_timeout: int = 300,
+        ignore_delete_many_errors: bool = True,
     ):
-        BaseCache.__init__(self, default_timeout)
+        BaseCache.__init__(
+            self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
+        )
         self._cache: dict[str, _t.Any] = {}
         self._threshold = threshold or 500  # threshold = 0
         self._lock = threading.RLock()

@@ -56,6 +56,11 @@ class MemcachedCache(BaseCache):
         client library supports connection pooling.
 
         .. versionadded:: 0.15.0
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
     """
 
     def __init__(
@@ -65,8 +70,11 @@ class MemcachedCache(BaseCache):
         key_prefix: str | None = None,
         pool_size: int = 1,
         pool_blocking: bool = True,
+        ignore_delete_many_errors: bool = True,
     ):
-        BaseCache.__init__(self, default_timeout)
+        BaseCache.__init__(
+            self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
+        )
 
         if servers is None or isinstance(servers, (list, tuple)):
             if servers is None:
@@ -173,7 +181,12 @@ class MemcachedCache(BaseCache):
                 normalized_keys.append(normalized)
         with self._client_context() as client:
             client.delete_multi(normalized_keys)
-        return [k for k in new_keys if not self.has(k)]
+        deleted_keys = [k for k in new_keys if not self.has(k)]
+        if not self.ignore_delete_many_errors and len(deleted_keys) != len(new_keys):
+            failed_keys = [k for k in new_keys if k not in deleted_keys]
+            if failed_keys:
+                raise RuntimeError(f"Failed to delete keys: {failed_keys}")
+        return deleted_keys
 
     def has(self, key: str) -> bool:
         key = self._normalize_key(key)
