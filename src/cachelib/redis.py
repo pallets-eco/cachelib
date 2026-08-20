@@ -22,6 +22,11 @@ class RedisCache(BaseRedisCache):
         specified on :meth:`~.BaseCache.set`. A timeout of
         0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
 
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
@@ -36,6 +41,7 @@ class RedisCache(BaseRedisCache):
         db: int = 0,
         default_timeout: int = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
+        ignore_delete_many_errors: bool = True,
         **kwargs: _t.Any,
     ):
         if host is None:
@@ -56,4 +62,9 @@ class RedisCache(BaseRedisCache):
             client.ping()
         except Exception as err:
             raise RuntimeError(f"could not connect to Redis server: {err}") from err
-        super().__init__(client, default_timeout, key_prefix)
+        super().__init__(
+            client,
+            default_timeout,
+            key_prefix,
+            ignore_delete_many_errors=ignore_delete_many_errors,
+        )

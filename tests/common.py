@@ -47,6 +47,14 @@ class CommonTests(TestData):
         cache.delete_many("eggs", "bacon")
         assert cache.get("bacon") is None
 
+    def test_delete_many_raise_errors_nonexistent_key(self):
+        cache = self.cache_factory(ignore_delete_many_errors=False)
+        cache.set("bacon", "spam")
+        # nonexistent keys are considered deleted and must not raise
+        result = cache.delete_many("eggs", "bacon")
+        assert result == ["eggs", "bacon"]
+        assert cache.get("bacon") is None
+
     def test_add(self):
         cache = self.cache_factory()
         cache.set_many(self.sample_pairs)

@@ -32,6 +32,11 @@ class FileSystemCache(BaseCache):
     :param mode: the file mode wanted for the cache files, default 0600
     :param hash_method: Default :func:`~hashlib.sha256`. The hash method used to
         generate the filename for cached results.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
     """
 
     #: used for temporary files by the FileSystemCache
@@ -48,8 +53,11 @@ class FileSystemCache(BaseCache):
         default_timeout: int = 300,
         mode: int | None = None,
         hash_method: _t.Any = hashlib.sha256,
+        ignore_delete_many_errors: bool = True,
     ):
-        BaseCache.__init__(self, default_timeout)
+        BaseCache.__init__(
+            self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
+        )
         self._path = cache_dir
         self._threshold = threshold
         self._hash_method = hash_method

@@ -15,6 +15,11 @@ class BaseRedisCache(BaseCache):
         specified on :meth:`~.BaseCache.set`. A timeout of
         0 indicates that the cache never expires.
     :param key_prefix: A prefix that should be added to all keys.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
     """
 
     _read_client: _t.Any = None
@@ -26,8 +31,11 @@ class BaseRedisCache(BaseCache):
         client: _t.Any,
         default_timeout: int = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
+        ignore_delete_many_errors: bool = True,
     ):
-        BaseCache.__init__(self, default_timeout)
+        BaseCache.__init__(
+            self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
+        )
         self._read_client = self._write_client = client
         self.key_prefix = key_prefix or ""
 
@@ -111,7 +119,12 @@ class BaseRedisCache(BaseCache):
         else:
             prefixed_keys = [k for k in keys]
         self._write_client.delete(*prefixed_keys)
-        return [k for k in keys if not self.has(k)]
+        deleted_keys = [k for k in keys if not self.has(k)]
+        if not self.ignore_delete_many_errors and len(deleted_keys) != len(keys):
+            failed_keys = [k for k in keys if k not in deleted_keys]
+            if failed_keys:
+                raise RuntimeError(f"Failed to delete keys: {failed_keys}")
+        return deleted_keys
 
     def has(self, key: str) -> bool:
         return bool(self._read_client.exists(f"{self._get_prefix()}{key}"))

@@ -8,10 +8,18 @@ class BaseCache:
     :param default_timeout: the default timeout (in seconds) that is used if
         no timeout is specified on :meth:`set`. A timeout
         of 0 indicates that the cache never expires.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+
+        .. versionadded:: 0.16.0
     """
 
-    def __init__(self, default_timeout: int = 300):
+    def __init__(
+        self, default_timeout: int = 300, ignore_delete_many_errors: bool = True
+    ) -> None:
         self.default_timeout = default_timeout
+        self.ignore_delete_many_errors = ignore_delete_many_errors
 
     def _normalize_timeout(self, timeout: int | None) -> int:
         if timeout is None:
@@ -111,11 +119,19 @@ class BaseCache:
         :param keys: The function accepts multiple keys as positional
                      arguments.
         :returns: A list containing all successfully deleted keys
+        :raises RuntimeError: If ``ignore_delete_many_errors`` is False and
+            a key still exists after the delete attempt.
         """
         deleted_keys = []
+        failed_keys = []
         for key in keys:
-            if self.delete(key):
+            # a key that is absent after the attempt counts as deleted
+            if self.delete(key) or not self.has(key):
                 deleted_keys.append(key)
+            else:
+                failed_keys.append(key)
+        if not self.ignore_delete_many_errors and failed_keys:
+            raise RuntimeError(f"Failed to delete keys: {failed_keys}")
         return deleted_keys
 
     def has(self, key: str) -> bool:
