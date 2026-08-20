@@ -1,7 +1,7 @@
 Version 0.16.0
 ---------------
 
-unreleased
+Released 2026-08-20
 
 - Change ``FileSystemCache`` default hash method to ``hashlib.sha256``
   because ``hashlib.md5`` is not available in FIPs builds. :issue:`500`
