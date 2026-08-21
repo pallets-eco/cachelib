@@ -23,6 +23,12 @@ class MongoDbCache(BaseCache):
         exist are considered successfully deleted and do not raise.
 
         .. versionadded:: 0.16.0
+    :param check_connection: If True, the constructor will verify the
+        connection to the mongodb server and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use.
+
+        .. versionadded:: 0.16.1
     """
 
     serializer = MongoDbSerializer()
@@ -35,8 +41,10 @@ class MongoDbCache(BaseCache):
         default_timeout: int = 300,
         key_prefix: str | None = None,
         ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
         **kwargs: _t.Any,
     ):
+        self.check_connection = check_connection
         super().__init__(
             default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
         )
@@ -47,10 +55,13 @@ class MongoDbCache(BaseCache):
 
         if client is None or isinstance(client, str):
             client = pymongo.MongoClient(host=client, **kwargs)
-        try:
-            client.admin.command("ping")
-        except pymongo.errors.PyMongoError as err:
-            raise RuntimeError(f"could not connect to MongoDB server: {err}") from err
+        if self.check_connection:
+            try:
+                client.admin.command("ping")
+            except pymongo.errors.PyMongoError as err:
+                raise RuntimeError(
+                    f"could not connect to MongoDB server: {err}"
+                ) from err
         self.client = client[db][collection]
         index_info = self.client.index_information()
         all_keys = {

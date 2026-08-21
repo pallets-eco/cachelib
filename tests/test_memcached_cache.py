@@ -138,3 +138,24 @@ class TestMemcachedCache(CommonTests, ClearTests, HasTests, DeleteManyWithPrefix
         # After the holder releases the only slot, this should work
         with cache._client_context() as client:
             assert client is not None
+
+
+class TestMemcachedCacheCheckConnection:
+    # the connection check is only implemented for the pylibmc client
+    def test_unreachable_server_raises_when_enabled(self):
+        pytest.importorskip("pylibmc")
+        with pytest.raises(RuntimeError, match="could not connect to memcached"):
+            MemcachedCache(servers=["127.0.0.1:1"], check_connection=True)
+
+    def test_unreachable_server_is_lazy_by_default(self):
+        cache = MemcachedCache(servers=["127.0.0.1:1"])
+        assert isinstance(cache, MemcachedCache)
+
+
+@pytest.mark.network
+@pytest.mark.usefixtures("memcached_server")
+class TestMemcachedCacheCheckConnectionLive:
+    def test_reachable_server_constructs_and_works(self):
+        cache = MemcachedCache(servers=["127.0.0.1:11212"], check_connection=True)
+        assert cache.set("check-connection-key", "value")
+        assert cache.get("check-connection-key") == "value"

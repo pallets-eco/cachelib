@@ -28,6 +28,13 @@ class RedisCache(BaseRedisCache):
 
         .. versionadded:: 0.16.0
 
+    :param check_connection: If True, the constructor will verify the
+        connection to the Redis server and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use.
+
+        .. versionadded:: 0.16.1
+
     Any additional keyword arguments will be passed to ``redis.Redis``.
     """
 
@@ -42,6 +49,7 @@ class RedisCache(BaseRedisCache):
         default_timeout: int = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
         **kwargs: _t.Any,
     ):
         if host is None:
@@ -58,13 +66,15 @@ class RedisCache(BaseRedisCache):
             )
         else:
             client = host
-        try:
-            client.ping()
-        except Exception as err:
-            raise RuntimeError(f"could not connect to Redis server: {err}") from err
+        if check_connection:
+            try:
+                client.ping()
+            except Exception as err:
+                raise RuntimeError(f"could not connect to Redis server: {err}") from err
         super().__init__(
             client,
             default_timeout,
             key_prefix,
             ignore_delete_many_errors=ignore_delete_many_errors,
+            check_connection=check_connection,
         )

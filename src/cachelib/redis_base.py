@@ -20,6 +20,12 @@ class BaseRedisCache(BaseCache):
         exist are considered successfully deleted and do not raise.
 
         .. versionadded:: 0.16.0
+    :param check_connection: If True, the constructor will verify the
+        connection to the Redis server and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use.
+
+        .. versionadded:: 0.16.1
     """
 
     _read_client: _t.Any = None
@@ -32,12 +38,14 @@ class BaseRedisCache(BaseCache):
         default_timeout: int = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
     ):
         BaseCache.__init__(
             self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
         )
         self._read_client = self._write_client = client
         self.key_prefix = key_prefix or ""
+        self.check_connection = check_connection
 
     def _get_prefix(self) -> str:
         return (

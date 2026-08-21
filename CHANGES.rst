@@ -1,8 +1,10 @@
-Version 0.17.0
+Version 0.16.1
 ---------------
 
 Unreleased
 
+- Add ``check_connection`` parameter to allow users to control whether
+  the constructor will attempt to ping the client on init. :pr:`507`
 
 
 Version 0.16.0

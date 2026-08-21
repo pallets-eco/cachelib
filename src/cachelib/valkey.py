@@ -27,6 +27,12 @@ class ValkeyCache(BaseRedisCache):
         exist are considered successfully deleted and do not raise.
 
         .. versionadded:: 0.16.0
+    :param check_connection: If True, the constructor will verify the
+        connection to the Valkey server and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use.
+
+        .. versionadded:: 0.16.1
 
     Any additional keyword arguments will be passed to ``valkey.Valkey``.
     """
@@ -42,6 +48,7 @@ class ValkeyCache(BaseRedisCache):
         default_timeout: int = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
         **kwargs: _t.Any,
     ):
         if host is None:
@@ -58,11 +65,20 @@ class ValkeyCache(BaseRedisCache):
             )
         else:
             client = host
-        try:
-            client.ping()
-        except Exception as err:
-            raise RuntimeError(f"could not connect to Valkey server: {err}") from err
-        super().__init__(client, default_timeout, key_prefix, ignore_delete_many_errors)
+        if check_connection:
+            try:
+                client.ping()
+            except Exception as err:
+                raise RuntimeError(
+                    f"could not connect to Valkey server: {err}"
+                ) from err
+        super().__init__(
+            client,
+            default_timeout,
+            key_prefix,
+            ignore_delete_many_errors,
+            check_connection,
+        )
 
     def set_many(
         self, mapping: dict[str, _t.Any], timeout: int | None = None

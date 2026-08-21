@@ -42,6 +42,12 @@ class DynamoDbCache(BaseCache):
         exist are considered successfully deleted and do not raise.
 
         .. versionadded:: 0.16.0
+    :param check_connection: If True, the constructor will verify the
+        connection to DynamoDB and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use. A missing table is created either way.
+
+        .. versionadded:: 0.16.1
     """
 
     serializer = DynamoDbSerializer()
@@ -54,6 +60,7 @@ class DynamoDbCache(BaseCache):
         expiration_time_field: str = "expiration_time",
         key_prefix: str | None = None,
         ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
         **kwargs: _t.Any,
     ):
         super().__init__(
@@ -76,17 +83,21 @@ class DynamoDbCache(BaseCache):
         self._attr = Attr
         self._client_error = ClientError
         self._boto_core_error = BotoCoreError
+        self.check_connection = check_connection
 
         try:
             self._table = self._dynamo.Table(table_name)
             self._table.load()
         except BotoCoreError as err:
-            raise RuntimeError(f"could not connect to DynamoDB: {err}") from err
+            if self.check_connection:
+                raise RuntimeError(f"could not connect to DynamoDB: {err}") from err
         except ClientError as err:
             # only create the table if it's missing; anything else
             # (bad credentials, denied access) is a real error
             if err.response.get("Error", {}).get("Code") != "ResourceNotFoundException":
-                raise RuntimeError(f"could not connect to DynamoDB: {err}") from err
+                if self.check_connection:
+                    raise RuntimeError(f"could not connect to DynamoDB: {err}") from err
+                return  # fail silently if check_connection is False
             table = self._dynamo.create_table(
                 AttributeDefinitions=[
                     {"AttributeName": key_field, "AttributeType": "S"}
