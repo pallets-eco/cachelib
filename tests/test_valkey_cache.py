@@ -58,3 +58,23 @@ class TestValkeyCache(
         spam_key = lambda: "spam"  # noqa: E731
         assert cache.set(spam_key, "sausages")
         assert cache.get(spam_key) == "sausages"
+
+
+class TestValkeyCacheCheckConnection:
+    # nothing listens on port 1, so connections are refused immediately
+    def test_unreachable_server_raises_when_enabled(self):
+        with pytest.raises(RuntimeError, match="could not connect to Valkey"):
+            ValkeyCache(port=1, check_connection=True, socket_connect_timeout=0.1)
+
+    def test_unreachable_server_is_lazy_by_default(self):
+        cache = ValkeyCache(port=1, socket_connect_timeout=0.1)
+        assert isinstance(cache, ValkeyCache)
+
+
+@pytest.mark.network
+@pytest.mark.usefixtures("valkey_server")
+class TestValkeyCacheCheckConnectionLive:
+    def test_reachable_server_constructs_and_works(self):
+        cache = ValkeyCache(port=6370, check_connection=True)
+        assert cache.set("check-connection-key", "value")
+        assert cache.get("check-connection-key") == "value"

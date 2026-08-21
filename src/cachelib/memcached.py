@@ -61,6 +61,12 @@ class MemcachedCache(BaseCache):
         exist are considered successfully deleted and do not raise.
 
         .. versionadded:: 0.16.0
+    :param check_connection: If True, the constructor will verify the
+        connection to the memcached server and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use.
+
+        .. versionadded:: 0.16.1
     """
 
     def __init__(
@@ -71,7 +77,9 @@ class MemcachedCache(BaseCache):
         pool_size: int = 1,
         pool_blocking: bool = True,
         ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
     ):
+        self.check_connection = check_connection
         BaseCache.__init__(
             self, default_timeout, ignore_delete_many_errors=ignore_delete_many_errors
         )
@@ -223,12 +231,13 @@ class MemcachedCache(BaseCache):
             pass
         else:
             client = pylibmc.Client(servers)
-            try:
-                client.get_stats()
-            except pylibmc.Error as err:
-                raise RuntimeError(
-                    f"could not connect to memcached server(s): {err}"
-                ) from err
+            if self.check_connection:
+                try:
+                    client.get_stats()
+                except pylibmc.Error as err:
+                    raise RuntimeError(
+                        f"could not connect to memcached server(s): {err}"
+                    ) from err
             pool = pylibmc.ClientPool(client, pool_size)
             reserve = partial(pool.reserve, block=pool_blocking)
             return pool, reserve
