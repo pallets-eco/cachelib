@@ -1,6 +1,6 @@
+import datetime as dt
 import typing as _t
 
-from cachelib.base import Timeout
 from cachelib.redis_base import BaseRedisCache
 from cachelib.serializers import ValkeySerializer
 
@@ -50,7 +50,7 @@ class ValkeyCache(BaseRedisCache):
         port: int = 6379,
         password: str | None = None,
         db: int = 0,
-        default_timeout: Timeout = 300,
+        default_timeout: int | dt.timedelta = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,
@@ -86,9 +86,9 @@ class ValkeyCache(BaseRedisCache):
         )
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: Timeout | None = None
+        self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
     ) -> list[_t.Any]:
-        timeout = self._normalize_timeout(timeout)
+        normalized_timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling MULTI
         pipe = self._write_client.pipeline(transaction=False)
 
@@ -97,7 +97,7 @@ class ValkeyCache(BaseRedisCache):
             pipe.set(
                 name=f"{self._get_prefix()}{key}",
                 value=dump,
-                ex=timeout if timeout != -1 else None,
+                ex=normalized_timeout if normalized_timeout != -1 else None,
             )
         results = pipe.execute()
         return [

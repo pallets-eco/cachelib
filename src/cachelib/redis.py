@@ -1,6 +1,6 @@
+import datetime as dt
 import typing as _t
 
-from cachelib.base import Timeout
 from cachelib.redis_base import BaseRedisCache
 from cachelib.serializers import RedisSerializer
 
@@ -51,7 +51,7 @@ class RedisCache(BaseRedisCache):
         port: int = 6379,
         password: str | None = None,
         db: int = 0,
-        default_timeout: Timeout = 300,
+        default_timeout: int | dt.timedelta = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,

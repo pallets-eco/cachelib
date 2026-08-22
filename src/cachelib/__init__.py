@@ -1,6 +1,5 @@
 from cachelib.base import BaseCache
 from cachelib.base import NullCache
-from cachelib.base import Timeout
 from cachelib.dynamodb import DynamoDbCache
 from cachelib.file import FileSystemCache
 from cachelib.memcached import MemcachedCache
@@ -21,6 +20,5 @@ __all__ = [
     "DynamoDbCache",
     "MongoDbCache",
     "ValkeyCache",
-    "Timeout",
 ]
 __version__ = "0.16.1"

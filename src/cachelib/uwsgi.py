@@ -1,8 +1,8 @@
+import datetime as dt
 import platform
 import typing as _t
 
 from cachelib.base import BaseCache
-from cachelib.base import Timeout
 from cachelib.serializers import UWSGISerializer
 
 
@@ -34,7 +34,7 @@ class UWSGICache(BaseCache):
 
     def __init__(
         self,
-        default_timeout: Timeout = 300,
+        default_timeout: int | dt.timedelta = 300,
         cache: str = "",
         ignore_delete_many_errors: bool = True,
     ):
@@ -68,7 +68,7 @@ class UWSGICache(BaseCache):
         return bool(self._uwsgi.cache_del(key, self.cache))
 
     def set(
-        self, key: str, value: _t.Any, timeout: Timeout | None = None
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
     ) -> _t.Literal[True] | None:
         result = self._uwsgi.cache_update(
             key,
@@ -78,7 +78,9 @@ class UWSGICache(BaseCache):
         )  # type: _t.Optional[_t.Literal[True]]
         return result
 
-    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> bool:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
         return bool(
             self._uwsgi.cache_set(
                 key,

@@ -1,8 +1,7 @@
-import datetime
+import datetime as dt
 import typing as _t
 
 from cachelib.base import BaseCache
-from cachelib.base import Timeout
 from cachelib.serializers import MongoDbSerializer
 
 
@@ -42,7 +41,7 @@ class MongoDbCache(BaseCache):
         client: _t.Any = None,
         db: str = "cache-db",
         collection: str = "cache-collection",
-        default_timeout: Timeout = 300,
+        default_timeout: int | dt.timedelta = 300,
         key_prefix: str | None = None,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,
@@ -76,9 +75,9 @@ class MongoDbCache(BaseCache):
         self.key_prefix = key_prefix or ""
         self.collection = collection
 
-    def _utcnow(self) -> datetime.datetime:
+    def _utcnow(self) -> dt.datetime:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.now(datetime.UTC)
+        return dt.datetime.now(dt.UTC)
 
     def _expire_records(self) -> _t.Any:
         res = self.client.delete_many({"expiration": {"$lte": self._utcnow()}})
@@ -114,7 +113,7 @@ class MongoDbCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: Timeout | None = None,
+        timeout: int | dt.timedelta | None = None,
         overwrite: bool | None = True,
     ) -> _t.Any:
         """
@@ -130,7 +129,7 @@ class MongoDbCache(BaseCache):
             non-expired cache item exists with key.
         :return: True if the new item was stored.
         """
-        timeout = self._normalize_timeout(timeout)
+        normalized_timeout = self._normalize_timeout(timeout)
         now = self._utcnow()
 
         if not overwrite:
@@ -140,39 +139,41 @@ class MongoDbCache(BaseCache):
                 return False
 
         dump = self.serializer.dumps(value)
-        record: dict[str, str | bytes | None | datetime.datetime] = {
+        record: dict[str, str | bytes | None | dt.datetime] = {
             "id": self.key_prefix + key,
             "val": dump,
         }
 
-        if timeout > 0:
-            record["expiration"] = now + datetime.timedelta(seconds=timeout)
+        if normalized_timeout > 0:
+            record["expiration"] = now + dt.timedelta(seconds=normalized_timeout)
         self.client.update_one({"id": self.key_prefix + key}, {"$set": record}, True)
         return True
 
-    def set(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
+    def set(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=True)
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: Timeout | None = None
+        self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
     ) -> list[_t.Any]:
         self._expire_records()
         from pymongo import UpdateOne
 
         operations = []
         now = self._utcnow()
-        timeout = self._normalize_timeout(timeout)
+        normalized_timeout = self._normalize_timeout(timeout)
         for key, val in mapping.items():
             dump = self.serializer.dumps(val)
 
-            record: dict[str, str | bytes | None | datetime.datetime] = {
+            record: dict[str, str | bytes | None | dt.datetime] = {
                 "id": self.key_prefix + key,
                 "val": dump,
             }
 
-            if timeout > 0:
-                record["expiration"] = now + datetime.timedelta(seconds=timeout)
+            if normalized_timeout > 0:
+                record["expiration"] = now + dt.timedelta(seconds=normalized_timeout)
             operations.append(
                 UpdateOne({"id": self.key_prefix + key}, {"$set": record}, upsert=True),
             )
@@ -206,7 +207,9 @@ class MongoDbCache(BaseCache):
             results[item["id"][len(self.key_prefix) :]] = value
         return results
 
-    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=False)
 

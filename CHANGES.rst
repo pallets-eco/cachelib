@@ -3,7 +3,12 @@ Version 0.17.0
 
 Unreleased
 
-- A timeout now also accepts a ``datetime.timedelta`` in addition to int.
+- Timeout now also accepts a ``datetime.timedelta`` in addition to int. :pr:`510`
+- Float timeouts are deprecated and now rounded up to whole seconds, so
+  backends with integer-second APIs (e.g. memcached) no longer fail with
+  a confusing ``TypeError``. Passing a float will raise a ``TypeError``
+  in a future release; timeouts of any other unsupported type raise
+  ``TypeError`` immediately. :pr:`510`
 
 
 Version 0.16.1

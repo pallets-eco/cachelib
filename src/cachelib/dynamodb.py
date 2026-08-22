@@ -1,8 +1,7 @@
-import datetime
+import datetime as dt
 import typing as _t
 
 from cachelib.base import BaseCache
-from cachelib.base import Timeout
 from cachelib.serializers import DynamoDbSerializer
 
 CREATED_AT_FIELD = "created_at"
@@ -59,7 +58,7 @@ class DynamoDbCache(BaseCache):
     def __init__(
         self,
         table_name: str = "python-cache",
-        default_timeout: Timeout = 300,
+        default_timeout: int | dt.timedelta = 300,
         key_field: str = "cache_key",
         expiration_time_field: str = "expiration_time",
         key_prefix: str | None = None,
@@ -124,9 +123,9 @@ class DynamoDbCache(BaseCache):
             self._table = self._dynamo.Table(table_name)
             self._table.load()
 
-    def _utcnow(self) -> datetime.datetime:
+    def _utcnow(self) -> dt.datetime:
         """Return a tz-aware UTC datetime representing the current time"""
-        return datetime.datetime.now(datetime.UTC)
+        return dt.datetime.now(dt.UTC)
 
     def _get_item(self, key: str, attributes: list[_t.Any] | None = None) -> _t.Any:
         """
@@ -193,7 +192,7 @@ class DynamoDbCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: Timeout | None = None,
+        timeout: int | dt.timedelta | None = None,
         overwrite: bool | None = True,
     ) -> _t.Any:
         """
@@ -209,7 +208,7 @@ class DynamoDbCache(BaseCache):
             non-expired cache item exists with key.
         :return: True if the new item was stored.
         """
-        timeout = self._normalize_timeout(timeout)
+        normalized_timeout = self._normalize_timeout(timeout)
         now = self._utcnow()
 
         try:
@@ -219,8 +218,8 @@ class DynamoDbCache(BaseCache):
                 CREATED_AT_FIELD: now.isoformat(),
                 RESPONSE_FIELD: dump,
             }
-            if timeout > 0:
-                expiration_time = now + datetime.timedelta(seconds=timeout)
+            if normalized_timeout > 0:
+                expiration_time = now + dt.timedelta(seconds=normalized_timeout)
                 item[self._expiration_time_field] = int(expiration_time.timestamp())
 
             kwargs: PutItemInputTablePutItemTypeDef = {"Item": item}
@@ -238,10 +237,14 @@ class DynamoDbCache(BaseCache):
         except Exception:
             return False
 
-    def set(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
+    def set(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> _t.Any:
         return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=True)
 
-    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> _t.Any:
         return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=False)
 
     def has(self, key: str) -> bool:

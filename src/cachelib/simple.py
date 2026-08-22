@@ -1,9 +1,9 @@
+import datetime as dt
 import threading
 import typing as _t
 from time import time
 
 from cachelib.base import BaseCache
-from cachelib.base import Timeout
 from cachelib.serializers import SimpleSerializer
 
 
@@ -33,7 +33,7 @@ class SimpleCache(BaseCache):
     def __init__(
         self,
         threshold: int = 500,
-        default_timeout: Timeout = 300,
+        default_timeout: int | dt.timedelta = 300,
         ignore_delete_many_errors: bool = True,
     ):
         BaseCache.__init__(
@@ -68,11 +68,11 @@ class SimpleCache(BaseCache):
         if self._over_threshold():
             self._remove_older()
 
-    def _normalize_timeout(self, timeout: Timeout | None) -> int:
-        seconds = BaseCache._normalize_timeout(self, timeout)
-        if seconds > 0:
-            seconds = int(time()) + seconds
-        return seconds
+    def _normalize_timeout(self, timeout: int | dt.timedelta | None) -> int:
+        normalized_timeout = BaseCache._normalize_timeout(self, timeout)
+        if normalized_timeout > 0:
+            normalized_timeout = int(time()) + normalized_timeout
+        return normalized_timeout
 
     def get(self, key: str) -> _t.Any:
         with self._lock:
@@ -84,7 +84,7 @@ class SimpleCache(BaseCache):
                 return None
 
     def set(
-        self, key: str, value: _t.Any, timeout: Timeout | None = None
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
     ) -> bool | None:
         with self._lock:
             expires = self._normalize_timeout(timeout)
@@ -92,7 +92,9 @@ class SimpleCache(BaseCache):
             self._cache[key] = (expires, self.serializer.dumps(value))
             return True
 
-    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> bool:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
         with self._lock:
             expires = self._normalize_timeout(timeout)
             self._prune()
