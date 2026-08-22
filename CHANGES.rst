@@ -9,6 +9,9 @@ Unreleased
   a confusing ``TypeError``. Passing a float will raise a ``TypeError``
   in a future release; timeouts of any other unsupported type raise
   ``TypeError`` immediately. :pr:`510`
+- Add ``memcache_client_lib`` parameter to ``MemcachedCache`` to select which
+  memcache client library to use (``pylibmc``, ``google``, ``memcache``, or
+  ``libmc``). When not set, the library is auto-detected as before.  :pr:`511`
 
 
 Version 0.16.1

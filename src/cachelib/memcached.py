@@ -9,6 +9,7 @@ from time import time
 from cachelib.base import BaseCache
 
 _test_memcached_key = re.compile(r"[^\x00-\x21\xff]{1,250}$").match
+_MemcacheClientLib = _t.Literal["pylibmc", "google", "memcache", "libmc"]
 
 
 class MemcachedCache(BaseCache):
@@ -24,7 +25,7 @@ class MemcachedCache(BaseCache):
 
         - ``pylibmc``
         - ``google.appengine.api.memcached``
-        - ``memcached``
+        - ``memcache``
         - ``libmc``
 
     Implementation notes:
@@ -72,6 +73,11 @@ class MemcachedCache(BaseCache):
         and surface on first use.
 
         .. versionadded:: 0.16.1
+    :param memcache_client_lib: Optional. A string indicating which memcache client
+        library to use. Valid values are 'pylibmc', 'google', 'memcache', and 'libmc'.
+        If not provided, the library will be auto-detected based on availability.
+
+        .. versionadded:: 0.17.0
     """
 
     def __init__(
@@ -83,6 +89,7 @@ class MemcachedCache(BaseCache):
         pool_blocking: bool = True,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,
+        memcache_client_lib: _MemcacheClientLib | None = None,
     ):
         self.check_connection = check_connection
         BaseCache.__init__(
@@ -92,13 +99,9 @@ class MemcachedCache(BaseCache):
         if servers is None or isinstance(servers, (list, tuple)):
             if servers is None:
                 servers = ["127.0.0.1:11211"]
-            client, client_context = self.import_preferred_memcache_lib(
-                servers, pool_size, pool_blocking
+            self._client, self._client_context = self.import_preferred_memcache_lib(
+                servers, pool_size, pool_blocking, memcache_client_lib
             )
-            if client is None or client_context is None:
-                raise RuntimeError("no memcache module found")
-            self._client = client
-            self._client_context = client_context
         else:
             # NOTE: servers is actually an already initialized memcache
             # client.
@@ -232,61 +235,81 @@ class MemcachedCache(BaseCache):
             value = (client.get(normalized_key) or 0) - delta
         return value if self.set(key, value) else None
 
-    def import_preferred_memcache_lib(
+    def _create_pylibmc(
         self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
-    ) -> tuple[_t.Any | None, _t.Callable[[], _t.ContextManager[_t.Any]] | None]:
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
+        import pylibmc  # type: ignore
+
+        client = pylibmc.Client(servers)
+        if self.check_connection:
+            try:
+                client.get_stats()
+            except pylibmc.Error as err:
+                raise RuntimeError(
+                    f"could not connect to memcached server(s): {err}"
+                ) from err
+        pool = pylibmc.ClientPool(client, pool_size)
+        reserve = partial(pool.reserve, block=pool_blocking)
+        return pool, reserve
+
+    def _create_google(
+        self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
+        from google.appengine.api import memcache  # type: ignore
+
+        client = memcache.Client()
+        return client, partial(nullcontext, client)
+
+    def _create_memcache(
+        self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
+        import memcache  # type: ignore
+
+        client = memcache.Client(servers)
+        return client, partial(nullcontext, client)
+
+    def _create_libmc(
+        self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
+        import libmc  # type: ignore
+
+        # libmc.ClientPool doesn't take pool_size as a positional arg,
+        # and its .client() always blocks/auto-grows, no non-blocking mode.
+        pool = libmc.ClientPool(servers)
+        pool.config(libmc.MC_INITIAL_CLIENTS, pool_size)
+        pool.config(libmc.MC_MAX_CLIENTS, pool_size)
+
+        @contextmanager
+        def get_client() -> _t.Generator[_t.Any, None, None]:
+            # flush_all is disabled by default in libmc; enable per connection.
+            with pool.client() as client:
+                client.toggle_flush_all_feature(True)
+                yield client
+
+        return pool, get_client
+
+    def import_preferred_memcache_lib(
+        self,
+        servers: _t.Any,
+        pool_size: int,
+        pool_blocking: bool = True,
+        memcache_client_lib: _MemcacheClientLib | None = None,
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
         """Returns an initialized memcache client.  Used by the constructor."""
-        try:
-            import pylibmc  # type: ignore
-        except ImportError:
-            pass
-        else:
-            client = pylibmc.Client(servers)
-            if self.check_connection:
-                try:
-                    client.get_stats()
-                except pylibmc.Error as err:
-                    raise RuntimeError(
-                        f"could not connect to memcached server(s): {err}"
-                    ) from err
-            pool = pylibmc.ClientPool(client, pool_size)
-            reserve = partial(pool.reserve, block=pool_blocking)
-            return pool, reserve
-
-        try:
-            from google.appengine.api import memcache  # type: ignore
-        except ImportError:
-            pass
-        else:
-            client = memcache.Client()
-            return client, partial(nullcontext, client)
-
-        try:
-            import memcache  # type: ignore
-        except ImportError:
-            pass
-        else:
-            client = memcache.Client(servers)
-            return client, partial(nullcontext, client)
-
-        try:
-            import libmc  # type: ignore
-        except ImportError:
-            pass
-        else:
-            # libmc.ClientPool doesn't take pool_size as a positional arg,
-            # and its .client() always blocks/auto-grows, no non-blocking mode.
-            pool = libmc.ClientPool(servers)
-            pool.config(libmc.MC_INITIAL_CLIENTS, pool_size)
-            pool.config(libmc.MC_MAX_CLIENTS, pool_size)
-
-            @contextmanager
-            def get_client() -> _t.Generator[_t.Any, None, None]:
-                # flush_all is disabled by default in libmc; enable per connection.
-                with pool.client() as client:
-                    client.toggle_flush_all_feature(True)
-                    yield client
-
-            return pool, get_client
-
-        return None, None
+        factories = {
+            "pylibmc": self._create_pylibmc,
+            "google": self._create_google,
+            "memcache": self._create_memcache,
+            "libmc": self._create_libmc,
+        }
+        if memcache_client_lib is not None:
+            factory = factories.get(memcache_client_lib)
+            if factory is None:
+                raise ValueError(f"Invalid memcache_client_lib: {memcache_client_lib}")
+            return factory(servers, pool_size, pool_blocking)
+        for factory in factories.values():
+            try:
+                return factory(servers, pool_size, pool_blocking)
+            except ImportError:
+                continue
+        raise RuntimeError("no memcache module found")
