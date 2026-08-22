@@ -17,13 +17,23 @@ def skip_unless_pooled(cache):
         pytest.skip("memcached client library does not support connection pooling")
 
 
+@pytest.fixture(
+    params=["pylibmc", "memcache"],
+    ids=["pylibmc", "python-memcached"],
+)
+def memcache_client_lib(request):
+    pytest.importorskip(request.param, reason=f"{request.param} not installed")
+    return request.param
+
+
 @pytest.fixture(autouse=True)
-def cache_factory(request, key_prefix):
+def cache_factory(request, key_prefix, memcache_client_lib):
     caches = []
 
     def _factory(self, *args, **kwargs):
         kwargs.setdefault("servers", ["127.0.0.1:11212"])
         kwargs.setdefault("key_prefix", key_prefix)
+        kwargs.setdefault("memcache_client_lib", memcache_client_lib)
         mc = MemcachedCache(*args, **kwargs)
         mc.clear()
         caches.append(mc)

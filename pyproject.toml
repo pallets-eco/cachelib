@@ -73,6 +73,7 @@ pre-commit = [
 tests = [
     "boto3>=1.43.4",
     "pylibmc>=1.6.3",
+    "python-memcached>=1.62",
     "pymongo>=4.11",
     "pytest",
     "pytest-xprocess",
