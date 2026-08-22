@@ -1,3 +1,4 @@
+import datetime as dt
 import errno
 import hashlib
 import logging
@@ -27,8 +28,12 @@ class FileSystemCache(BaseCache):
         it starts deleting some. A threshold value of 0
         indicates no threshold.
     :param default_timeout: the default timeout that is used if no timeout is
-        specified on :meth:`~.BaseCache.set`. A timeout of
+        specified on :meth:`~.BaseCache.set`. Either a number of seconds or a
+        :class:`datetime.timedelta`. A timeout of
         0 indicates that the cache never expires.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param mode: the file mode wanted for the cache files, default 0600
     :param hash_method: Default :func:`~hashlib.sha256`. The hash method used to
         generate the filename for cached results.
@@ -50,7 +55,7 @@ class FileSystemCache(BaseCache):
         self,
         cache_dir: str,
         threshold: int = 500,
-        default_timeout: int = 300,
+        default_timeout: int | dt.timedelta = 300,
         mode: int | None = None,
         hash_method: _t.Any = hashlib.sha256,
         ignore_delete_many_errors: bool = True,
@@ -100,11 +105,11 @@ class FileSystemCache(BaseCache):
             new_count = value or 0
         self.set(self._fs_count_file, new_count, mgmt_element=True)
 
-    def _normalize_timeout(self, timeout: int | None) -> int:
-        timeout = BaseCache._normalize_timeout(self, timeout)
-        if timeout != 0:
-            timeout = int(time()) + timeout
-        return int(timeout)
+    def _normalize_timeout(self, timeout: int | dt.timedelta | None) -> int:
+        normalized_timeout = BaseCache._normalize_timeout(self, timeout)
+        if normalized_timeout != 0:
+            normalized_timeout = int(time()) + normalized_timeout
+        return int(normalized_timeout)
 
     def _is_mgmt(self, name: str) -> bool:
         fshash = self._get_filename(self._fs_count_file).split(os.sep)[-1]
@@ -223,7 +228,9 @@ class FileSystemCache(BaseCache):
             )
         return None
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
         filename = self._get_filename(key)
         if not os.path.exists(filename):
             return self.set(key, value, timeout)
@@ -233,7 +240,7 @@ class FileSystemCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: int | None = None,
+        timeout: int | dt.timedelta | None = None,
         mgmt_element: bool = False,
     ) -> bool:
         # Management elements have no timeout
@@ -243,7 +250,7 @@ class FileSystemCache(BaseCache):
         else:
             self._prune()
 
-        timeout = self._normalize_timeout(timeout)
+        normalized_timeout = self._normalize_timeout(timeout)
         filename = self._get_filename(key)
         overwrite = os.path.isfile(filename)
 
@@ -252,7 +259,7 @@ class FileSystemCache(BaseCache):
                 suffix=self._fs_transaction_suffix, dir=self._path
             )
             with os.fdopen(fd, "wb") as f:
-                f.write(struct.pack("I", timeout))
+                f.write(struct.pack("I", normalized_timeout))
                 self.serializer.dump(value, f)
 
             self._run_safely(os.replace, tmp, filename)

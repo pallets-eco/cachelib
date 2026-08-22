@@ -1,3 +1,4 @@
+import datetime as dt
 import typing as _t
 
 from cachelib.redis_base import BaseRedisCache
@@ -19,8 +20,12 @@ class ValkeyCache(BaseRedisCache):
     :param password: password authentication for the Valkey server.
     :param db: db (zero-based numeric index) on Valkey Server to connect.
     :param default_timeout: the default timeout that is used if no timeout is
-        specified on :meth:`~.BaseCache.set`. A timeout of
+        specified on :meth:`~.BaseCache.set`. Either a number of seconds or a
+        :class:`datetime.timedelta`. A timeout of
         0 indicates that the cache never expires.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param key_prefix: A prefix that should be added to all keys.
     :param ignore_delete_many_errors: If False, delete_many() will raise
         a RuntimeError if any key fails to delete. Keys that do not
@@ -45,7 +50,7 @@ class ValkeyCache(BaseRedisCache):
         port: int = 6379,
         password: str | None = None,
         db: int = 0,
-        default_timeout: int = 300,
+        default_timeout: int | dt.timedelta = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,
@@ -81,9 +86,9 @@ class ValkeyCache(BaseRedisCache):
         )
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: int | None = None
+        self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
     ) -> list[_t.Any]:
-        timeout = self._normalize_timeout(timeout)
+        normalized_timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling MULTI
         pipe = self._write_client.pipeline(transaction=False)
 
@@ -92,7 +97,7 @@ class ValkeyCache(BaseRedisCache):
             pipe.set(
                 name=f"{self._get_prefix()}{key}",
                 value=dump,
-                ex=timeout if timeout != -1 else None,
+                ex=normalized_timeout if normalized_timeout != -1 else None,
             )
         results = pipe.execute()
         return [

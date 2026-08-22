@@ -1,3 +1,4 @@
+import datetime as dt
 import threading
 import typing as _t
 from time import time
@@ -14,8 +15,12 @@ class SimpleCache(BaseCache):
     :param threshold: the maximum number of items the cache stores before
         it starts deleting some.
     :param default_timeout: the default timeout that is used if no timeout is
-        specified on :meth:`~.BaseCache.set`. A timeout of
+        specified on :meth:`~.BaseCache.set`. Either a number of seconds or a
+        :class:`datetime.timedelta`. A timeout of
         0 indicates that the cache never expires.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param ignore_delete_many_errors: If False, delete_many() will raise
         a RuntimeError if any key fails to delete. Keys that do not
         exist are considered successfully deleted and do not raise.
@@ -28,7 +33,7 @@ class SimpleCache(BaseCache):
     def __init__(
         self,
         threshold: int = 500,
-        default_timeout: int = 300,
+        default_timeout: int | dt.timedelta = 300,
         ignore_delete_many_errors: bool = True,
     ):
         BaseCache.__init__(
@@ -63,11 +68,11 @@ class SimpleCache(BaseCache):
         if self._over_threshold():
             self._remove_older()
 
-    def _normalize_timeout(self, timeout: int | None) -> int:
-        timeout = BaseCache._normalize_timeout(self, timeout)
-        if timeout > 0:
-            timeout = int(time()) + timeout
-        return timeout
+    def _normalize_timeout(self, timeout: int | dt.timedelta | None) -> int:
+        normalized_timeout = BaseCache._normalize_timeout(self, timeout)
+        if normalized_timeout > 0:
+            normalized_timeout = int(time()) + normalized_timeout
+        return normalized_timeout
 
     def get(self, key: str) -> _t.Any:
         with self._lock:
@@ -78,14 +83,18 @@ class SimpleCache(BaseCache):
             except KeyError:
                 return None
 
-    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
+    def set(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool | None:
         with self._lock:
             expires = self._normalize_timeout(timeout)
             self._prune()
             self._cache[key] = (expires, self.serializer.dumps(value))
             return True
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
         with self._lock:
             expires = self._normalize_timeout(timeout)
             self._prune()

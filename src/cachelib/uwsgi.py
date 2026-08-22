@@ -1,3 +1,4 @@
+import datetime as dt
 import platform
 import typing as _t
 
@@ -12,7 +13,11 @@ class UWSGICache(BaseCache):
         This class cannot be used when running under PyPy, because the uWSGI
         API implementation for PyPy is lacking the needed functionality.
 
-    :param default_timeout: The default timeout in seconds.
+    :param default_timeout: The default timeout, either a number of seconds
+        or a :class:`datetime.timedelta`.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param cache: The name of the caching instance to connect to, for
         example: mycache@localhost:3031, defaults to an empty string, which
         means uWSGI will cache in the local instance. If the cache is in the
@@ -29,7 +34,7 @@ class UWSGICache(BaseCache):
 
     def __init__(
         self,
-        default_timeout: int = 300,
+        default_timeout: int | dt.timedelta = 300,
         cache: str = "",
         ignore_delete_many_errors: bool = True,
     ):
@@ -63,7 +68,7 @@ class UWSGICache(BaseCache):
         return bool(self._uwsgi.cache_del(key, self.cache))
 
     def set(
-        self, key: str, value: _t.Any, timeout: int | None = None
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
     ) -> _t.Literal[True] | None:
         result = self._uwsgi.cache_update(
             key,
@@ -73,7 +78,9 @@ class UWSGICache(BaseCache):
         )  # type: _t.Optional[_t.Literal[True]]
         return result
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
         return bool(
             self._uwsgi.cache_set(
                 key,

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from time import sleep
 
 import pytest
@@ -101,7 +102,12 @@ class CommonTests(TestData):
         for k, v in self.sample_pairs.items():
             cache.set(f"{k}-t0", v, timeout=0)
             cache.set(f"{k}-t1", v, timeout=1)
+            # timedeltas are equivalent to the same amount of seconds
+            cache.set(f"{k}-td0", v, timeout=timedelta())
+            cache.set(f"{k}-td1", v, timeout=timedelta(seconds=1))
         sleep(4)
         for k, v in self.sample_pairs.items():
             assert cache.get(f"{k}-t0") == v
             assert not cache.get(f"{k}-t1")
+            assert cache.get(f"{k}-td0") == v
+            assert not cache.get(f"{k}-td1")

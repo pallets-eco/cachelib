@@ -1,13 +1,20 @@
+import datetime as dt
+import math
 import typing as _t
+import warnings
 
 
 class BaseCache:
     """Base class for the cache systems.  All the cache systems implement this
     API or a superset of it.
 
-    :param default_timeout: the default timeout (in seconds) that is used if
-        no timeout is specified on :meth:`set`. A timeout
+    :param default_timeout: the default timeout that is used if
+        no timeout is specified on :meth:`set`. Either a number of seconds
+        or a :class:`datetime.timedelta`. A timeout
         of 0 indicates that the cache never expires.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param ignore_delete_many_errors: If False, delete_many() will raise
         a RuntimeError if any key fails to delete. Keys that do not
         exist are considered successfully deleted and do not raise.
@@ -16,15 +23,50 @@ class BaseCache:
     """
 
     def __init__(
-        self, default_timeout: int = 300, ignore_delete_many_errors: bool = True
+        self,
+        default_timeout: int | dt.timedelta = 300,
+        ignore_delete_many_errors: bool = True,
     ) -> None:
-        self.default_timeout = default_timeout
+        self.default_timeout = self._to_seconds(default_timeout)
         self.ignore_delete_many_errors = ignore_delete_many_errors
 
-    def _normalize_timeout(self, timeout: int | None) -> int:
+    @staticmethod
+    def _to_seconds(timeout: int | float | dt.timedelta) -> int:
+        """Convert a timeout to a whole number of seconds.
+
+        :param timeout: the timeout to convert. In case a
+            :class:`datetime.timedelta` is passed it will round up
+            subseconds to whole seconds (i.e. 200 milliseconds
+            will be rounded to 1 second)
+
+        .. versionadded:: 0.17.0
+
+        .. deprecated:: 0.17.0
+            Float timeouts are deprecated and rounded up to whole
+            seconds. They will raise a ``TypeError`` in a future release.
+        """
+        if isinstance(timeout, dt.timedelta):
+            return math.ceil(timeout.total_seconds())
+        if isinstance(timeout, float):
+            warnings.warn(
+                "Float timeouts are deprecated and will raise a TypeError"
+                " in a future release. Use a whole number of seconds or a"
+                " datetime.timedelta instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return math.ceil(timeout)
+        if isinstance(timeout, int):
+            return timeout
+        raise TypeError(
+            "timeout must be an int or datetime.timedelta, "
+            f"got {type(timeout).__name__!r}"
+        )
+
+    def _normalize_timeout(self, timeout: int | dt.timedelta | None) -> int:
         if timeout is None:
-            timeout = self.default_timeout
-        return timeout
+            return self.default_timeout
+        return self._to_seconds(timeout)
 
     def get(self, key: str) -> _t.Any:
         """Look up key in the cache and return the value for it.
@@ -67,13 +109,16 @@ class BaseCache:
         """
         return dict(zip(keys, self.get_many(*keys), strict=True))
 
-    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
+    def set(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool | None:
         """Add a new key/value to the cache (overwrites value, if key already
         exists in the cache).
 
         :param key: the key to set
         :param value: the value for the key
-        :param timeout: the cache timeout for the key in seconds (if not
+        :param timeout: the cache timeout for the key, either a number of
+            seconds or a :class:`datetime.timedelta` (if not
             specified, it uses the default timeout). A timeout of
             0 indicates that the cache never expires.
         :returns: ``True`` if key has been updated, ``False`` for backend
@@ -82,13 +127,16 @@ class BaseCache:
         """
         return True
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
         """Works like :meth:`set` but does not overwrite the values of already
         existing keys.
 
         :param key: the key to set
         :param value: the value for the key
-        :param timeout: the cache timeout for the key in seconds (if not
+        :param timeout: the cache timeout for the key, either a number of
+            seconds or a :class:`datetime.timedelta` (if not
             specified, it uses the default timeout). A timeout of
             0 indicates that the cache never expires.
         :returns: Same as :meth:`set`, but also ``False`` for already
@@ -97,12 +145,13 @@ class BaseCache:
         return True
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: int | None = None
+        self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
     ) -> list[_t.Any]:
         """Sets multiple keys and values from a mapping.
 
         :param mapping: a mapping with the keys/values to set.
-        :param timeout: the cache timeout for the key in seconds (if not
+        :param timeout: the cache timeout for the key, either a number of
+            seconds or a :class:`datetime.timedelta` (if not
             specified, it uses the default timeout). A timeout of
             0 indicates that the cache never expires.
         :returns: A list containing all keys successfully set

@@ -50,13 +50,13 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests, SerializerTests):
         threshold = 2 * len(self.sample_pairs) - 1
         cache = self.cache_factory(threshold=threshold)
         for k, v in self.sample_pairs.items():
-            assert cache.set(f"{k}-t0.1", v, timeout=0.1)
-            assert cache.set(f"{k}-t5.0", v, timeout=5.0)
+            assert cache.set(f"{k}-t1", v, timeout=1)
+            assert cache.set(f"{k}-t5", v, timeout=5)
         sleep(2)
         for k, v in self.sample_pairs.items():
             assert cache.set(k, v)
-            assert f"{k}-t5.0" in cache._cache.keys()
-            assert f"{k}-t0.1" not in cache._cache.keys()
+            assert f"{k}-t5" in cache._cache.keys()
+            assert f"{k}-t1" not in cache._cache.keys()
 
     def test_threshold_zero_defaults_to_500(self):
         """SimpleCache(threshold=0) should silently use 500, not 0."""
@@ -66,15 +66,15 @@ class TestSimpleCache(CommonTests, HasTests, ClearTests, SerializerTests):
     def test_add_on_expired_key_succeeds(self):
         """add() on a key whose TTL has elapsed should succeed."""
         cache = self.cache_factory()
-        cache.set("key", "original", timeout=0.1)
-        sleep(0.5)
+        cache.set("key", "original", timeout=1)
+        sleep(2)
         assert cache.add("key", "new") is True
         assert cache.get("key") == "new"
 
     def test_has_on_expired_key_returns_false(self):
         cache = self.cache_factory()
-        cache.set("key", "value", timeout=0.1)
-        sleep(0.5)
+        cache.set("key", "value", timeout=1)
+        sleep(2)
         assert cache.has("key") is False
 
     def test_delete_nonexistent_returns_false(self):

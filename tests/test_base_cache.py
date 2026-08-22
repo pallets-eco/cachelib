@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 
 from cachelib import BaseCache
@@ -92,8 +94,43 @@ class TestBaseCache:
             (300, 0, 0),  # explicit zero stays zero (permanent)
             (300, 60, 60),  # explicit value is returned as-is
             (0, None, 0),  # default_timeout=0 means permanently cached by default
+            (300, timedelta(seconds=60), 60),  # timedelta is converted to seconds
+            (300, timedelta(minutes=2), 120),
+            (300, timedelta(days=1), 86400),
+            (300, timedelta(), 0),  # a zero timedelta is permanent, like 0
+            (300, timedelta(milliseconds=500), 1),  # sub-second timeouts round up
+            (300, timedelta(seconds=1, milliseconds=200), 2),
+            (timedelta(minutes=1), None, 60),  # timedelta default
+            (timedelta(minutes=1), 30, 30),  # explicit value beats timedelta default
         ],
     )
     def test_normalize_timeout(self, default_timeout, input_timeout, expected):
         cache = BaseCache(default_timeout=default_timeout)
         assert cache._normalize_timeout(input_timeout) == expected
+
+    def test_default_timeout_timedelta_is_stored_as_seconds(self):
+        cache = BaseCache(default_timeout=timedelta(minutes=5))
+        assert cache.default_timeout == 300
+
+    @pytest.mark.parametrize(
+        "input_timeout,expected",
+        [
+            (0.1, 1),  # subsecond floats round up, not down to "never expires"
+            (5.0, 5),
+            (5.5, 6),
+        ],
+    )
+    def test_float_timeout_is_deprecated_and_rounded_up(self, input_timeout, expected):
+        cache = self.cache_factory()
+        with pytest.warns(DeprecationWarning, match="Float timeouts are deprecated"):
+            assert cache._normalize_timeout(input_timeout) == expected
+
+    def test_float_default_timeout_is_deprecated(self):
+        with pytest.warns(DeprecationWarning, match="Float timeouts are deprecated"):
+            cache = BaseCache(default_timeout=1.5)
+        assert cache.default_timeout == 2
+
+    def test_invalid_timeout_type_raises(self):
+        cache = self.cache_factory()
+        with pytest.raises(TypeError, match="timeout must be an int"):
+            cache._normalize_timeout("60")
