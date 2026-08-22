@@ -2,8 +2,8 @@ from datetime import timedelta
 from time import sleep
 
 import pytest
-
-from conftest import TestData, under_uwsgi
+from conftest import TestData
+from conftest import under_uwsgi
 
 
 class CommonTests(TestData):
