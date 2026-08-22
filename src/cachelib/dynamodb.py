@@ -2,6 +2,7 @@ import datetime
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.base import Timeout
 from cachelib.serializers import DynamoDbSerializer
 
 CREATED_AT_FIELD = "created_at"
@@ -26,8 +27,11 @@ class DynamoDbCache(BaseCache):
     time fields are also part of the item.
 
     :param table_name: The name of the DynamoDB table to use
-    :param default_timeout: Set the timeout in seconds after which cache entries
-        expire
+    :param default_timeout: Set the timeout after which cache entries expire,
+        either a number of seconds or a :class:`datetime.timedelta`
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param key_field: The name of the hash_key attribute in the DynamoDb
         table. This must be a string attribute.
     :param expiration_time_field: The name of the table attribute to store the
@@ -55,7 +59,7 @@ class DynamoDbCache(BaseCache):
     def __init__(
         self,
         table_name: str = "python-cache",
-        default_timeout: int = 300,
+        default_timeout: Timeout = 300,
         key_field: str = "cache_key",
         expiration_time_field: str = "expiration_time",
         key_prefix: str | None = None,
@@ -189,7 +193,7 @@ class DynamoDbCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: int | None = None,
+        timeout: Timeout | None = None,
         overwrite: bool | None = True,
     ) -> _t.Any:
         """
@@ -197,8 +201,9 @@ class DynamoDbCache(BaseCache):
 
         :param key: Cache key to use
         :param value: a serializable object
-        :param timeout: The timeout in seconds for the cached item, to override
-            the default
+        :param timeout: The timeout for the cached item, to override
+            the default. Either a number of seconds or a
+            :class:`datetime.timedelta`.
         :param overwrite: If true, overwrite any existing cache item with key.
             If false, the new value will only be stored if no
             non-expired cache item exists with key.
@@ -233,10 +238,10 @@ class DynamoDbCache(BaseCache):
         except Exception:
             return False
 
-    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
+    def set(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
         return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=True)
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
         return self._set(self.key_prefix + key, value, timeout=timeout, overwrite=False)
 
     def has(self, key: str) -> bool:

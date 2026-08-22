@@ -2,6 +2,7 @@ import datetime
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.base import Timeout
 from cachelib.serializers import MongoDbSerializer
 
 
@@ -15,8 +16,11 @@ class MongoDbCache(BaseCache):
     :param client: mongodb client or connection string
     :param db: mongodb database name
     :param collection: mongodb collection name
-    :param default_timeout: Set the timeout in seconds after which cache entries
-        expire
+    :param default_timeout: Set the timeout after which cache entries expire,
+        either a number of seconds or a :class:`datetime.timedelta`
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param key_prefix: A prefix that should be added to all keys.
     :param ignore_delete_many_errors: If False, delete_many() will raise
         a RuntimeError if any key fails to delete. Keys that do not
@@ -38,7 +42,7 @@ class MongoDbCache(BaseCache):
         client: _t.Any = None,
         db: str = "cache-db",
         collection: str = "cache-collection",
-        default_timeout: int = 300,
+        default_timeout: Timeout = 300,
         key_prefix: str | None = None,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,
@@ -110,7 +114,7 @@ class MongoDbCache(BaseCache):
         self,
         key: str,
         value: _t.Any,
-        timeout: int | None = None,
+        timeout: Timeout | None = None,
         overwrite: bool | None = True,
     ) -> _t.Any:
         """
@@ -118,8 +122,9 @@ class MongoDbCache(BaseCache):
 
         :param key: Cache key to use
         :param value: a serializable object
-        :param timeout: The timeout in seconds for the cached item, to override
-            the default
+        :param timeout: The timeout for the cached item, to override
+            the default. Either a number of seconds or a
+            :class:`datetime.timedelta`.
         :param overwrite: If true, overwrite any existing cache item with key.
             If false, the new value will only be stored if no
             non-expired cache item exists with key.
@@ -145,12 +150,12 @@ class MongoDbCache(BaseCache):
         self.client.update_one({"id": self.key_prefix + key}, {"$set": record}, True)
         return True
 
-    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
+    def set(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=True)
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: int | None = None
+        self, mapping: dict[str, _t.Any], timeout: Timeout | None = None
     ) -> list[_t.Any]:
         self._expire_records()
         from pymongo import UpdateOne
@@ -201,7 +206,7 @@ class MongoDbCache(BaseCache):
             results[item["id"][len(self.key_prefix) :]] = value
         return results
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
         self._expire_records()
         return self._set(key, value, timeout=timeout, overwrite=False)
 

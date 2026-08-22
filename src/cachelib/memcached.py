@@ -6,6 +6,7 @@ from functools import partial
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.base import Timeout
 
 _test_memcached_key = re.compile(r"[^\x00-\x21\xff]{1,250}$").match
 
@@ -39,8 +40,12 @@ class MemcachedCache(BaseCache):
     :param servers: a list or tuple of server addresses or alternatively
         a ``memcache.Client`` or a compatible client.
     :param default_timeout: the default timeout that is used if no timeout is
-        specified on :meth:`~.BaseCache.set`. A timeout of
+        specified on :meth:`~.BaseCache.set`. Either a number of seconds or a
+        :class:`datetime.timedelta`. A timeout of
         0 indicates that the cache never expires.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param key_prefix: a prefix that is added before all keys.  This makes it
         possible to use the same memcached server for different
         applications.  Keep in mind that
@@ -72,7 +77,7 @@ class MemcachedCache(BaseCache):
     def __init__(
         self,
         servers: _t.Any = None,
-        default_timeout: int = 300,
+        default_timeout: Timeout = 300,
         key_prefix: str | None = None,
         pool_size: int = 1,
         pool_blocking: bool = True,
@@ -107,11 +112,11 @@ class MemcachedCache(BaseCache):
             key = self.key_prefix + key
         return key
 
-    def _normalize_timeout(self, timeout: int | None) -> int:
-        timeout = BaseCache._normalize_timeout(self, timeout)
-        if timeout > 0:
-            timeout = int(time()) + timeout
-        return timeout
+    def _normalize_timeout(self, timeout: Timeout | None) -> int:
+        seconds = BaseCache._normalize_timeout(self, timeout)
+        if seconds > 0:
+            seconds = int(time()) + seconds
+        return seconds
 
     def get(self, key: str) -> _t.Any:
         key = self._normalize_key(key)
@@ -142,13 +147,15 @@ class MemcachedCache(BaseCache):
                     rv[key] = None
         return rv
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> bool:
+    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> bool:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
         with self._client_context() as client:
             return bool(client.add(key, value, timeout))
 
-    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> bool | None:
+    def set(
+        self, key: str, value: _t.Any, timeout: Timeout | None = None
+    ) -> bool | None:
         key = self._normalize_key(key)
         timeout = self._normalize_timeout(timeout)
         with self._client_context() as client:
@@ -159,7 +166,7 @@ class MemcachedCache(BaseCache):
         return [d[key] for key in keys]
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: int | None = None
+        self, mapping: dict[str, _t.Any], timeout: Timeout | None = None
     ) -> list[_t.Any]:
         new_mapping = {}
         for key, value in mapping.items():

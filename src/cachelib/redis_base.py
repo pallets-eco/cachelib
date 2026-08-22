@@ -1,6 +1,7 @@
 import typing as _t
 
 from cachelib.base import BaseCache
+from cachelib.base import Timeout
 from cachelib.serializers import BaseRedisSerializer
 
 
@@ -12,8 +13,12 @@ class BaseRedisCache(BaseCache):
 
     :param client: a connected client instance compatible with the Redis API.
     :param default_timeout: the default timeout that is used if no timeout is
-        specified on :meth:`~.BaseCache.set`. A timeout of
+        specified on :meth:`~.BaseCache.set`. Either a number of seconds or a
+        :class:`datetime.timedelta`. A timeout of
         0 indicates that the cache never expires.
+
+        .. versionchanged:: 0.17.0
+            Accepts a :class:`datetime.timedelta`.
     :param key_prefix: A prefix that should be added to all keys.
     :param ignore_delete_many_errors: If False, delete_many() will raise
         a RuntimeError if any key fails to delete. Keys that do not
@@ -35,7 +40,7 @@ class BaseRedisCache(BaseCache):
     def __init__(
         self,
         client: _t.Any,
-        default_timeout: int = 300,
+        default_timeout: Timeout = 300,
         key_prefix: str | _t.Callable[[], str] | None = None,
         ignore_delete_many_errors: bool = True,
         check_connection: bool = False,
@@ -52,16 +57,17 @@ class BaseRedisCache(BaseCache):
             self.key_prefix if isinstance(self.key_prefix, str) else self.key_prefix()
         )
 
-    def _normalize_timeout(self, timeout: int | None) -> int:
+    def _normalize_timeout(self, timeout: Timeout | None) -> int:
         """Normalize timeout by setting it to default of 300 if
         not defined (None) or -1 if explicitly set to zero.
 
-        :param timeout: timeout to normalize.
+        :param timeout: timeout to normalize, either a number of seconds
+            or a :class:`datetime.timedelta`.
         """
-        timeout = BaseCache._normalize_timeout(self, timeout)
-        if timeout == 0:
-            timeout = -1
-        return timeout
+        seconds = BaseCache._normalize_timeout(self, timeout)
+        if seconds == 0:
+            seconds = -1
+        return seconds
 
     def get(self, key: str) -> _t.Any:
         return self.serializer.loads(
@@ -75,7 +81,7 @@ class BaseRedisCache(BaseCache):
             prefixed_keys = list(keys)
         return [self.serializer.loads(x) for x in self._read_client.mget(prefixed_keys)]
 
-    def set(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
+    def set(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
         result = self._write_client.set(
@@ -85,7 +91,7 @@ class BaseRedisCache(BaseCache):
         )
         return result
 
-    def add(self, key: str, value: _t.Any, timeout: int | None = None) -> _t.Any:
+    def add(self, key: str, value: _t.Any, timeout: Timeout | None = None) -> _t.Any:
         timeout = self._normalize_timeout(timeout)
         dump = self.serializer.dumps(value)
         created = self._write_client.setnx(
@@ -97,7 +103,7 @@ class BaseRedisCache(BaseCache):
         return created
 
     def set_many(
-        self, mapping: dict[str, _t.Any], timeout: int | None = None
+        self, mapping: dict[str, _t.Any], timeout: Timeout | None = None
     ) -> list[_t.Any]:
         timeout = self._normalize_timeout(timeout)
         # Use transaction=False to batch without calling redis MULTI

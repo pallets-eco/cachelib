@@ -1,3 +1,11 @@
+Version 0.17.0
+--------------
+
+Unreleased
+
+- A timeout now also accepts a ``datetime.timedelta`` in addition to int.
+
+
 Version 0.16.1
 ---------------
 
