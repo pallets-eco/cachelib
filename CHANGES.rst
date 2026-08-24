@@ -1,7 +1,7 @@
 Version 0.17.0
 --------------
 
-Unreleased
+Released 2026-08-24
 
 - Timeout now also accepts a ``datetime.timedelta`` in addition to int. :pr:`510`
 - Float timeouts are deprecated and now rounded up to whole seconds, so
