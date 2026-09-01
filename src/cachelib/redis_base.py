@@ -146,6 +146,21 @@ class BaseRedisCache(BaseCache):
                 raise RuntimeError(f"Failed to delete keys: {failed_keys}")
         return deleted_keys
 
+    def unlink(self, *keys: str) -> list[_t.Any]:
+        if not keys:
+            return []
+        if self.key_prefix:
+            prefixed_keys = [f"{self._get_prefix()}{key}" for key in keys]
+        else:
+            prefixed_keys = [k for k in keys]
+        self._write_client.unlink(*prefixed_keys)
+        unlinked_keys = [k for k in keys if not self.has(k)]
+        if not self.ignore_delete_many_errors and len(unlinked_keys) != len(keys):
+            failed_keys = [k for k in keys if k not in unlinked_keys]
+            if failed_keys:
+                raise RuntimeError(f"Failed to unlink keys: {failed_keys}")
+        return unlinked_keys
+
     def has(self, key: str) -> bool:
         return bool(self._read_client.exists(f"{self._get_prefix()}{key}"))
 

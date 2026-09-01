@@ -59,6 +59,12 @@ class TestRedisCache(
         assert cache.set(spam_key, "sausages")
         assert cache.get(spam_key) == "sausages"
 
+    def test_unlink(self):
+        cache = self.cache_factory()
+        cache.set("bacon", "eggs")
+        assert cache.unlink("bacon") == ["bacon"]
+        assert cache.get("bacon") is None
+
 
 class TestRedisCacheCheckConnection:
     # nothing listens on port 1, so connections are refused immediately
