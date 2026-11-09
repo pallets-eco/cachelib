@@ -154,7 +154,7 @@ class RedisSentinelCache(BaseRedisCache):
                 for key, value in kwargs.items()
                 if not key.startswith("sentinel_")
             }
-            sentinel = redis.sentinel.Sentinel(
+            sentinel = redis.sentinel.Sentinel(  # type: ignore[no-untyped-call]
                 sentinels=sentinels,
                 password=password,
                 db=db,
@@ -163,8 +163,8 @@ class RedisSentinelCache(BaseRedisCache):
             )
         else:
             sentinel = sentinels
-        write_client = sentinel.master_for(master)
-        read_client = sentinel.slave_for(master)
+        write_client = sentinel.master_for(master)  # type: ignore[no-untyped-call]
+        read_client = sentinel.slave_for(master)  # type: ignore[no-untyped-call]
         if check_connection:
             try:
                 write_client.ping()
@@ -186,7 +186,7 @@ class RedisClusterCache(BaseRedisCache):
     """Uses the Redis key-value store as a cache backend.
 
     The first argument can be either a string denoting address of the Redis
-    server or an object resembling an instance of a rediscluster.RedisCluster
+    server or an object resembling an instance of a ``rediscluster.RedisCluster``
     class.
 
     Note: Python Redis API already takes care of encoding unicode strings on
@@ -252,7 +252,7 @@ class RedisClusterCache(BaseRedisCache):
                 try:
                     nodes = [(node.split(":")) for node in cluster.split(",")]
                     startup_nodes = [
-                        ClusterNode(node[0].strip(), int(node[1].strip()))
+                        ClusterNode(node[0].strip(), int(node[1].strip()))  # type: ignore[no-untyped-call]
                         for node in nodes
                     ]
                 except IndexError as e:

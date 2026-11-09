@@ -76,12 +76,21 @@ you can use pip extras to install them as needed:
 
          $ pip install cachelib[uwsgi]
 
+   .. group-tab:: Google Cloud Storage
+
+      Installs `google-cloud-storage`_ required for :class:`.GoogleCloudStorageCache`.
+
+      .. code-block:: console
+
+         $ pip install cachelib[googlecloudstorage]
+
 .. _redis-py: https://redis.readthedocs.io/en/stable/
 .. _pylibmc: https://sendapatch.se/projects/pylibmc/
 .. _boto3: https://boto3.amazonaws.com/v1/documentation/api/latest/index.html
 .. _pymongo: https://pymongo.readthedocs.io/
 .. _valkey-py: https://valkey-py.readthedocs.io/en/latest/
 .. _uWSGI: https://uwsgi-docs.readthedocs.io/en/latest/
+.. _google-cloud-storage: https://googleapis.dev/python/storage/latest/index.html
 
 
 Virtual Environments

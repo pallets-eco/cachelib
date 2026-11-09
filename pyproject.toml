@@ -41,6 +41,9 @@ valkey = [
 uwsgi = [
     "uwsgi>=2.0.28",
 ]
+google-cloud-storage = [
+    "google-cloud-storage>=3.0.0",
+]
 
 [dependency-groups]
 dev = [
@@ -80,6 +83,7 @@ tests = [
     "redis>=6.0.0",
     "valkey>=6.1.0",
     "uwsgi>=2.0.28",
+    "google-cloud-storage>=3.0.0",
 ]
 typing = [
     "mypy",
