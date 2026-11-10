@@ -31,4 +31,4 @@ __all__ = [
     "UWSGICache",
     "ValkeyCache",
 ]
-__version__ = "0.17.2.dev"
+__version__ = "0.17.2"
