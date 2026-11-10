@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import warnings
 from pathlib import Path
 
@@ -14,6 +15,14 @@ def under_uwsgi():
         return False
     else:
         return True
+
+
+@pytest.hookimpl()
+def pytest_configure(config):
+    # macOS keeps the SASL client plugins outside libsasl2's default search
+    # path, and pylibmc loads them when it's imported, so set it before that
+    if sys.platform == "darwin":
+        os.environ.setdefault("SASL_PATH", "/usr/lib/sasl2")
 
 
 @pytest.hookimpl()
@@ -81,6 +90,20 @@ def memcached_server(xprocess):
     xprocess.ensure(package_name, Starter)
     yield
     xprocess.getinfo(package_name).terminate()
+
+
+@pytest.fixture(scope="class")
+def memcached_sasl_server():
+    """Uses the SASL enabled memcached started with
+    ``docker compose up -d memcached-sasl``.
+    """
+    package_name = "pylibmc"
+    pylibmc = pytest.importorskip(
+        modname=package_name, reason=f"could not find python package {package_name}"
+    )
+    if not pylibmc.support_sasl:
+        pytest.skip("pylibmc was built without SASL support")
+    yield
 
 
 @pytest.fixture(scope="class")

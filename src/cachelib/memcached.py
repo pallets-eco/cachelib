@@ -7,6 +7,7 @@ from functools import partial
 from time import time
 
 from cachelib.base import BaseCache
+from cachelib.serializers import SpreadSASLMemcachedSerializer
 
 _test_memcached_key = re.compile(r"[^\x00-\x21\xff]{1,250}$").match
 _MemcacheClientLib = _t.Literal["pylibmc", "google", "memcache", "libmc"]
@@ -132,6 +133,10 @@ class MemcachedCache(BaseCache):
                 return client.get(key)
 
     def get_dict(self, *keys: str) -> dict[str, _t.Any]:
+        return self._get_multi(*keys)
+
+    def _get_multi(self, *keys: str) -> dict[str, _t.Any]:
+        """Read keys exactly as stored. Missing keys map to ``None``."""
         key_mapping = {}
         for key in keys:
             encoded_key = self._normalize_key(key)
@@ -174,6 +179,12 @@ class MemcachedCache(BaseCache):
     def set_many(
         self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
     ) -> list[_t.Any]:
+        return self._set_multi(mapping, timeout)
+
+    def _set_multi(
+        self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
+    ) -> list[_t.Any]:
+        """Store values exactly as given. Returns the keys that were set."""
         new_mapping = {}
         for key, value in mapping.items():
             key = self._normalize_key(key)
@@ -195,6 +206,18 @@ class MemcachedCache(BaseCache):
         return False
 
     def delete_many(self, *keys: str) -> list[_t.Any]:
+        new_keys = self._delete_multi(*keys)
+        deleted_keys = [k for k in new_keys if not self.has(k)]
+        if not self.ignore_delete_many_errors and len(deleted_keys) != len(new_keys):
+            failed_keys = [k for k in new_keys if k not in deleted_keys]
+            if failed_keys:
+                raise RuntimeError(f"Failed to delete keys: {failed_keys}")
+        return deleted_keys
+
+    def _delete_multi(self, *keys: str) -> list[str]:
+        """Delete keys exactly as stored. Returns the valid keys that were
+        sent to memcached.
+        """
         new_keys = []
         normalized_keys = []
         for key in keys:
@@ -202,14 +225,10 @@ class MemcachedCache(BaseCache):
             if _test_memcached_key(normalized):
                 new_keys.append(key)
                 normalized_keys.append(normalized)
-        with self._client_context() as client:
-            client.delete_multi(normalized_keys)
-        deleted_keys = [k for k in new_keys if not self.has(k)]
-        if not self.ignore_delete_many_errors and len(deleted_keys) != len(new_keys):
-            failed_keys = [k for k in new_keys if k not in deleted_keys]
-            if failed_keys:
-                raise RuntimeError(f"Failed to delete keys: {failed_keys}")
-        return deleted_keys
+        if normalized_keys:
+            with self._client_context() as client:
+                client.delete_multi(normalized_keys)
+        return new_keys
 
     def has(self, key: str) -> bool:
         normalized_key = self._normalize_key(key)
@@ -223,18 +242,6 @@ class MemcachedCache(BaseCache):
             # python-memcached's flush_all returns None on success
             result = client.flush_all()
             return True if result is None else bool(result)
-
-    def inc(self, key: str, delta: int = 1) -> int | None:
-        normalized_key = self._normalize_key(key)
-        with self._client_context() as client:
-            value = (client.get(normalized_key) or 0) + delta
-        return value if self.set(key, value) else None
-
-    def dec(self, key: str, delta: int = 1) -> int | None:
-        normalized_key = self._normalize_key(key)
-        with self._client_context() as client:
-            value = (client.get(normalized_key) or 0) - delta
-        return value if self.set(key, value) else None
 
     def _create_pylibmc(
         self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
@@ -314,3 +321,246 @@ class MemcachedCache(BaseCache):
             except ImportError:
                 continue
         raise RuntimeError("no memcache module found")
+
+
+class SASLMemcachedCache(MemcachedCache):
+    """A :class:`MemcachedCache` that can authenticate with SASL.
+
+    Of the supported memcached client libraries only ``pylibmc`` supports SASL.
+    If ``username`` or ``password`` is given, ``pylibmc`` is used with the
+    memcached binary protocol, which SASL requires. Without credentials this
+    cache works like :class:`MemcachedCache` with any supported library.
+
+    :param servers: a list or tuple of server addresses or alternatively
+        a ``memcache.Client`` or a compatible client.
+    :param default_timeout: the default timeout that is used if no timeout is
+        specified on :meth:`~.BaseCache.set`. Either a number of seconds or a
+        :class:`datetime.timedelta`. A timeout of
+        0 indicates that the cache never expires.
+    :param key_prefix: a prefix that is added before all keys.
+    :param username: the SASL username.
+    :param password: the SASL password.
+    :param pool_size: the size of the connection pool.  This is only used if
+        the memcached client library supports connection pooling.
+    :param pool_blocking: if the connection pool is exhausted, should the
+        client block until a connection is available or raise
+        an exception.  This is only used if the memcached
+        client library supports connection pooling.
+    :param ignore_delete_many_errors: If False, delete_many() will raise
+        a RuntimeError if any key fails to delete. Keys that do not
+        exist are considered successfully deleted and do not raise.
+    :param check_connection: If True, the constructor will verify the
+        connection to the memcached server and raise a RuntimeError if it fails.
+        If False (default), connection errors are ignored at construction
+        and surface on first use.
+    :param memcache_client_lib: Optional. A string indicating which memcache client
+        library to use. Valid values are ``pylibmc``, ``google``, ``memcache``,
+        and ``libmc``. If not provided, the library will be auto-detected based on
+        availability, or ``pylibmc`` is used if credentials are given. A
+        :exc:`ValueError` is raised if credentials are given with another library.
+
+    Any additional keyword arguments are passed to ``pylibmc.Client``.
+    """
+
+    def __init__(
+        self,
+        servers: _t.Any = None,
+        default_timeout: int | dt.timedelta = 300,
+        key_prefix: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        pool_size: int = 1,
+        pool_blocking: bool = True,
+        ignore_delete_many_errors: bool = True,
+        check_connection: bool = False,
+        memcache_client_lib: _MemcacheClientLib | None = None,
+        **kwargs: _t.Any,
+    ) -> None:
+        self._username = username
+        self._password = password
+        self._pylibmc_kwargs = kwargs
+        super().__init__(
+            servers=servers,
+            default_timeout=default_timeout,
+            key_prefix=key_prefix,
+            pool_size=pool_size,
+            pool_blocking=pool_blocking,
+            ignore_delete_many_errors=ignore_delete_many_errors,
+            check_connection=check_connection,
+            memcache_client_lib=memcache_client_lib,
+        )
+
+    @property
+    def _has_credentials(self) -> bool:
+        return self._username is not None or self._password is not None
+
+    def import_preferred_memcache_lib(
+        self,
+        servers: _t.Any,
+        pool_size: int,
+        pool_blocking: bool = True,
+        memcache_client_lib: _MemcacheClientLib | None = None,
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
+        if self._has_credentials:
+            if memcache_client_lib not in (None, "pylibmc"):
+                raise ValueError(
+                    "SASL authentication is only supported by pylibmc, not"
+                    f" {memcache_client_lib}"
+                )
+            memcache_client_lib = "pylibmc"
+        return super().import_preferred_memcache_lib(
+            servers, pool_size, pool_blocking, memcache_client_lib
+        )
+
+    def _create_pylibmc(
+        self, servers: _t.Any, pool_size: int, pool_blocking: bool = True
+    ) -> tuple[_t.Any, _t.Callable[[], _t.ContextManager[_t.Any]]]:
+        import pylibmc
+
+        client_kwargs = dict(self._pylibmc_kwargs)
+        if self._has_credentials:
+            client_kwargs.update(
+                username=self._username, password=self._password, binary=True
+            )
+        client = pylibmc.Client(servers, **client_kwargs)
+        if self.check_connection:
+            try:
+                client.get_stats()
+            except pylibmc.Error as err:
+                raise RuntimeError(
+                    f"could not connect to memcached server(s): {err}"
+                ) from err
+        pool = pylibmc.ClientPool(client, pool_size)
+        reserve = partial(pool.reserve, block=pool_blocking)
+        return pool, reserve
+
+
+class SpreadSASLMemcachedCache(SASLMemcachedCache):
+    """A :class:`SASLMemcachedCache` that spreads values across multiple keys
+    so values bigger than memcached's item size limit can be stored.
+
+    .. note::
+        Spreading requires serializing the value with :attr:`serializer`,
+        which uses pickle by default and can significantly impact performance.
+
+    :param chunksize: the maximum size in bytes of each chunk of the serialized
+        value. memcached limits items to 1MB by default.
+    :param maxchunk: the maximum number of chunks a value can be spread across.
+        :meth:`set` raises a :exc:`ValueError` for bigger values.
+
+    All other arguments are passed to :class:`SASLMemcachedCache`.
+    """
+
+    serializer = SpreadSASLMemcachedSerializer()
+
+    def __init__(
+        self,
+        *args: _t.Any,
+        chunksize: int = 1048448,
+        maxchunk: int = 32,
+        **kwargs: _t.Any,
+    ) -> None:
+        self.chunksize = chunksize
+        self.maxchunk = maxchunk
+        super().__init__(*args, **kwargs)
+
+    def _genkeys(self, key: str) -> list[str]:
+        return [f"{key}.{i}" for i in range(self.maxchunk)]
+
+    def _chunks(self, key: str, value: _t.Any) -> dict[str, bytes] | None:
+        serialized = self.serializer.dumps(value)
+        if serialized is None:
+            return None
+        chunks = {
+            f"{key}.{n}": serialized[i : i + self.chunksize]
+            for n, i in enumerate(range(0, len(serialized), self.chunksize))
+        }
+        if len(chunks) > self.maxchunk:
+            raise ValueError(f"Cannot store value in less than {self.maxchunk} keys")
+        return chunks
+
+    def _delete_chunks_from(self, key: str, start: int) -> None:
+        # Leftover chunks of a previous, bigger value would corrupt the new one
+        self._delete_multi(*self._genkeys(key)[start:])
+
+    def get(self, key: str, chunk: bool = True) -> _t.Any:
+        """Get a cached value.
+
+        :param key: the key to be looked up.
+        :param chunk: If set to ``False``, get a value that was stored with
+            ``chunk=False`` instead of spread across multiple keys.
+        """
+        if not chunk:
+            return super().get(key)
+        keys = self._genkeys(key)
+        values = self._get_multi(*keys)
+        parts = []
+        for k in keys:
+            part = values[k]
+            if part is None:
+                break
+            parts.append(part)
+        if not parts:
+            return None
+        return self.serializer.loads(b"".join(parts))
+
+    def set(
+        self,
+        key: str,
+        value: _t.Any,
+        timeout: int | dt.timedelta | None = None,
+        chunk: bool = True,
+    ) -> bool | None:
+        """Set a value in the cache, spreading it across multiple keys.
+
+        :param key: the key to set.
+        :param value: the value for the key.
+        :param timeout: the cache timeout for the key, either a number of
+            seconds or a :class:`datetime.timedelta`.
+        :param chunk: If set to ``False``, store the value in a single key
+            without the serializer. This is faster, but fails for values bigger
+            than memcached's item size limit, and the value must be read back
+            with ``get(key, chunk=False)``.
+        """
+        if not chunk:
+            return super().set(key, value, timeout)
+        chunks = self._chunks(key, value)
+        if chunks is None:
+            return False
+        stored = self._set_multi(chunks, timeout)
+        self._delete_chunks_from(key, len(chunks))
+        return len(stored) == len(chunks)
+
+    def add(
+        self, key: str, value: _t.Any, timeout: int | dt.timedelta | None = None
+    ) -> bool:
+        chunks = self._chunks(key, value)
+        if chunks is None:
+            return False
+        first_key, *rest_keys = chunks
+        # Adding the first chunk is what makes this fail for existing keys
+        if not super().add(first_key, chunks[first_key], timeout):
+            return False
+        rest = {k: chunks[k] for k in rest_keys}
+        stored = self._set_multi(rest, timeout) if rest else []
+        self._delete_chunks_from(key, len(chunks))
+        return len(stored) == len(rest)
+
+    def delete(self, key: str) -> bool:
+        existed = self.has(key)
+        self._delete_multi(*self._genkeys(key))
+        return existed
+
+    def has(self, key: str) -> bool:
+        return super().has(f"{key}.0")
+
+    def get_dict(self, *keys: str) -> dict[str, _t.Any]:
+        return {key: self.get(key) for key in keys}
+
+    def set_many(
+        self, mapping: dict[str, _t.Any], timeout: int | dt.timedelta | None = None
+    ) -> list[_t.Any]:
+        return BaseCache.set_many(self, mapping, timeout)
+
+    def delete_many(self, *keys: str) -> list[_t.Any]:
+        return BaseCache.delete_many(self, *keys)

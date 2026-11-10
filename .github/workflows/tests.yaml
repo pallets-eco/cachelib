@@ -88,7 +88,7 @@ jobs:
       - name: install external dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libmemcached-dev
+          sudo apt-get install libmemcached-dev libsasl2-modules
       # service containers can't override the command, which is needed for http
       - name: start fake-gcs-server
         run: |
@@ -101,6 +101,23 @@ jobs:
             sleep 1
           done
           docker logs fake-gcs-server
+          exit 1
+      # service containers can't run a command, which is needed to write the
+      # SASL config files and start memcached with -S
+      - name: start memcached with SASL
+        run: |
+          docker run -d --name memcached-sasl --hostname memcached-sasl \
+            -p 11213:11211 --entrypoint sh memcached:1.6.41 -c '
+              mkdir -p /tmp/sasl2 &&
+              echo "mech_list: plain" > /tmp/sasl2/memcached.conf &&
+              echo "cachelib@memcached-sasl:cachelib" > /tmp/memcached-sasl-pwdb &&
+              SASL_CONF_PATH=/tmp/sasl2 MEMCACHED_SASL_PWDB=/tmp/memcached-sasl-pwdb \
+              exec memcached -S'
+          for _ in $(seq 30); do
+            timeout 1 bash -c 'echo > /dev/tcp/127.0.0.1/11213' 2> /dev/null && exit 0
+            sleep 1
+          done
+          docker logs memcached-sasl
           exit 1
       - run: uv run --locked --no-default-groups --group dev tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
   typing:
