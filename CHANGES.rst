@@ -1,6 +1,8 @@
 Version 0.17.1
 --------------
 
+Released 2026-11-10
+
 - Add backends from flask-caching to prepare for deprecation of flask-caching
   backends and rely on cachelib backends that includes introducing new backends
   in cachelib like ``GoogleCloudStorageCache``, ``RedisSentinelCache``, and
