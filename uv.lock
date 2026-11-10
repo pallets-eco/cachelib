@@ -171,7 +171,7 @@ wheels = [
 
 [[package]]
 name = "cachelib"
-version = "0.17.0"
+version = "0.17.1.dev0"
 source = { editable = "." }
 default-groups = ["dev", "pre-commit", "tests", "typing"]
 

@@ -2,6 +2,7 @@ from cachelib.base import BaseCache
 from cachelib.base import NullCache
 from cachelib.dynamodb import DynamoDbCache
 from cachelib.file import FileSystemCache
+from cachelib.googlecloudstorage import GoogleCloudStorageCache
 from cachelib.memcached import MemcachedCache
 from cachelib.mongodb import MongoDbCache
 from cachelib.redis import RedisCache
@@ -13,12 +14,13 @@ __all__ = [
     "BaseCache",
     "NullCache",
     "SimpleCache",
-    "FileSystemCache",
-    "MemcachedCache",
-    "RedisCache",
-    "UWSGICache",
     "DynamoDbCache",
+    "FileSystemCache",
+    "GoogleCloudStorageCache",
+    "RedisCache",
+    "MemcachedCache",
     "MongoDbCache",
+    "UWSGICache",
     "ValkeyCache",
 ]
-__version__ = "0.17.0"
+__version__ = "0.17.1.dev"

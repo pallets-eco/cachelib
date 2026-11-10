@@ -13,20 +13,24 @@ class CommonTests(TestData):
         cache = self.cache_factory()
         for k, v in self.sample_pairs.items():
             assert cache.set(k, v)
-            assert cache.get(k) == v
+            assert cache.get(k) == self.expected_value(cache, v)
 
     def test_set_get_many(self):
         cache = self.cache_factory()
         result = cache.set_many(self.sample_pairs)
         assert result == list(self.sample_pairs.keys())
         values = cache.get_many(*self.sample_pairs)
-        assert values == list(self.sample_pairs.values())
+        assert values == [
+            self.expected_value(cache, v) for v in self.sample_pairs.values()
+        ]
 
     def test_get_dict(self):
         cache = self.cache_factory()
         cache.set_many(self.sample_pairs)
         d = cache.get_dict(*self.sample_pairs)
-        assert d == self.sample_pairs
+        assert d == {
+            k: self.expected_value(cache, v) for k, v in self.sample_pairs.items()
+        }
 
     def test_delete(self):
         cache = self.cache_factory()
@@ -61,10 +65,12 @@ class CommonTests(TestData):
         cache.set_many(self.sample_pairs)
         for k in self.sample_pairs:
             assert not cache.add(k, "updated")
-        assert cache.get_many(*self.sample_pairs) == list(self.sample_pairs.values())
+        assert cache.get_many(*self.sample_pairs) == [
+            self.expected_value(cache, v) for v in self.sample_pairs.values()
+        ]
         for k, v in self.sample_pairs.items():
             assert cache.add(f"{k}-new", v)
-            assert cache.get(f"{k}-new") == v
+            assert cache.get(f"{k}-new") == self.expected_value(cache, v)
 
     def test_inc_dec(self):
         cache = self.cache_factory()
@@ -107,7 +113,8 @@ class CommonTests(TestData):
             cache.set(f"{k}-td1", v, timeout=timedelta(seconds=1))
         sleep(4)
         for k, v in self.sample_pairs.items():
-            assert cache.get(f"{k}-t0") == v
+            expected = self.expected_value(cache, v)
+            assert cache.get(f"{k}-t0") == expected
             assert not cache.get(f"{k}-t1")
-            assert cache.get(f"{k}-td0") == v
+            assert cache.get(f"{k}-td0") == expected
             assert not cache.get(f"{k}-td1")

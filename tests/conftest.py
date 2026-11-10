@@ -109,6 +109,26 @@ def valkey_server(xprocess):
     xprocess.getinfo(package_name).terminate()
 
 
+@pytest.fixture(scope="class")
+def gcs_server():
+    """Points Google Cloud Storage clients at the emulator started with
+    ``docker compose up -d gcs`` and makes sure the test bucket exists.
+    """
+    package_name = "google.cloud.storage"
+    storage = pytest.importorskip(
+        modname=package_name, reason=f"could not find python package {package_name}"
+    )
+    from google.auth.credentials import AnonymousCredentials
+
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv("STORAGE_EMULATOR_HOST", "http://localhost:4443")
+        client = storage.Client(credentials=AnonymousCredentials(), project="test")
+        bucket = client.bucket("cachelib-test")
+        if not bucket.exists():
+            bucket.create()
+        yield
+
+
 @pytest.fixture(
     params=[None, "test-key-prefix:"], ids=["no_key_prefix", "with_key_prefix"]
 )
@@ -121,6 +141,13 @@ def key_prefix(request):
 
 class TestData:
     """This class centralizes all data samples used in tests"""
+
+    def expected_value(self, cache, value):
+        """The value ``cache`` is expected to return after storing ``value``.
+        Override for backends whose serializer can't round-trip every sample
+        exactly, such as JSON turning integer dict keys into strings.
+        """
+        return value
 
     sample_numbers = [0, 10, 1024000, 9, 5000000000000, 99, 738, 2000000]
     sample_pairs = {

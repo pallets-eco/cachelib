@@ -7,6 +7,7 @@ Supported backends include:
 
 - [DynamoDbCache](./src/cachelib/dynamodb.py) ([DynamoDB](https://aws.amazon.com/dynamodb/))
 - [FileSystemCache](./src/cachelib/file.py) (file based)
+- [GoogleCloudStorageCache](./src/cachelib/googlecloudstorage.py) ([Google Cloud Storage](https://cloud.google.com/storage))
 - [MemcachedCache](./src/cachelib/memcached.py) ([Memcached](https://memcached.org/))
 - [MongoDbCache](./src/cachelib/mongodb.py) ([MongoDB](https://www.mongodb.com/))
 - [RedisCache](./src/cachelib/redis.py) ([Redis](https://redis.io/))
