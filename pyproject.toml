@@ -1,6 +1,6 @@
 [project]
 name = "cachelib"
-version = "0.17.0"
+version = "0.17.1.dev"
 description = "A collection of cache libraries in the same API interface."
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -41,6 +41,9 @@ valkey = [
 uwsgi = [
     "uwsgi>=2.0.28",
 ]
+google-cloud-storage = [
+    "google-cloud-storage>=3.0.0",
+]
 
 [dependency-groups]
 dev = [
@@ -80,6 +83,7 @@ tests = [
     "redis>=6.0.0",
     "valkey>=6.1.0",
     "uwsgi>=2.0.28",
+    "google-cloud-storage>=3.0.0",
 ]
 typing = [
     "mypy",

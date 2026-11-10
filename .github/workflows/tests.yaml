@@ -89,6 +89,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libmemcached-dev
+      # service containers can't override the command, which is needed for http
+      - name: start fake-gcs-server
+        run: |
+          docker run -d --name fake-gcs-server -p 4443:4443 \
+            fsouza/fake-gcs-server:1.56.1 \
+            -scheme http -port 4443 \
+            -public-host localhost:4443 -external-url http://localhost:4443
+          for _ in $(seq 30); do
+            curl -sf http://localhost:4443/storage/v1/b > /dev/null && exit 0
+            sleep 1
+          done
+          docker logs fake-gcs-server
+          exit 1
       - run: uv run --locked --no-default-groups --group dev tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
   typing:
     runs-on: ubuntu-latest

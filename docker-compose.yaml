@@ -1,0 +1,83 @@
+services:
+  dynamodb:
+    container_name: cachelib-dynamodb
+    image: amazon/dynamodb-local:3.3.0
+    restart: always
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8000'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gcs:
+    container_name: cachelib-gcs
+    image: fsouza/fake-gcs-server:1.56.1
+    restart: always
+    command:
+      - "-scheme"
+      - "http"
+      - "-port"
+      - "4443"
+      - "-public-host"
+      - "localhost:4443"
+      - "-external-url"
+      - "http://localhost:4443"
+    ports:
+      - "4443:4443"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:4443/storage/v1/b"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  memcached:
+    container_name: cachelib-memcached
+    image: memcached:1.6.41
+    restart: always
+    ports:
+      - "11212:11211"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c 'echo > /dev/tcp/127.0.0.1/11211'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    container_name: cachelib-mongodb
+    # Pinned to 7.0.x: MongoDB 8.0+ (tcmalloc-google) fails to start on Linux
+    # kernel >= 6.19 due to an rseq bug (SERVER-121912), not yet fixed upstream.
+    image: mongo:7.0.40
+    restart: always
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.runCommand({ ping: 1 })'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: cachelib-redis
+    image: redis:8.6.3
+    restart: always
+    ports:
+      - "6360:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  valkey:
+    container_name: cachelib-valkey
+    image: valkey/valkey:9.0.4
+    restart: always
+    ports:
+      - "6370:6379"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -74,8 +74,9 @@ class MemcachedCache(BaseCache):
 
         .. versionadded:: 0.16.1
     :param memcache_client_lib: Optional. A string indicating which memcache client
-        library to use. Valid values are 'pylibmc', 'google', 'memcache', and 'libmc'.
-        If not provided, the library will be auto-detected based on availability.
+        library to use. Valid values are ``pylibmc``, ``google``, ``memcache``,
+        and ``libmc``. If not provided, the library will be auto-detected based on
+        availability.
 
         .. versionadded:: 0.17.0
     """

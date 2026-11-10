@@ -1,0 +1,16 @@
+<svg width="330" height="429" viewBox="0 0 330 429" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 68H325V366.5C325 397.98 253.366 423.5 165 423.5C76.6344 423.5 5 397.98 5 366.5V68Z" fill="#303030" stroke-width="10" stroke="white"/>
+<ellipse cx="165" cy="67.5" rx="160" ry="62.5" fill="#303030" stroke-width="10" stroke="white"/>
+<rect x="94" y="205.5" width="142" height="113" rx="4" stroke-width="7" stroke="white"/>
+<line x1="123" y1="201.5" x2="123" y2="186.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="162" y1="201.5" x2="162" y2="186.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="205" y1="201.5" x2="205" y2="186.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="255" y1="288.5" x2="240" y2="288.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="255" y1="239.5" x2="240" y2="239.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="90" y1="288.5" x2="75" y2="288.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="90" y1="242.5" x2="75" y2="242.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="123" y1="339.5" x2="123" y2="322.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="162" y1="339.5" x2="162" y2="322.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<line x1="205" y1="339.5" x2="205" y2="322.5" stroke-width="8" stroke-linecap="round" stroke="white"/>
+<path d="M164.04 266.75H147L158.675 224.5H171.337H184L164.04 259.031H174.02H184L149.636 302.5L164.04 266.75Z" fill="white"/>
+</svg>

@@ -2,6 +2,7 @@ backend
 backends
 callables
 dynamodb
+init
 memcached
 memcache
 mongodb

@@ -160,6 +160,10 @@ class MongoDbSerializer(BaseSerializer):
     """Default serializer for MongoDbCache."""
 
 
+class GoogleCloudStorageSerializer(JSONSerializer):
+    """Default serializer for GoogleCloudStorageCache."""
+
+
 class RedisSerializer(BaseRedisSerializer):
     """Default serializer for RedisCache."""
 
