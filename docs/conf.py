@@ -40,7 +40,6 @@ intersphinx_mapping = {
 # HTML -----------------------------------------------------------------
 
 html_theme = "werkzeug"
-html_theme_options = {"index_sidebar_logo": False}
 html_context = {
     "project_links": [
         ProjectLink("Donate", "https://palletsprojects.com/donate"),
@@ -57,6 +56,10 @@ html_sidebars = {
 singlehtml_sidebars = {"index": ["project.html", "localtoc.html", "ethicalads.html"]}
 html_title = f"{project} Documentation ({version})"
 html_show_sourcelink = False
+
+html_static_path = ["_static"]
+html_favicon = "_static/favicon.svg"
+html_logo = "_static/cachelib-logo.svg"
 
 # -- Options for copy button ---------------------------------------------------
 
