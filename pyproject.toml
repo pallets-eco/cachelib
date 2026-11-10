@@ -108,6 +108,9 @@ exclude = [
 
 [tool.uv]
 default-groups = ["dev", "pre-commit", "tests", "typing"]
+# pylibmc's wheels bundle libmemcached 1.0.16, whose SASL authentication fails
+# at random, so build it against the system libmemcached instead
+no-binary-package = ["pylibmc"]
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers"

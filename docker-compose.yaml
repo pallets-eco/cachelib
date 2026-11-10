@@ -44,6 +44,29 @@ services:
       timeout: 5s
       retries: 5
 
+  memcached-sasl:
+    container_name: cachelib-memcached-sasl
+    image: memcached:1.6.41
+    # SASL appends the hostname to the user name, so it has to be fixed for
+    # the password file entry below
+    hostname: memcached-sasl
+    restart: always
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        mkdir -p /tmp/sasl2
+        && echo "mech_list: plain" > /tmp/sasl2/memcached.conf
+        && echo "cachelib@memcached-sasl:cachelib" > /tmp/memcached-sasl-pwdb
+        && SASL_CONF_PATH=/tmp/sasl2 MEMCACHED_SASL_PWDB=/tmp/memcached-sasl-pwdb
+        exec memcached -S
+    ports:
+      - "11213:11211"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c 'echo > /dev/tcp/127.0.0.1/11211'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   mongodb:
     container_name: cachelib-mongodb
     # Pinned to 7.0.x: MongoDB 8.0+ (tcmalloc-google) fails to start on Linux

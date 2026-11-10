@@ -160,8 +160,8 @@ class MongoDbSerializer(BaseSerializer):
     """Default serializer for MongoDbCache."""
 
 
-class GoogleCloudStorageSerializer(JSONSerializer):
-    """Default serializer for GoogleCloudStorageCache."""
+class SpreadSASLMemcachedSerializer(BaseSerializer):
+    """Default serializer for SpreadSASLMemcachedCache."""
 
 
 class RedisSerializer(BaseRedisSerializer):
@@ -174,3 +174,7 @@ class ValkeySerializer(BaseRedisSerializer):
 
 class DynamoDbSerializer(BaseRedisSerializer):
     """Default serializer for DynamoDbCache."""
+
+
+class GoogleCloudStorageSerializer(JSONSerializer):
+    """Default serializer for GoogleCloudStorageCache."""

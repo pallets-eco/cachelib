@@ -3,6 +3,9 @@ Version 0.17.2
 
 Unreleased
 
+- Add ``SASLMemcachedCache`` and ``SpreadSASLMemcachedCache`` backends from
+  flask-caching.
+
 
 Version 0.17.1
 --------------
